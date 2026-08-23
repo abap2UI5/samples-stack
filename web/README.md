@@ -27,6 +27,17 @@ one scan (`scripts/lib/scan-samples.mjs`) so they cannot disagree:
 | the package READMEs | somebody who has already picked a technology |
 | this page | somebody who has installed nothing and is asking whether their system can run any of it |
 
+**The overview app is the one view that is not itself a card here.** It is this
+same catalogue rendered inside a system, so as a card it said *needs nothing
+beyond abap2UI5* on a page whose whole premise is that every sample needs
+something from the system, and it took a technology chip of its own that
+filtered the corpus down to one entry — itself. `generate-web-index.mjs` drops
+the class and its group before the page ever sees them, and *How to run one*
+names it in prose instead, where a way of browsing belongs. It stays in
+[`SAMPLES.md`](../SAMPLES.md) and in
+[`catalogue.json`](../catalogue.json), whose readers are inside the repository
+already.
+
 That last question is what makes this page different from the two next door.
 [samples](https://abap2ui5.github.io/samples/) publishes a learning path,
 because *"where do I start"* is what a newcomer arrives with;
@@ -147,6 +158,8 @@ reported and skipped — the `sap.ui.comp` smart controls (SAPUI5-only, not in
 the harness's OpenUI5 runtime) and the `z2ui5.cc` custom controls, mostly —
 and the `<img>` removes itself when its file is missing, so a card without a
 thumbnail is complete, not broken. AGENTS.md §8 carries the measured count.
+The script photographs exactly what the page draws a card for, so it skips the
+overview app too — a picture no card loads is a render per deploy for nothing.
 
 ## Running it locally
 

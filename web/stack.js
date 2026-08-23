@@ -20,8 +20,15 @@
  *   APC channel, a launchpad. Each app would open there and fail, so the links
  *   go to the source and to the package README that says how to set it up.
  *
- *   THE TECHNOLOGY FACET IS CHIPS, not a select: ten values, and seeing all
- *   ten at once is half the answer to "what is even in this repository".
+ *   THE TECHNOLOGY FACET IS CHIPS, not a select: nine values, and seeing all
+ *   nine at once is half the answer to "what is even in this repository".
+ *
+ *   THE OVERVIEW APP IS NOT IN apps.json, and nothing here has to know that:
+ *   `Z2UI5_CL_SMPS_APP_000` is this same catalogue inside a system, not a
+ *   sample of the stack, and generate-web-index.mjs leaves it and its group
+ *   out (it says why). So every package here has a branch and a README of its
+ *   own, and every app belongs to one — which is what lets this file draw a
+ *   card and a package without asking whether it is the special one.
  */
 
 /* ------------------------------------------------------------------ state */
@@ -172,10 +179,9 @@ function drawPackageLine(f) {
   els.pkgline.innerHTML = `
     <b>${esc(p.title)}</b> — ${md(p.topic)}.
     Plays together with ${md(p.needs)}. Runs on ${esc(p.runsOn)}.
-    ${p.dir === DATA.overviewApp ? '' : `
-      Install it alone from the branch
-      <a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener"><code>${esc(p.branch)}</code></a>,
-      or read <a href="${esc(DATA.source + p.readme)}" target="_blank" rel="noopener">its README</a>.`}
+    Install it alone from the branch
+    <a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener"><code>${esc(p.branch)}</code></a>,
+    or read <a href="${esc(DATA.source + p.readme)}" target="_blank" rel="noopener">its README</a>.
     ${p.note ? `<br><em>${md(p.note)}</em>` : ''}`;
 }
 
@@ -230,8 +236,7 @@ function card(app, tokens) {
       <div class="actions">
         <a class="primary" href="${esc(DATA.source + app.file)}" target="_blank" rel="noopener">Source ↗</a>
         <a href="${esc(DATA.source + p.readme)}" target="_blank" rel="noopener">Setup ↗</a>
-        ${app.pkg === DATA.overviewApp ? '' :
-          `<a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener" title="This package alone, for abapGit">Branch ↗</a>`}
+        <a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener" title="This package alone, for abapGit">Branch ↗</a>
       </div>
     </article>`;
 }
@@ -246,10 +251,10 @@ function drawPackages() {
       <p>${md(p.topic)}</p>
       <p><b>Plays together with</b> ${md(p.needs)}</p>
       <p class="meta">
-        ${p.dir === DATA.overviewApp ? 'src' : `src/${esc(p.dir)}`} ·
+        src/${esc(p.dir)} ·
         ${esc(p.runsOn)} ·
-        ${p.count} sample${p.count === 1 ? '' : 's'}
-        ${p.dir === DATA.overviewApp ? '' : ` · <a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener">${esc(p.branch)}</a>`}
+        ${p.count} sample${p.count === 1 ? '' : 's'} ·
+        <a href="${esc(DATA.tree + p.branch)}" target="_blank" rel="noopener">${esc(p.branch)}</a>
       </p>
       ${p.note ? `<p class="note">${md(p.note)}</p>` : ''}
     </article>`).join('');
@@ -316,7 +321,7 @@ async function boot() {
   for (const app of DATA.apps) app.hay = haystack(app, PKG.get(app.pkg));
 
   els.total.textContent = String(DATA.apps.length);
-  els.pkgcount.textContent = String(DATA.packages.filter((p) => p.dir !== DATA.overviewApp).length);
+  els.pkgcount.textContent = String(DATA.packages.length);
 
   buildFacets();
   drawPackages();

@@ -340,6 +340,15 @@ what matters here:
   and the README's package table (what a package plays together with). Adding a
   sample or a package therefore needs **no step for the page**: `npm run
   samples:md`, and it is on both.
+- **The overview app is not on it.** `Z2UI5_CL_SMPS_APP_000` is this same
+  catalogue inside a system, and as a card it contradicted the page: *needs
+  nothing beyond abap2UI5*, on a page built around what a sample needs from the
+  system — plus a technology chip that filtered ten groups down to itself.
+  `generate-web-index.mjs` drops the class and its group (and
+  `generate-screenshots.mjs` takes no picture of it), the page names it in *How
+  to run one* instead, and `SAMPLES.md` and `catalogue.json` keep it — their
+  reader is in the repository already. So the page shows **31 samples in 9
+  groups** where the two catalogues show 32.
 - **`web/apps.json` is generated and not committed** — `npm run web:index`
   writes it, `deploy-web` writes it again on every deploy. A committed copy
   would put a diff of derived data on every sample pull request.
@@ -353,7 +362,7 @@ what matters here:
   A view the harness cannot render is reported and skipped, and the page
   treats the missing file as "no picture" (the `<img>` removes itself), so a
   card without a thumbnail is normal, not broken. Measured over the corpus
-  (2026-08): **19 of 32 app views render.** The 13 skips are three stable
+  (2026-08): **18 of 31 app views render.** The 13 skips are three stable
   categories — `sap.ui.comp` controls (SAPUI5-only, absent from the
   harness's OpenUI5 runtime: 7 of the 9 Smart Controls samples), `z2ui5.cc`
   custom controls that do not load headless (the WebSocket, MIME-audio and

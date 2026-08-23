@@ -28,6 +28,17 @@
  * cannot work is worse than no link, so the cards link into the SOURCE and
  * into the package README that says how to set the sample up.
  *
+ * THE OVERVIEW APP IS NOT ON THIS PAGE. `Z2UI5_CL_SMPS_APP_000` is this same
+ * catalogue rendered inside a system, and as a card it answered the page's own
+ * question with a contradiction — *needs nothing beyond abap2UI5*, on a page
+ * whose premise is that everything here needs something from the system — while
+ * taking a technology chip of its own that filtered ten groups down to itself.
+ * It is a way to browse the corpus, not something to browse the corpus for, so
+ * the page names it in *How to run one* and leaves the cards to the samples.
+ * Dropped here rather than in web/stack.js: the page draws what it is given,
+ * and SAMPLES.md and catalogue.json still carry the overview app, because a
+ * reader of those is inside the repository already.
+ *
  * Where every fact comes from — no fact is restated here, all of them are read
  * out of what the repository already keeps:
  *
@@ -56,7 +67,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { scanSamples, sampleTitle } from './lib/scan-samples.mjs';
+import { scanSamples, sampleTitle, OVERVIEW_CLASS } from './lib/scan-samples.mjs';
 import { packages, OVERVIEW_PKG } from './lib/read-packages.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -148,11 +159,18 @@ function abapDoc(source) {
 
 /* `count` is the page's own derived state — apps per group, for the chips —
  * so it is added here rather than carried by the shared package merge. */
-const byDir = new Map(packages(ROOT).map((p) => [p.dir, { ...p, count: 0 }]));
+const byDir = new Map(packages(ROOT)
+  .filter((p) => p.dir !== OVERVIEW_PKG.dir)
+  .map((p) => [p.dir, { ...p, count: 0 }]));
 const all = scanSamples(ROOT);
 const apps = [];
 
-for (const s of all.filter((x) => x.isApp)) {
+/* The overview app and its group, left out for the reason at the top of this
+ * file. It is the only app of `src/` itself, so dropping the class and dropping
+ * the group are the same cut made twice — and it has to happen before the
+ * unknown-package check below, which is there to catch an app that landed in a
+ * subpackage by accident. */
+for (const s of all.filter((x) => x.isApp && x.cls !== OVERVIEW_CLASS)) {
   const pkg = byDir.get(s.pkg);
   /* A subpackage — src/03/01 holds the business object, not an app. If an app
    * ever lands in one, the page would silently lose it, so say so instead. */
@@ -176,7 +194,6 @@ const index = {
   repo: REPO,
   source: SOURCE,
   tree: TREE,
-  overviewApp: OVERVIEW_PKG.dir,
   packages: [...byDir.values()],
   apps,
 };

@@ -129,6 +129,16 @@ export function scanSamples(root) {
   return out.sort((a, b) => a.pkg.localeCompare(b.pkg) || a.cls.localeCompare(b.cls));
 }
 
+/**
+ * The overview app — the catalogue of this repository inside a system.
+ *
+ * An app like any other to abapGit, to the checks and to SAMPLES.md, and the
+ * one app the page in web/ leaves out (generate-web-index.mjs says why). The
+ * two generators behind that page name it from here rather than each keeping
+ * a copy of the string.
+ */
+export const OVERVIEW_CLASS = 'z2ui5_cl_smps_app_000';
+
 /*
  * The overview app's own catalogue, read back out — for the COMPLETENESS check
  * only, no longer as a source of text.
@@ -150,7 +160,7 @@ export function scanSamples(root) {
  */
 const ENTRY = /sample\(\s*no\s*=\s*`([^`]*)`[\s\S]*?title\s*=\s*`([^`]*)`[\s\S]*?detail\s*=\s*`([^`]*)`[\s\S]*?classname\s*=\s*`([^`]*)`/g;
 
-export function scanOverview(root, overviewClass = 'z2ui5_cl_smps_app_000') {
+export function scanOverview(root, overviewClass = OVERVIEW_CLASS) {
   const file = path.join(root, 'src', `${overviewClass}.clas.abap`);
   const text = fs.readFileSync(file, 'utf8');
   const byClass = new Map();

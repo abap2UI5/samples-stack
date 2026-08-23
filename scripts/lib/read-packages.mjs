@@ -31,7 +31,11 @@ import path from 'path';
  * branch's own syntax version, and the lowest of those is v740sp08 — so
  * 7.40 SP08 is measured, exactly like the numbers in packages.json. Cloud
  * likewise: the overview resolves every sample by name at runtime and calls no
- * on-premise API, which is what puts it on the cloud-capable branches. */
+ * on-premise API, which is what puts it on the cloud-capable branches.
+ *
+ * The page in web/ is the one consumer that drops this group again — there the
+ * overview app is not a sample of the stack but the same catalogue in a system,
+ * and generate-web-index.mjs says why. catalogue.json keeps it. */
 export const OVERVIEW_PKG = {
   dir: '.',
   branch: 'main',
