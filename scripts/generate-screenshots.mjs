@@ -20,7 +20,7 @@
  * sample pull request carries no binary diff. The page treats a missing
  * picture as "no picture" (the <img> removes itself), so this script is
  * allowed to skip what it cannot photograph. Measured over the whole corpus
- * (2026-08): 19 of 32 app views render; the three skip reasons are stable and
+ * (2026-08): 18 of 31 app views render; the three skip reasons are stable and
  * documented in AGENTS.md §8 - `sap.ui.comp` is SAPUI5-only and not in the
  * harness's OpenUI5 runtime, `z2ui5.cc` custom controls do not load headless,
  * and the mock model seeds an empty ObjectStatus state. Each skipped card
@@ -41,7 +41,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { screenshotFiles } from '@abap2ui5/linter';
-import { scanSamples } from './lib/scan-samples.mjs';
+import { scanSamples, OVERVIEW_CLASS } from './lib/scan-samples.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const argOut = process.argv.indexOf('--out');
@@ -63,10 +63,14 @@ const SIZE = { width: 800, height: 600 };
  * would take all pictures with it. */
 const CHUNK = 25;
 
-/* Every app of the repository, the same scan the page itself is built from -
- * helpers (behavior pools, demo data, the APC protocol class) have no card
- * and get no picture. */
-const apps = scanSamples(ROOT).filter((s) => s.isApp).slice(0, LIMIT);
+/* Every app the page shows a card for, the same scan and the same cut the page
+ * itself is built from - helpers (behavior pools, demo data, the APC protocol
+ * class) have no card and get no picture, and neither does the overview app,
+ * which generate-web-index.mjs leaves off the page (it says why). Photographing
+ * it would cost a render per deploy for a file nothing loads. */
+const apps = scanSamples(ROOT)
+  .filter((s) => s.isApp && s.cls !== OVERVIEW_CLASS)
+  .slice(0, LIMIT);
 fs.mkdirSync(OUT, { recursive: true });
 
 let written = 0;
