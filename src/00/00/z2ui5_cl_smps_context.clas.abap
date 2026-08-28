@@ -302,9 +302,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
       text = `The operation failed, no further details available`.
     ENDIF.
 
-    client->message_box_display(
-        text = text
-        type = cs_ui5_msg_type-e ).
+    client->message_box_display( text = text type = cs_ui5_msg_type-e ).
 
   ENDMETHOD.
 
@@ -344,8 +342,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
 
     DATA(lt_param) = url_param_get_tab( search ).
     DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start`
-                    v = to_lower( classname ) ) INTO TABLE lt_param.
+    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
 
     " keep only the launchpad shell part of the hash: the app-owned part
     " (leading `/` standalone, or everything after `&/` inside the FLP)
@@ -356,16 +353,14 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
     IF lv_hash IS NOT INITIAL.
       DATA(lv_content) = lv_hash.
       IF lv_content(1) = `#`.
-        lv_content = substring( val = lv_content
-                                off = 1 ).
+        lv_content = substring( val = lv_content off = 1 ).
       ENDIF.
       IF lv_content IS INITIAL OR lv_content(1) = `/`.
         " pure app hash (route or app-state) - drop it entirely
         lv_hash = ``.
       ELSE.
         " inside the FLP keep the shell part, cut the app part after `&/`
-        DATA(lv_off) = find( val = lv_content
-                             sub = `&/` ).
+        DATA(lv_off) = find( val = lv_content sub = `&/` ).
         IF lv_off = 0.
           lv_hash = ``.
         ELSEIF lv_off > 0.
@@ -383,10 +378,8 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
   METHOD c_trim.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
-    result = shift_right( val = result
-                          sub = cv_char_util_horizontal_tab ).
-    result = shift_left( val = result
-                         sub = cv_char_util_horizontal_tab ).
+    result = shift_right( val = result sub = cv_char_util_horizontal_tab ).
+    result = shift_left( val = result sub = cv_char_util_horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
@@ -442,8 +435,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
         DATA(lx) = CAST cx_root( val ).
         DATA(ls_result) = VALUE ty_s_msg( type = `E` text = lx->get_text( ) ).
         DATA(lt_attri_o) = rtti_get_t_attri_by_oref( val ).
-        LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
-             WHERE visibility = `U`.
+        LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) WHERE visibility = `U`.
           DATA(lv_name) = ls_attri_o->name.
           ASSIGN val->(lv_name) TO <comp>.
           IF sy-subrc <> 0.
@@ -600,8 +592,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
             ENDTRY.
           ENDIF.
         ELSE.
-          INSERT LINES OF msg_get_rap( val         = <row>
-                                       entity_name = ls_attri->name ) INTO TABLE result.
+          INSERT LINES OF msg_get_rap( val = <row> entity_name = ls_attri->name ) INTO TABLE result.
         ENDIF.
       ENDLOOP.
     ENDLOOP.
@@ -788,9 +779,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
         IF entity_name IS NOT INITIAL.
           lv_text = |{ entity_name }: { lv_text }|.
         ENDIF.
-        INSERT VALUE #( type   = `E`
-                        text   = lv_text
-                        t_meta = lt_meta ) INTO TABLE messages.
+        INSERT VALUE #( type = `E` text = lv_text t_meta = lt_meta ) INTO TABLE messages.
       ENDIF.
     ENDIF.
 
@@ -893,8 +882,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
     " descriptor instances are singletons per type, so the identity check
     " guards against absolute names reused by other (local/anonymous) types
     DATA(lv_absolute_name) = CONV string( lo_struct->absolute_name ).
-    READ TABLE mt_attri_cache REFERENCE INTO DATA(lr_cache)
-         WITH TABLE KEY absolute_name = lv_absolute_name.
+    READ TABLE mt_attri_cache REFERENCE INTO DATA(lr_cache) WITH TABLE KEY absolute_name = lv_absolute_name.
     IF sy-subrc = 0 AND lr_cache->o_struct = lo_struct.
       result = lr_cache->t_attri.
       RETURN.
@@ -982,8 +970,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
     LOOP AT t_params INTO DATA(ls_param).
       result = |{ result }{ ls_param-n }={ ls_param-v }&|.
     ENDLOOP.
-    result = shift_right( val = result
-                          sub = `&` ).
+    result = shift_right( val = result sub = `&` ).
 
   ENDMETHOD.
 
@@ -1006,17 +993,14 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
                          with = `&`
                          occ  = 0 ).
 
-    lv_search = shift_left( val = lv_search
-                            sub = `?` ).
+    lv_search = shift_left( val = lv_search sub = `?` ).
 
     " prepend & before searching so sap-startup-params is also unwrapped
     " when it is the first/only query parameter (typical FLP target mapping)
-    DATA(lv_search2) = substring_after( val = |&{ lv_search }|
-                                        sub = `&sap-startup-params=` ).
+    DATA(lv_search2) = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
-    lv_search2 = substring_after( val = lv_search
-                                  sub = `?` ).
+    lv_search2 = substring_after( val = lv_search sub = `?` ).
     IF lv_search2 IS NOT INITIAL.
       lv_search = lv_search2.
     ENDIF.
@@ -1034,8 +1018,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
       " normalize the name so lookups are case-insensitive on every input
       " shape (with or without a leading path/question mark) - the value
       " keeps its original case
-      INSERT VALUE #( n = c_trim_lower( lv_name )
-                      v = lv_value ) INTO TABLE rt_params.
+      INSERT VALUE #( n = c_trim_lower( lv_name ) v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
 
   ENDMETHOD.

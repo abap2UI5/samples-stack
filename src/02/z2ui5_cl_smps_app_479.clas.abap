@@ -59,8 +59,7 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
                   )->a( n = `navigate`                  v = client->_event( val   = `NAVIGATE`
                                                                                           t_arg = VALUE #( ( `${$parameters>/text}` ) ) ) ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = c_odata_service ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
     ELSEIF client->check_on_event( `NAV_TARGETS_OBTAINED` ).
       " The tutorial answers this event by composing the navigation popover

@@ -83,8 +83,7 @@ CLASS z2ui5_cl_smps_app_476 IMPLEMENTATION.
               )->ele( n = `SmartField` ns = `smartField`
                   )->a( n = `value` v = `{SupplierName}` ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = c_odata_service ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
     ENDIF.
 

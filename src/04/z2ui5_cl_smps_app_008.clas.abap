@@ -108,8 +108,7 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
     SELECT FROM z2ui5_r_smps_trd
       FIELDS TravelUuid
       ORDER BY TravelId
-      INTO TABLE @DATA(t_result)
-      UP TO 20 ROWS.
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
 
     " read the DRAFT instances, not the active ones - so the form below
     " shows what is currently in the draft, which is what gets changed

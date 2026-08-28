@@ -63,8 +63,7 @@ CLASS z2ui5_cl_smps_app_475 IMPLEMENTATION.
                   )->a( n = `value` v = `{Price}`
                   )->a( n = `id`    v = `idPrice` ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = c_odata_service ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
     ENDIF.
 

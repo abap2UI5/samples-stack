@@ -312,9 +312,7 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
             )->a( n = `header`      v = `Sample information`
             )->a( n = `pageId`      v = `sampleInformationId` ).
 
-    client->popover_display(
-      xml   = view->stringify( )
-      by_id = `button_hint_id` ).
+    client->popover_display( xml = view->stringify( ) by_id = `button_hint_id` ).
 
   ENDMETHOD.
 

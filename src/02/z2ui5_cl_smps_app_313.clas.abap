@@ -67,8 +67,7 @@ CLASS z2ui5_cl_smps_app_313 IMPLEMENTATION.
               )->a( n = `enableExport`            b = abap_false
               )->a( n = `enableAutoBinding`       b = abap_false ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = `/sap/opu/odata/sap/UI_PRODUCTLIST/` ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = `/sap/opu/odata/sap/UI_PRODUCTLIST/` ).
 
     ENDIF.
 
