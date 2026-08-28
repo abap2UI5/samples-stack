@@ -39,8 +39,7 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD initialize_view.
 
-    set_session_stateful( client   = client
-                          stateful = abap_true ).
+    set_session_stateful( client = client stateful = abap_true ).
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
@@ -111,18 +110,15 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
     CASE client->get_event( ).
       WHEN `BACK`.
-        set_session_stateful( client   = client
-                              stateful = abap_false ).
+        set_session_stateful( client = client stateful = abap_false ).
         client->nav_app_leave( ).
       WHEN `LOCK`.
         lcl_locking=>acquire_lock( ).
         client->message_toast_display( `Lock acquired. Press 'Refresh lock counter'` ).
       WHEN `END_SESSION`.
-        set_session_stateful( client   = client
-                              stateful = abap_false ).
+        set_session_stateful( client = client stateful = abap_false ).
       WHEN `START_SESSION`.
-        set_session_stateful( client   = client
-                              stateful = abap_true ).
+        set_session_stateful( client = client stateful = abap_true ).
       WHEN `REFRESH`.
         update_lock_counter( ).
       WHEN `ROLLBACK`.

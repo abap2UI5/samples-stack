@@ -66,11 +66,9 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
     " table, and after a few creates and deletes the lowest key is a
     " different one.
     SELECT SINGLE FROM z2ui5_r_smps_trv
-      FIELDS MIN( TravelId )
-      INTO @DATA(first_id).
+      FIELDS MIN( TravelId ) INTO @DATA(first_id).
 
-    travel_id = COND #( WHEN first_id IS NOT INITIAL
-                        THEN |{ first_id ALPHA = OUT }| ).
+    travel_id = COND #( WHEN first_id IS NOT INITIAL THEN |{ first_id ALPHA = OUT }| ).
 
   ENDMETHOD.
 
@@ -86,9 +84,7 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       s_travel = VALUE #( ).
-      client->message_box_display(
-          text = |Travel { travel_id } does not exist|
-          type = `error` ).
+      client->message_box_display( text = |Travel { travel_id } does not exist| type = `error` ).
 
     ELSE.
 

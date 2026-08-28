@@ -26,9 +26,7 @@ CLASS z2ui5_cl_smps_app_489_ws DEFINITION PUBLIC
 
     CLASS-METHODS get_producer
       RETURNING
-        VALUE(producer) TYPE REF TO if_amc_message_producer_text
-      RAISING
-        cx_amc_error.
+        VALUE(producer) TYPE REF TO if_amc_message_producer_text RAISING cx_amc_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -89,9 +87,7 @@ CLASS z2ui5_cl_smps_app_489_ws IMPLEMENTATION.
 
     SELECT
       FROM amc_receiver2
-      FIELDS COUNT( * )
-      WHERE channel_id = @( to_lower( |{ c_amc_application_id }{ c_channel_id }| ) )
-      INTO @result.
+      FIELDS COUNT( * ) WHERE channel_id = @( to_lower( |{ c_amc_application_id }{ c_channel_id }| ) ) INTO @result.
 
   ENDMETHOD.
 

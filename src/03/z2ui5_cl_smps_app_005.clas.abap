@@ -305,8 +305,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
              OverallStatus,
              Description
       ORDER BY TravelId DESCENDING
-      INTO TABLE @DATA(t_result)
-      UP TO 20 ROWS.
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
 
     t_travels = VALUE #( FOR s_result IN t_result
         ( travel_id      = |{ s_result-travelid ALPHA = OUT }|

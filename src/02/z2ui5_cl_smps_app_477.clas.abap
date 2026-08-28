@@ -70,8 +70,7 @@ CLASS z2ui5_cl_smps_app_477 IMPLEMENTATION.
           )->a( n = `enableExport`            v = `false`
           )->a( n = `enableAutoBinding`       v = `true` ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = c_odata_service ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
     ENDIF.
 

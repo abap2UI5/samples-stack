@@ -296,8 +296,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
              overallstatus,
              description
       ORDER BY travelid DESCENDING
-      INTO TABLE @DATA(t_result)
-      UP TO 20 ROWS.
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
 
     " a draft instance shares the key of its active instance - reading
     " the keys with %is_draft = on reveals which travels have a draft

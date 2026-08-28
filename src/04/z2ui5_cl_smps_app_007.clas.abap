@@ -141,8 +141,7 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
              TravelId,
              Description
       ORDER BY TravelId
-      INTO TABLE @DATA(t_result)
-      UP TO 20 ROWS.
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
 
     " see z2ui5_cl_smps_app_006 for what this read does - the description is
     " read along so the table can show the draft next to the active instance

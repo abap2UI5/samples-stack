@@ -75,8 +75,7 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
              Description,
              OverallStatus
       ORDER BY TravelId
-      INTO TABLE @DATA(t_result)
-      UP TO 20 ROWS.
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
 
     " A draft shares the key of its active instance - only %is_draft tells
     " the two apart. So reading the keys with %is_draft = on answers the

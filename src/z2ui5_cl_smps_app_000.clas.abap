@@ -332,8 +332,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
             " can give, and it is what the silent catch here used to produce.
             " Only the running system knows why the overview app of the other
             " repository did not start, so let it say so.
-            client->message_box_display( text = |{ classname }: { error->get_text( ) }|
-                                         type = `error` ).
+            client->message_box_display( text = |{ classname }: { error->get_text( ) }| type = `error` ).
         ENDTRY.
 
     ENDCASE.
@@ -357,8 +356,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     " title and back button come with the custom header (render_header), not
     " with the page - a Page renders either its own header or a custom one
-    render_header( page  = page
-                   title = `abap2UI5 - samples-stack - 00 Overview` ).
+    render_header( page = page title = `abap2UI5 - samples-stack - 00 Overview` ).
 
     page->tag( `MessageStrip`
         )->a( n = `text`     v = `Every sample of this repository, one package per section - Open starts it ` &&
@@ -530,8 +528,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                     )->a( n = `target` v = `_blank`
                     )->a( n = `class`  v = `sapUiSmallMarginTop` ).
 
-    client->popover_display( xml   = info->stringify( )
-                             by_id = anchor ).
+    client->popover_display( xml = info->stringify( ) by_id = anchor ).
 
   ENDMETHOD.
 
@@ -959,8 +956,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     DATA(lt_param) = url_param_get_tab( search ).
     DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start`
-                    v = to_lower( classname ) ) INTO TABLE lt_param.
+    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
 
     " keep only the launchpad shell part of the hash: the app-owned part
     " (leading `/` standalone, or everything after `&/` inside the FLP)
@@ -971,16 +967,14 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     IF lv_hash IS NOT INITIAL.
       DATA(lv_content) = lv_hash.
       IF lv_content(1) = `#`.
-        lv_content = substring( val = lv_content
-                                off = 1 ).
+        lv_content = substring( val = lv_content off = 1 ).
       ENDIF.
       IF lv_content IS INITIAL OR lv_content(1) = `/`.
         " pure app hash (route or app-state) - drop it entirely
         lv_hash = ``.
       ELSE.
         " inside the FLP keep the shell part, cut the app part after `&/`
-        DATA(lv_off) = find( val = lv_content
-                             sub = `&/` ).
+        DATA(lv_off) = find( val = lv_content sub = `&/` ).
         IF lv_off = 0.
           lv_hash = ``.
         ELSEIF lv_off > 0.
@@ -1015,17 +1009,14 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                          with = `&`
                          occ  = 0 ).
 
-    lv_search = shift_left( val = lv_search
-                            sub = `?` ).
+    lv_search = shift_left( val = lv_search sub = `?` ).
 
     " prepend & before searching so sap-startup-params is also unwrapped
     " when it is the first/only query parameter (typical FLP target mapping)
-    DATA(lv_search2) = substring_after( val = |&{ lv_search }|
-                                        sub = `&sap-startup-params=` ).
+    DATA(lv_search2) = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
-    lv_search2 = substring_after( val = lv_search
-                                  sub = `?` ).
+    lv_search2 = substring_after( val = lv_search sub = `?` ).
     IF lv_search2 IS NOT INITIAL.
       lv_search = lv_search2.
     ENDIF.
@@ -1042,8 +1033,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ENDIF.
       " normalize the name so the app_start lookup is case-insensitive on
       " every input shape - the value keeps its original case
-      INSERT VALUE #( n = to_lower( condense( lv_name ) )
-                      v = lv_value ) INTO TABLE rt_params.
+      INSERT VALUE #( n = to_lower( condense( lv_name ) ) v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1054,8 +1044,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     LOOP AT t_params INTO DATA(ls_param).
       result = |{ result }{ ls_param-n }={ ls_param-v }&|.
     ENDLOOP.
-    result = shift_right( val = result
-                          sub = `&` ).
+    result = shift_right( val = result sub = `&` ).
 
   ENDMETHOD.
 

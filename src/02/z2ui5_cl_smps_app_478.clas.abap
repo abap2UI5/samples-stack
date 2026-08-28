@@ -89,8 +89,7 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
           )->a( n = `persistencyKey`          v = `SmartTablePKey`
           )->a( n = `smartVariant`            v = `pageVariantId` ).
 
-      client->view_display( val                       = view->stringify( )
-                            switch_default_model_path = c_odata_service ).
+      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
       " The handshake a controller would do: without initialise( ) the page variant
       " never gets a personalizable control, so saving a view dies in sap.ui.fl and
