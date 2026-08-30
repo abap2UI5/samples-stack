@@ -15,7 +15,7 @@
     "samples:md": "node scripts/generate-samples-md.mjs",
     "check:samples-md": "node scripts/generate-samples-md.mjs --check",
     "catalogue": "node scripts/generate-catalogue.mjs",
-    "check:catalogue": "node scripts/generate-catalogue.mjs --check",
+    "check:catalogue": "node scripts/generate-catalogue.mjs --check && node scripts/check-catalogue-contract.mjs",
     "check:app-rules": "node scripts/check-app-rules.mjs",
     "check:pin": "node scripts/check-framework-pin.mjs",
     "check:prose": "node scripts/check-prose-names.mjs",
