@@ -246,10 +246,10 @@ and the view it builds, with a headless render of every view) and `npm run
 check:overview`. `npm run fmt:chains` applies the house chain layout.
 [`AGENTS.md`](AGENTS.md) has the conventions those checks enforce.
 
-Every check below has a workflow, and every workflow is a step of `npm run
-check` — the two lists are the same list, which is the only thing that makes a
-green run here mean a green run there. The node checks carry no dependencies, so
-they take seconds.
+Every `check-*` workflow below is a step of `npm run check`, and every step
+has its workflow — which is what makes a green run here mean a green run
+there. The last two rows are build-and-publish jobs, not checks, and run only
+in CI. The node checks carry no dependencies, so they take seconds.
 
 | Workflow | What it does |
 |---|---|
@@ -262,6 +262,8 @@ they take seconds.
 | `check-abapdoc` | every `"!` block documents the declaration below it, rather than attaching to nothing |
 | `check-app-rules` | the shared abaplint rule block still matches its source in [abap2UI5](https://github.com/abap2UI5/abap2UI5) |
 | `check-prose-names` | every class name written in prose exists — including the sibling repositories' |
+| `check-framework-pin` | the abaplint config pins abap2UI5 to a release tag, never to whatever is on `main` |
+| `check-family-nav` | the learning-path block on the [page](https://abap2ui5.github.io/samples-stack/) links the two sibling repositories correctly |
 | `check-web` | the data behind the [page](https://abap2ui5.github.io/samples-stack/) can still be generated — every package has a README row that parses, every app sits in a package |
 | `create-package-branches` | rebuilds the nine per-package branches, each verified with abaplint at its own release before it is pushed |
 | `deploy-web` | publishes [`web/`](web/README.md) to GitHub Pages on every push to `main` that touches the tree it describes |

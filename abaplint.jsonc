@@ -25,7 +25,7 @@
     },
     {
       "url": "https://github.com/abap2UI5/abap2UI5",
-      "branch": "1.143.0",
+      "branch": "1.144.0",
       "folder": "/abap2UI5",
       "files": "/src/**/*.*"
     }
@@ -89,7 +89,7 @@
     "abapdoc": false,
     // --- off: the view builder chain owns its own layout --------------
     // A view is one statement spanning up to several hundred lines, laid out
-    // by rules that "npm run check:chains" (scripts/chain-format.mjs) gates -
+    // by rules that the linter's chain-house-layout ("npm run check:abap2ui5") gates -
     // and that gate is stricter than anything here. Every one of these rules
     // reads a chain as a malformed parameter list: 5,087 findings from
     // line_break_multiple_parameters alone, all of them correct chains.
@@ -249,9 +249,9 @@
       "try": true,
       "when": false
     },
-    // The overview app is generated (npm run overview) - its render method is
-    // one long emit, and shortening it means changing the generator's output
-    // shape, not the repository's code.
+    // The overview app is hand-written but held to its shape by
+    // scripts/check-overview.mjs - its render method is one long emit, and
+    // shortening it means reworking the checked structure, not one method.
     "method_length": {
       "statements": 100,
       "errorWhenEmpty": false,
