@@ -306,9 +306,10 @@ gone.
   file, one `raw.githubusercontent.com` fetch away, without running anything.
   It introduces no source of truth: everything in it comes out of the same
   scan behind SAMPLES.md (`scripts/lib/scan-samples.mjs`) and the same package
-  merge behind the page (`scripts/lib/read-packages.mjs`). Committed, unlike
-  `web/apps.json`, because its reader runs no generator — which is exactly why
-  the freshness check exists.
+  merge behind it (`scripts/lib/read-packages.mjs`). Committed because its
+  reader runs no generator — which is exactly why the freshness check exists —
+  and dependency-free, which is why the linter-derived facts live beside it in
+  `catalogue-derived.json` rather than in it (§8).
 
 ## 7. When you add a sample
 
@@ -321,73 +322,80 @@ gone.
 4. Give it a `" @keywords` line as its first line (§6) — what somebody would
    type who does not know your sample exists.
 5. Say what it needs in the package README if it needs anything new.
-6. `npm run samples:md` and `npm run catalogue`, and commit `SAMPLES.md` and
-   `catalogue.json` with it (§6).
+6. `npm run samples:md`, `npm run catalogue` and `npm run derived`, and commit
+   `SAMPLES.md`, `catalogue.json` and `catalogue-derived.json` with it (§6, §8).
 7. `npm run check`.
 
-## 8. The page in `web/`
+## 8. The catalogue — published from the playground
 
-**<https://abap2ui5.github.io/samples-stack/>** — the catalogue as a searchable
-page, for somebody who has installed nothing yet and is asking whether their
-system can run any of it. Three hand-written files — `index.html`, `stack.css`,
-`stack.js` — plus two generated-at-deploy pieces, `web/apps.json` and the
-`web/thumbs/` thumbnails. [`web/README.md`](web/README.md) has the detail;
-what matters here:
+**<https://abap2ui5.github.io/playground/samples/>** — every sample of this
+repository, of `abap2UI5/samples` and of `abap2UI5/samples-controls`,
+searchable, for somebody who has installed nothing yet and is asking whether
+their system can run any of it.
 
-- **It introduces no new source of truth.** Every fact on it is read out of
-  something the repository already keeps — the scan (`@summary`, `@keywords`,
-  the ABAP-Doc header, `DESCRIPT`), `.github/packages.json` (branch, release)
-  and the README's package table (what a package plays together with). Adding a
-  sample or a package therefore needs **no step for the page**: `npm run
-  samples:md`, and it is on both.
-- **The overview app is not on it.** `Z2UI5_CL_SMPS_APP_000` is this same
-  catalogue inside a system, and as a card it contradicted the page: *needs
-  nothing beyond abap2UI5*, on a page built around what a sample needs from the
-  system — plus a technology chip that filtered ten groups down to itself.
-  `generate-web-index.mjs` drops the class and its group (and
-  `generate-screenshots.mjs` takes no picture of it), the page names it in *How
-  to run one* instead, and `SAMPLES.md` and `catalogue.json` keep it — their
-  reader is in the repository already. So the page shows **31 samples in 9
-  groups** where the two catalogues show 32.
-- **`web/apps.json` is generated and not committed** — `npm run web:index`
-  writes it, `deploy-web` writes it again on every deploy. A committed copy
-  would put a diff of derived data on every sample pull request.
-- **`web/thumbs/` follows the same rule: one thumbnail per sample, generated
-  at deploy, never committed.** `scripts/generate-screenshots.mjs` (`npm run
-  screenshots`) photographs each app's main view with the abap2UI5-linter's
-  render harness — the view statically, seeded with mock data, no Gateway,
-  RAP or APC anywhere — so what a card shows is what the render gate checks.
-  It is a deploy step, not a gate, and it is in no check aggregate; it is the
-  one script here that needs the devDependencies and a playwright chromium.
-  A view the harness cannot render is reported and skipped, and the page
-  treats the missing file as "no picture" (the `<img>` removes itself), so a
-  card without a thumbnail is normal, not broken. Measured over the corpus
-  (2026-08): **18 of 31 app views render.** The 13 skips are three stable
-  categories — `sap.ui.comp` controls (SAPUI5-only, absent from the
-  harness's OpenUI5 runtime: 7 of the 9 Smart Controls samples), `z2ui5.cc`
-  custom controls that do not load headless (the WebSocket, MIME-audio and
-  Smart Multi Input samples), and three RAP samples whose `ObjectStatus`
-  gets an empty `state` from the mock model. So the Smart Controls, AMC/APC
-  and MIME cards are mostly or wholly picture-less, and that is expected —
-  a change to the harness, not to those classes, is what would fix it. Only
-  a run that photographs *nothing* fails, because that is a harness problem;
-  even then the deploy publishes (`continue-on-error`), since a page without
-  pictures beats no page.
-- **`npm run check:web` is the gate** (its own workflow, and part of `npm run
-  check`): it runs the generator with `--check`, which fails on a package with
-  no README row, a row whose cells no longer parse, or an app in a directory
-  that is no package. All three break the page without touching `web/`, and
-  none of them shows up before a deploy — which happens after the merge.
-- **No playground link, unlike the sibling repositories' pages.** The playground
-  runs a class with no system behind it, and a system is what every sample here
-  needs. Each app would open there and fail, so the cards link to the source,
-  to the package README's *What you need*, and to the one-package branch.
+This repository published its own page for that until 2026-09-03 (`web/`, three
+hand-written files plus a generated `apps.json` and thumbnails, `check-web`,
+`deploy-web`, `check-family-nav`). All of it is gone. Three pages that each had
+to explain that the other two existed were the reason for the shared family-nav
+block, its three copies and the check policing them; one page needs none of it.
 
-<!-- The section below is SHARED. Its source is
-     abap2UI5/abap2UI5 .github/shared/agents-metadata.md - change it THERE
-     first, or the change is drift. abap2UI5's `npm run check:shared`
-     compares this section against the source, from the heading down to the
-     next `##`; anything above this comment is this repository's own. -->
+What this repository owes the new one is **data**, in two committed files:
+
+| | |
+|---|---|
+| [`catalogue.json`](catalogue.json) | what the tree holds — class, path, package, technology, title, `@summary`, `@keywords`, and the three facts that are this corpus' whole point: `runsOn`, `cloud`, `needs` (§6) |
+| [`catalogue-derived.json`](catalogue-derived.json) | what the LINTER knows — every control a sample BUILDS, and the minimum UI5 release that implies |
+
+The second is not for this corpus' own facets. What a sample needs from a
+system is committed fact and no linter can derive it — no pass tells you
+whether a system has a RAP stack. It is there so that a reader filtering all
+three corpora at once can ask *"which sample shows `sap.m.Table`"* of this one
+too, and so that a sample here does not silently drop out of a release-filtered
+list. `scripts/generate-derived.mjs` gets both out of an `@abap2UI5/linter`
+pass over the classes on `main` — `stats.types` and the `*-too-new` findings.
+
+- **Not every sample here is view code.** Several are the backend half of a
+  story — a RAP behaviour, an OData service, an APC handler — and the linter
+  finds no chain in them. Those carry `noChain: true` rather than an empty
+  control list: *builds nothing* and *is not a view* are different answers, and
+  a consumer must not read the first as the second.
+- **Two files rather than more columns.** Everything committed-fact is in
+  `catalogue.json` already, and that file is offline and dependency-free on
+  purpose (§6). The derived half needs the linter, so it lives beside it, keyed
+  by `class` for a consumer to join on. One scan, one tree, so the two cannot
+  disagree about which samples exist.
+- **The UI5 library a control ships in is in neither.** That is one taxonomy
+  question, and three sample repositories each answering it would be three
+  prefix tables that drift; the playground's catalogue owns the mapping, beside
+  the library list it decides "runs here" against. Identical file shape and
+  identical reasoning in the two sibling repositories.
+- **`check-catalogue` is the gate** (its own workflow, and part of `npm run
+  check`): both generators with `--check`. It absorbed what `check-web` really
+  asserted — a package with no README row, a row whose cells no longer parse,
+  an app in a directory that is no package, a sample with no `@summary` or
+  `@keywords` — because all four were already in `generate-catalogue.mjs`
+  (`scripts/lib/read-packages.mjs` does the first three). Removing the page
+  therefore lost no assertion.
+- **The overview app stays out of the catalogue page** for the reason it was
+  always out: `Z2UI5_CL_SMPS_APP_000` is this same catalogue inside a system,
+  and as a card it contradicts a list built around what a sample needs — *needs
+  nothing beyond abap2UI5* — plus a technology chip that filters ten groups
+  down to itself. `SAMPLES.md` and both JSON files keep it; their reader is in
+  the repository already.
+- **Thumbnails** were photographed on every deploy by
+  `scripts/generate-screenshots.mjs`, with the abap2UI5-linter's render
+  harness. The script went with the page and the playground's deploy takes them
+  now, from the same harness against the same `main`, so what a card shows is
+  still what the render gate checks. Expect gaps, and expect the same ones:
+  measured over this corpus (2026-08) **18 of 31 app views render**, and the 13
+  skips are three stable categories — `sap.ui.comp` controls (SAPUI5-only,
+  absent from the harness's OpenUI5 runtime: 7 of the 9 Smart Controls
+  samples), `z2ui5.cc` custom controls that do not load headless (the
+  WebSocket, MIME-audio and Smart Multi Input samples), and three RAP samples
+  whose `ObjectStatus` gets an empty `state` from the mock model. A card
+  without a picture is normal here, not broken, and a change to the harness
+  rather than to those classes is what would fix it.
+
 ## Metadata: what goes on the class, and what goes beside it
 
 Shared across `abap2UI5/samples`, `abap2UI5/samples-controls` and

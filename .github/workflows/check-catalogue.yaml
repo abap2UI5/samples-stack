@@ -7,6 +7,13 @@ name: check-catalogue
 # package index, and a committed generated file is a file that goes stale the
 # first time somebody adds a sample and does not rerun the generator. This is
 # what notices.
+#
+# catalogue-derived.json is the other half: what the LINTER knows about each
+# sample - every control it BUILDS, and the minimum UI5 release that implies -
+# so that a reader filtering all three sample corpora at once can ask "which
+# sample shows sap.m.Table" of this one too. It needs @abap2ui5/linter, which
+# is what the install below is for; the catalogue itself stays dependency-free
+# and would not need one.
 
 on:
   pull_request:
@@ -29,4 +36,8 @@ jobs:
     - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: '22'
+        cache: 'npm'
     - run: node scripts/generate-catalogue.mjs --check
+    - run: node scripts/check-catalogue-contract.mjs
+    - run: npm ci --no-audit --no-fund
+    - run: node scripts/generate-derived.mjs --check

@@ -3,21 +3,21 @@
  * generate-catalogue — the catalogue as one committed JSON file, for programs.
  *
  * The same catalogue exists three times for three readers. SAMPLES.md is the
- * page for a person browsing GitHub, web/apps.json feeds the page in web/, and
- * the overview app carries it into the system. What none of them served is a
- * program with a question — "which sample shows a SmartTable, and what does my
- * system need for it?" — asked against nothing but a raw checkout or a single
+ * page for a person browsing GitHub, the overview app carries it into the
+ * system, and the playground's catalogue page publishes it beside the other
+ * two sample repositories. What none of them served is a program with a
+ * question — "which sample shows a SmartTable, and what does my system need
+ * for it?" — asked against nothing but a raw checkout or a single
  * `raw.githubusercontent.com` fetch. SAMPLES.md answers it only through a
- * regex over prose, and web/apps.json is deliberately not committed, so before
- * a deploy it does not exist at all. This file is that answer: every fact the
- * repository already keeps about a sample, as data, committed.
+ * regex over prose. This file is that answer: every fact the repository
+ * already keeps about a sample, as data, committed.
  *
- * IT INTRODUCES NO NEW SOURCE OF TRUTH — the same rule as the page in web/.
+ * IT INTRODUCES NO NEW SOURCE OF TRUTH.
  * Everything here is read out of what the repository already keeps:
  *
  *   scripts/lib/scan-samples.mjs   which classes are apps, their title from
  *                                  DESCRIPT, `@summary`, `@keywords` — the
- *                                  same scan behind SAMPLES.md and the page
+ *                                  same scan behind SAMPLES.md
  *   scripts/lib/read-packages.mjs  the packages: `.github/packages.json`
  *                                  merged with the root README's table, which
  *                                  is where "runs on" and "plays together
@@ -27,10 +27,10 @@
  *   node scripts/generate-catalogue.mjs --check   fail if it differs
  *                                                         (this is what CI runs)
  *
- * COMMITTED, unlike web/apps.json — deliberately, and the difference is the
- * reader. The page is always deployed from a fresh generator run, so a
- * committed copy there would only be a diff of derived data on every pull
- * request. This file exists precisely for the reader who runs nothing: an
+ * COMMITTED, and dependency-free with it: this file exists precisely for the
+ * reader who runs nothing, and staying offline is what lets it be generated
+ * anywhere. The facts that would need a linter pass live beside it in
+ * catalogue-derived.json (generate-derived.mjs). This file is for an
  * agent or an editor fetching one URL from `main`. A committed generated file
  * is a file that goes stale the first time somebody adds a sample and does not
  * rerun the generator — `npm run check:catalogue` is what notices, exactly as
