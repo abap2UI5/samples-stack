@@ -13,10 +13,9 @@
 <br>
 [![check-abapdoc](https://github.com/abap2UI5/samples-stack/actions/workflows/check-abapdoc.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-abapdoc.yaml)
 [![check-prose-names](https://github.com/abap2UI5/samples-stack/actions/workflows/check-prose-names.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-prose-names.yaml)
-[![check-web](https://github.com/abap2UI5/samples-stack/actions/workflows/check-web.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-web.yaml)
+[![check-catalogue](https://github.com/abap2UI5/samples-stack/actions/workflows/check-catalogue.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-catalogue.yaml)
 <br>
 [![create-package-branches](https://github.com/abap2UI5/samples-stack/actions/workflows/create-package-branches.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/create-package-branches.yaml)
-[![deploy-web](https://github.com/abap2UI5/samples-stack/actions/workflows/deploy-web.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/deploy-web.yaml)
 
 # abap2UI5 — samples-stack
 
@@ -46,10 +45,11 @@ Every area is self-contained and brings its own README. Pick the one you came
 for and try it out — the others can wait until you need them.
 
 > **Looking for one particular sample?**
-> **<https://abap2ui5.github.io/samples-stack/>** is this catalogue as a
-> searchable page: filter by the technology you came for and by the release
-> your system runs, and every card says what the sample needs from that system
-> before you install anything. ([`web/`](web/README.md))
+> **<https://abap2ui5.github.io/playground/samples/>** is this catalogue as a
+> searchable page — together with the other two sample repositories: filter by
+> the technology you came for and by the release your system runs, and every
+> card says what the sample needs from that system before you install
+> anything.
 
 ## Which package do I need?
 
@@ -263,10 +263,8 @@ in CI. The node checks carry no dependencies, so they take seconds.
 | `check-app-rules` | the shared abaplint rule block still matches its source in [abap2UI5](https://github.com/abap2UI5/abap2UI5) |
 | `check-prose-names` | every class name written in prose exists — including the sibling repositories' |
 | `check-framework-pin` | the abaplint config pins abap2UI5 to a release tag, never to whatever is on `main` |
-| `check-family-nav` | the learning-path block on the [page](https://abap2ui5.github.io/samples-stack/) links the two sibling repositories correctly |
-| `check-web` | the data behind the [page](https://abap2ui5.github.io/samples-stack/) can still be generated — every package has a README row that parses, every app sits in a package |
+| `check-catalogue` | `catalogue.json` and `catalogue-derived.json` are in sync with the tree — and with them every package has a README row that parses, every app sits in a package, and none is missing its `@summary` or `@keywords` |
 | `create-package-branches` | rebuilds the nine per-package branches, each verified with abaplint at its own release before it is pushed |
-| `deploy-web` | publishes [`web/`](web/README.md) to GitHub Pages on every push to `main` that touches the tree it describes |
 
 `check-overview` exists because the overview app names its samples as strings and
 resolves them at runtime — that is what lets it survive a package the system cannot
@@ -277,12 +275,21 @@ where the generated branches take theirs from. It runs `node
 scripts/check-overview.mjs`, needs no dependencies, and skips both
 full-tree halves on a checkout that carries only part of the repository.
 
-`check-web` and `deploy-web` are the two halves of the page: the check runs the
-generator on every pull request without writing anything, the deploy runs it for
-real and uploads `web/` as the Pages artefact. Nothing generated is committed, so
-the page can never be staler than the tree — and a sample pull request carries no
-diff of derived data. `deploy-web` is the *only* way the site is published:
-*Settings → Pages → Source* has to be **GitHub Actions**.
+This repository published its own searchable page until 2026-09-03 (`web/`,
+`check-web`, `deploy-web`, `check-family-nav`). It does not any more: one
+catalogue over all three sample repositories is published from the
+[playground](https://abap2ui5.github.io/playground/samples/), and three pages
+that each had to explain that the other two existed were the reason for the
+shared family-nav block and the check policing its three copies.
+
+What is left is the data. [`catalogue.json`](catalogue.json) is what the tree
+holds; [`catalogue-derived.json`](catalogue-derived.json) beside it is what the
+linter knows — every control a sample builds, and the minimum UI5 release it
+needs — so that a reader filtering all three corpora at once can ask "which
+sample shows `sap.m.Table`" of this one too. Both are committed and gated by
+`check-catalogue`; `check-web`'s two real assertions were never about the page
+and were already in `generate-catalogue.mjs`, which is why removing it loses
+nothing.
 
 `create-package-branches` runs on pull requests too, everything except the push —
 so a change that would break one of the branches fails while it can still be
@@ -335,7 +342,7 @@ prerequisite for using abap2UI5 at all: they are options you can reach for when
 they help.
 
 If you are not sure which package that is, start at
-**<https://abap2ui5.github.io/samples-stack/>**: pick the release your system runs
+**<https://abap2ui5.github.io/playground/samples/>**: pick the release your system runs
 and it shows you what is within reach, with the setup each sample needs on its
 card.
 

@@ -1,8 +1,7 @@
 /*
  * read-packages — the package index with its prose, merged and verified.
  *
- * Two generators describe the packages: `generate-web-index.mjs` builds the
- * data behind the page in web/, `generate-catalogue.mjs` writes the committed
+ * The packages are described by `generate-catalogue.mjs`, which writes the committed
  * catalogue.json. Both need the same merge of the same two sources, and two
  * copies of a merge drift exactly the way two copies of the sample scan once
  * did (see scan-samples.mjs) — so it lives here once.
@@ -33,9 +32,9 @@ import path from 'path';
  * likewise: the overview resolves every sample by name at runtime and calls no
  * on-premise API, which is what puts it on the cloud-capable branches.
  *
- * The page in web/ is the one consumer that drops this group again — there the
+ * The published catalogue is the one consumer that drops this group again — there the
  * overview app is not a sample of the stack but the same catalogue in a system,
- * and generate-web-index.mjs says why. catalogue.json keeps it. */
+ * and AGENTS §8 says why. catalogue.json keeps it. */
 export const OVERVIEW_PKG = {
   dir: '.',
   branch: 'main',

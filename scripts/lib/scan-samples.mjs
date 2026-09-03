@@ -3,7 +3,7 @@
  *
  * Three things read this: `check-keywords.mjs`, which insists every app says
  * what it is about, `generate-samples-md.mjs`, which writes the catalogue, and
- * `generate-web-index.mjs`, which writes the data behind the page in web/. They
+ * `generate-derived.mjs`, which adds what the linter knows about each. They
  * have to agree on which classes are apps, where a title comes from and which
  * section a sample belongs to — abap2UI5/samples learned that the hard way and
  * says so in its AGENTS.md: two copies of this drift silently, and then the
@@ -56,7 +56,7 @@ export function splitDescript(d) {
  * first is noise the heading already carried.
  *
  * Both catalogues built from this scan need that decision (SAMPLES.md and the
- * page in web/), and two copies of it would drift the way two copies of the
+ * published catalogue), and two copies of it would drift the way two copies of the
  * scan itself once did. `fromSub` is for a renderer that emphasises a title
  * differently when it is a substitute — SAMPLES.md does.
  *
@@ -133,7 +133,7 @@ export function scanSamples(root) {
  * The overview app — the catalogue of this repository inside a system.
  *
  * An app like any other to abapGit, to the checks and to SAMPLES.md, and the
- * one app the page in web/ leaves out (generate-web-index.mjs says why). The
+ * one app the published catalogue leaves out (AGENTS §8 says why). The
  * two generators behind that page name it from here rather than each keeping
  * a copy of the string.
  */
