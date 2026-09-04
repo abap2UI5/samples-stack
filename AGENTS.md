@@ -387,12 +387,17 @@ pass over the classes on `main` — `stats.types` and the `*-too-new` findings.
   harness. The script went with the page and the playground's deploy takes them
   now, from the same harness against the same `main`, so what a card shows is
   still what the render gate checks. Expect gaps, and expect the same ones:
-  measured over this corpus (2026-08) **18 of 31 app views render**, and the 13
-  skips are three stable categories — `sap.ui.comp` controls (SAPUI5-only,
-  absent from the harness's OpenUI5 runtime: 7 of the 9 Smart Controls
-  samples), `z2ui5.cc` custom controls that do not load headless (the
+  re-measured over this corpus (2026-09, `screenshotFiles( )` over `src` at the
+  pinned runtime) **19 of the 32 app classes photograph, 24 of the 37 documents
+  they build**, and the 13 that do not are the same three stable categories the
+  first measurement (2026-08, 18 of 31) found — `sap.ui.comp` controls
+  (SAPUI5-only, absent from the harness's OpenUI5 runtime: 7 of the 9 Smart
+  Controls samples — SmartFilterBar, SmartForm, SmartVariantManagement,
+  SmartChart), `z2ui5.cc` custom controls that do not load headless (the
   WebSocket, MIME-audio and Smart Multi Input samples), and three RAP samples
-  whose `ObjectStatus` gets an empty `state` from the mock model. A card
+  whose `ObjectStatus` gets an empty `state` from the mock model. The count
+  moved because the corpus grew, not the failure set: it is the same thirteen
+  classes. A card
   without a picture is normal here, not broken, and a change to the harness
   rather than to those classes is what would fix it.
 
