@@ -1,6 +1,6 @@
 # 09 — Launchpad
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 An abap2UI5 app does not have to run standalone. Put it behind a tile of the **SAP
 Fiori Launchpad** and the shell around it becomes usable: the tile hands over
@@ -82,5 +82,5 @@ Both literals sit in the classes, so use these two names or change them there. T
 
 ## Where to go next
 
-- [`01` OData](../01/README.md) — back to the beginning: the app talking to a
+- [`01` OData](https://github.com/abap2UI5/samples-stack/blob/main/src/01/README.md) — back to the beginning: the app talking to a
   service instead of to the shell around it.
