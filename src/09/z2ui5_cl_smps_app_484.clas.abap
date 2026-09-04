@@ -25,7 +25,7 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
     TRY.
         product = t_params[ n = `PRODUCT` ]-v.
         quantity = t_params[ n = `QUANTITY` ]-v.
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     IF client->check_on_navigated( ).
