@@ -32,6 +32,26 @@ CLASS z2ui5_cl_smps_app_489 DEFINITION PUBLIC.
     METHODS view_display.
     METHODS popover_display.
   PRIVATE SECTION.
+
+    METHODS json_build
+      IMPORTING
+        val           TYPE ty_s_news
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS json_get_string
+      IMPORTING
+        json          TYPE string
+        name          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS json_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -99,13 +119,7 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
         " Published from ABAP straight into the AMC channel - every APC
         " connection bound to it, this app's own included, receives it back
         " through the Websocket control.
-        " abap2ui5lint-disable-next-line non-released-api -- the vendored ajson copy: no released JSON writer exists, and a sample class installed on its own cannot ship its own
-        z2ui5_cl_smps_app_489_ws=>send( z2ui5_cl_ajson=>create_empty(
-            )->set(
-                iv_path         = `/`
-                iv_val          = s_news
-                iv_ignore_empty = abap_false
-            )->stringify( ) ).
+        z2ui5_cl_smps_app_489_ws=>send( json_build( s_news ) ).
         news_input = ``.
       CATCH cx_root INTO DATA(error).
         client->message_box_display( error->get_text( ) ).
@@ -124,17 +138,120 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
         connections = connections - 1.
 
       WHEN OTHERS.
-        TRY.
-            DATA(s_news) = VALUE ty_s_news( ).
-            z2ui5_cl_ajson=>parse( ws_message
-              )->to_abap_corresponding_only(
-              )->to_abap( IMPORTING ev_container = s_news ).
-            INSERT s_news INTO TABLE t_news.
-          " abap2ui5lint-disable-next-line non-released-api -- the exception of the parse below
-          CATCH z2ui5_cx_ajson_error INTO DATA(error).
-            client->message_toast_display( error->get_text( ) ).
-        ENDTRY.
+
+        " Anything else on the channel is a news item - published by this
+        " app, in the shape json_build( ) writes. A message without the
+        " `text` key is not one of ours, and inserting it would put a blank
+        " row in the feed: say so instead, which is what the parser's
+        " exception used to do.
+        IF ws_message NS `"text":`.
+          client->message_toast_display( |Unexpected message on the channel: { ws_message }| ).
+          RETURN.
+        ENDIF.
+
+        INSERT VALUE ty_s_news(
+            text   = json_get_string( json = ws_message
+                                      name = `text` )
+            author = json_get_string( json = ws_message
+                                      name = `author` ) ) INTO TABLE t_news.
+
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD json_build.
+
+    " The JSON that travels over the channel, composed as a string. abap2UI5
+    " releases no JSON writer and a sample class installed on its own cannot
+    " ship one, so this is written by hand - which for a two-field object is
+    " one line plus the escaping.
+    "
+    " The keys are LOWER case because that is the shape this channel already
+    " carries: while a system rolls over, a session still running the
+    " previous version of this class publishes into the same channel and
+    " reads back from it, and the wire format is what the two have to agree
+    " on.
+    result = |\{"text":"{ json_escape( val-text ) }",| &&
+             |"author":"{ json_escape( val-author ) }"\}|.
+
+  ENDMETHOD.
+
+
+  METHOD json_escape.
+
+    " The five escapes a JSON string requires, and the five this payload can
+    " need: both fields are free user input, so a typed quote or backslash
+    " has to survive rather than break the object. The backslash goes FIRST -
+    " escaping it after the others would escape the backslashes they just
+    " introduced.
+    result = val.
+    result = replace( val = result sub = `\` with = `\\` occ = 0 ).
+    result = replace( val = result sub = |\n| with = `\n`  occ = 0 ).
+    result = replace( val = result sub = |\r| with = `\r`  occ = 0 ).
+    result = replace( val = result sub = |\t| with = `\t`  occ = 0 ).
+    result = replace( val = result sub = `"`  with = `\"`  occ = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD json_get_string.
+
+    " Reads one string field of the flat object json_build( ) writes. Finding
+    " the key is the same `"<name>":"` search the samples repository uses for
+    " a framework-written payload - but the value cannot be taken with a
+    " substring_before( `"` ) here, because this payload is written from free
+    " user input: a quote the user typed stands in it as \" and would end the
+    " value four characters early. So the value is WALKED, resolving every
+    " escape json_escape( ) can have written.
+    DATA(marker) = |"{ name }":"|.
+
+    DATA(offset) = find( val = json sub = marker ).
+    IF offset < 0.
+      RETURN.
+    ENDIF.
+
+    DATA(rest)   = substring( val = json off = offset + strlen( marker ) ).
+    DATA(length) = strlen( rest ).
+    DATA(pos)    = 0.
+
+    WHILE pos < length.
+      DATA(char) = substring( val = rest off = pos len = 1 ).
+      pos = pos + 1.
+
+      " the closing quote - an escaped one never reaches here, it is
+      " consumed by the branch below
+      IF char = `"`.
+        RETURN.
+      ENDIF.
+
+      IF char <> `\`.
+        result = result && char.
+        CONTINUE.
+      ENDIF.
+
+      " an escape: the character after the backslash says which one. A
+      " backslash at the very end is a truncated payload - stop rather than
+      " read past it
+      IF pos >= length.
+        RETURN.
+      ENDIF.
+      DATA(escaped) = substring( val = rest off = pos len = 1 ).
+      pos = pos + 1.
+
+      CASE escaped.
+        WHEN `n`.
+          result = result && |\n|.
+        WHEN `r`.
+          result = result && |\r|.
+        WHEN `t`.
+          result = result && |\t|.
+        WHEN OTHERS.
+          " `"`, `\` and `/` stand for themselves, and so does anything
+          " json_escape( ) would never write
+          result = result && escaped.
+      ENDCASE.
+    ENDWHILE.
 
   ENDMETHOD.
 
