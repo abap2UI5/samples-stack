@@ -165,8 +165,8 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
                 )->tag( `Input`
                     )->a( n = `value` v = `{DESCRIPTION}`
                 )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val   = `UPDATE`
-                                            t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                    )->a( n = `press` v = client->_event( val = `UPDATE`
+                                            arg = `${TRAVEL_ID}` )
                     )->a( n = `text`  v = `Update` ).
 
     client->view_display( view->stringify( ) ).

@@ -426,19 +426,19 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
                     )->a( n = `value` v = `{DESCRIPTION}`
                 )->ele( `HBox`
                     )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `SAVE` t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                        )->a( n = `press`   v = client->_event( val = `SAVE` arg = `${TRAVEL_ID}` )
                         )->a( n = `icon`    v = `sap-icon://save`
                         )->a( n = `tooltip` v = `Save Description`
                     )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `ACCEPT` t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                        )->a( n = `press`   v = client->_event( val = `ACCEPT` arg = `${TRAVEL_ID}` )
                         )->a( n = `icon`    v = `sap-icon://accept`
                         )->a( n = `tooltip` v = `Accept Travel`
                     )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `REJECT` t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${TRAVEL_ID}` )
                         )->a( n = `icon`    v = `sap-icon://decline`
                         )->a( n = `tooltip` v = `Reject Travel`
                     )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `DELETE` t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${TRAVEL_ID}` )
                         )->a( n = `icon`    v = `sap-icon://delete`
                         )->a( n = `tooltip` v = `Delete Travel` ).
 

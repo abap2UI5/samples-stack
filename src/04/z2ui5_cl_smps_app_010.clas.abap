@@ -426,7 +426,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
                     )->a( n = `text`  v = `{DRAFT_TEXT}`
                 )->end(
                 )->tag( `Button`
-                    )->a( n = `press`   v = client->_event( val = `EDIT` t_arg = VALUE #( ( `${TRAVEL_UUID}` ) ) )
+                    )->a( n = `press`   v = client->_event( val = `EDIT` arg = `${TRAVEL_UUID}` )
                     )->a( n = `icon`    v = `sap-icon://edit`
                     )->a( n = `tooltip` v = `Edit Travel` ).
 

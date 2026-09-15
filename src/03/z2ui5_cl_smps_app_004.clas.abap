@@ -156,8 +156,8 @@ CLASS z2ui5_cl_smps_app_004 IMPLEMENTATION.
                 )->tag( `Text`
                     )->a( n = `text` v = `{DESCRIPTION}`
                 )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val   = `DELETE`
-                                            t_arg = VALUE #( ( `${TRAVEL_ID}` ) ) )
+                    )->a( n = `press` v = client->_event( val = `DELETE`
+                                            arg = `${TRAVEL_ID}` )
                     )->a( n = `text`  v = `Delete`
                     )->a( n = `icon`  v = `sap-icon://delete` ).
 

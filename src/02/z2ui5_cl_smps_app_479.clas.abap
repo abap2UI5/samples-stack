@@ -56,8 +56,8 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
           )->ele( n = `semanticObjectController` ns = `smartChart`
               )->ele( n = `SemanticObjectController` ns = `navpopover`
                   )->a( n = `navigationTargetsObtained` v = client->_event( `NAV_TARGETS_OBTAINED` )
-                  )->a( n = `navigate`                  v = client->_event( val   = `NAVIGATE`
-                                                                                          t_arg = VALUE #( ( `${$parameters>/text}` ) ) ) ).
+                  )->a( n = `navigate`                  v = client->_event( val = `NAVIGATE`
+                                                                                          arg = `${$parameters>/text}` ) ).
 
       client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
