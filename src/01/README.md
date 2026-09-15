@@ -1,6 +1,6 @@
 # 01 — OData
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 An OData V2 service you already have, bound directly into an abap2UI5 view.
 
@@ -48,5 +48,5 @@ next to abap2UI5's own JSON model.
 
 ## Where to go next
 
-- [`02` Smart Controls](../02/README.md) — the same metadata, this time driving the
+- [`02` Smart Controls](https://github.com/abap2UI5/samples-stack/blob/main/src/02/README.md) — the same metadata, this time driving the
   controls themselves.
