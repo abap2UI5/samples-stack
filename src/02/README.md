@@ -1,6 +1,6 @@
 # 02 — Smart Controls
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 This is abap2UI5 at its most agnostic: the `sap.ui.comp` library builds its UI from
 **OData V2 metadata** — a `SmartTable` asks the service what the columns are, a
@@ -58,6 +58,6 @@ of your own and the chart comes to life.
 
 ## Where to go next
 
-- [`01` OData](../01/README.md) — the same services without smart controls.
-- [`03` RAP](../03/README.md) — data straight from a business object, no service in
+- [`01` OData](https://github.com/abap2UI5/samples-stack/blob/main/src/01/README.md) — the same services without smart controls.
+- [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — data straight from a business object, no service in
   between.
