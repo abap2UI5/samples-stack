@@ -214,8 +214,8 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
                 )->tag( `Text`
                     )->a( n = `text` v = `{DRAFT_DESCRIPTION}`
                 )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val   = `OPEN`
-                                            t_arg = VALUE #( ( `${TRAVEL_UUID}` ) ) )
+                    )->a( n = `press` v = client->_event( val = `OPEN`
+                                            arg = `${TRAVEL_UUID}` )
                     )->a( n = `text`  v = `{DRAFT_TEXT}` ).
 
     client->view_display( view->stringify( ) ).

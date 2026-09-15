@@ -215,13 +215,13 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
                     )->a( n = `text` v = `{DESCRIPTION}`
                 )->ele( `HBox`
                     )->tag( `Button`
-                        )->a( n = `press` v = client->_event( val   = `ACTIVATE`
-                                                t_arg = VALUE #( ( `${TRAVEL_UUID}` ) ) )
+                        )->a( n = `press` v = client->_event( val = `ACTIVATE`
+                                                arg = `${TRAVEL_UUID}` )
                         )->a( n = `text`  v = `Activate`
                         )->a( n = `type`  v = `Emphasized`
                     )->tag( `Button`
-                        )->a( n = `press` v = client->_event( val   = `DISCARD`
-                                                t_arg = VALUE #( ( `${TRAVEL_UUID}` ) ) )
+                        )->a( n = `press` v = client->_event( val = `DISCARD`
+                                                arg = `${TRAVEL_UUID}` )
                         )->a( n = `text`  v = `Discard` ).
 
     client->view_display( view->stringify( ) ).
