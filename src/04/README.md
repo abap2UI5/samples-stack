@@ -1,8 +1,8 @@
 # 04 — RAP with Draft
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
-`Z2UI5_R_SMPS_TRD` is the business object of [`03` RAP](../03/README.md) **with
+`Z2UI5_R_SMPS_TRD` is the business object of [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) **with
 draft**. Everything you read there still applies — this package adds the one
 mechanism that makes drafts work, and four samples that use it.
 
@@ -13,7 +13,7 @@ whole lifecycle fits in a handful of statements.
 ## What you need
 
 **Release:** Cloud + Standard ≥ 7.54 (1909), the same as
-[`03`](../03/README.md) — draft handling adds nothing on top of EML.
+[`03`](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — draft handling adds nothing on top of EML.
 
 **Branch:** [`04-rap-draft`](https://github.com/abap2UI5/samples-stack/tree/04-rap-draft)
 — this package alone, without the other eight on your system.
@@ -82,10 +82,10 @@ EXECUTE Discard  FROM VALUE #( ( %key-traveluuid = uuid ) )   " draft  -> gone, 
 ```
 
 `Activate` is where the validations run, so it is the call whose `FAILED` and
-`REPORTED` you always evaluate — same as the `COMMIT` in [`03`](../03/README.md).
+`REPORTED` you always evaluate — same as the `COMMIT` in [`03`](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md).
 
 ## Where to go next
 
-- [`03` RAP](../03/README.md) — the statements without draft, plus the message
+- [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — the statements without draft, plus the message
   handling every sample here reuses.
-- [`05` Business Events](../05/README.md) — react to what the BO did.
+- [`05` Business Events](https://github.com/abap2UI5/samples-stack/blob/main/src/05/README.md) — react to what the BO did.
