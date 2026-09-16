@@ -243,6 +243,12 @@ CLASS z2ui5_cl_smps_context DEFINITION PUBLIC FINAL CREATE PRIVATE.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS rtti_check_printable
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_get_t_attri_by_any
       IMPORTING
         val           TYPE any
@@ -437,8 +443,14 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
         DATA(lt_attri_o) = rtti_get_t_attri_by_oref( val ).
         LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) WHERE visibility = `U`.
           DATA(lv_name) = ls_attri_o->name.
+          " IS ASSIGNED, not sy-subrc (#1937: a successful dynamic ASSIGN does
+          " not reset sy-subrc on every release), and UNASSIGN first because
+          " this is a LOOP - a failed ASSIGN leaves the previous iteration's
+          " binding in place, so IS ASSIGNED would read TRUE for a failure
+          " and the PREVIOUS attribute would be mapped under this name
+          UNASSIGN <comp>.
           ASSIGN val->(lv_name) TO <comp>.
-          IF sy-subrc <> 0.
+          IF <comp> IS NOT ASSIGNED.
             CONTINUE.
           ENDIF.
           ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
@@ -480,8 +492,10 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
                 LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
                      WHERE visibility = `U`.
                   lv_name = ls_attri_o->name.
+                  " same as msg_get_by_oref above: #1937 plus the loop trap
+                  UNASSIGN <comp>.
                   ASSIGN obj->(lv_name) TO <comp>.
-                  IF sy-subrc <> 0.
+                  IF <comp> IS NOT ASSIGNED.
                     CONTINUE.
                   ENDIF.
                   ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
@@ -816,6 +830,20 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
   METHOD msg_map.
 
     result = is_msg.
+
+    " The value is a component of an ARBITRARY structure: msg_get_internal
+    " walks whatever is handed to it and maps every component BY NAME. A
+    " business structure with a component that happens to be called TEXT, ID,
+    " TYPE or V1 and is a TABLE, a nested structure or a reference is not a
+    " message part - and the assignments below are no class-based exception
+    " for it, they are a MOVE type conflict. So the message that was supposed
+    " to REPORT a problem became the crash, and nothing between here and the
+    " app's own main( ) catches it. Decided before anything is assigned,
+    " because a runtime error cannot be caught after the fact
+    IF rtti_check_printable( val ) = abap_false.
+      RETURN.
+    ENDIF.
+
     CASE name.
       WHEN `ID` OR `MSGID`.
         result-id = val.
@@ -834,7 +862,13 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
       WHEN `MESSAGE_V4` OR `MSGV4` OR `V4`.
         result-v4 = val.
       WHEN `TIME_STMP`.
-        result-timestampl = val.
+        " printable, but not necessarily a TIMESTAMPL: a CHAR component
+        " called TIME_STMP carrying anything else raises here, and this one
+        " IS catchable - the message keeps every part mapped before it
+        TRY.
+            result-timestampl = val.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
     ENDCASE.
 
   ENDMETHOD.
@@ -847,6 +881,31 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
           cl_abap_datadescr=>typekind_clike OR
           cl_abap_datadescr=>typekind_csequence OR
           cl_abap_datadescr=>typekind_string.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_printable.
+
+    " A value that can be MOVEd into a message field: text and the numeric
+    " kinds. Everything else - a table, a nested structure, a reference -
+    " cannot, and the move is a RUNTIME ERROR, not a class-based exception,
+    " so it has to be decided BEFORE the assignment (see msg_map)
+    IF rtti_check_clike( val ) = abap_true.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    CASE rtti_get_type_kind( val ).
+      WHEN cl_abap_datadescr=>typekind_int OR
+          cl_abap_datadescr=>typekind_int1 OR
+          cl_abap_datadescr=>typekind_int2 OR
+          cl_abap_datadescr=>typekind_packed OR
+          cl_abap_datadescr=>typekind_float OR
+          cl_abap_datadescr=>typekind_decfloat16 OR
+          cl_abap_datadescr=>typekind_decfloat34 OR
+          cl_abap_datadescr=>typekind_hex.
         result = abap_true.
     ENDCASE.
 
