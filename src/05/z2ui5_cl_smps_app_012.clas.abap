@@ -41,7 +41,7 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD data_read.
-    SELECT FROM z2ui5_t_smps_log
+    SELECT FROM z2ui5_t_smps_log                        "#EC CI_NOWHERE
       FIELDS event_name, log_text, created_by
       ORDER BY created_at DESCENDING
       INTO CORRESPONDING FIELDS OF TABLE @mt_log

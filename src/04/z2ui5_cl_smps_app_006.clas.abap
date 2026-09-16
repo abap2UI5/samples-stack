@@ -68,7 +68,7 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
   METHOD data_read.
 
     " the CDS view returns the active instances - a draft is not in there
-    SELECT FROM z2ui5_r_smps_trd
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
       FIELDS TravelUuid,
              TravelId,
              CustomerId,

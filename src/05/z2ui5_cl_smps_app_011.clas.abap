@@ -100,7 +100,7 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD data_read.
-    SELECT FROM z2ui5_t_smps_tck
+    SELECT FROM z2ui5_t_smps_tck                        "#EC CI_NOWHERE
       FIELDS title, priority, status, created_by
       ORDER BY created_at DESCENDING
       INTO CORRESPONDING FIELDS OF TABLE @mt_tickets

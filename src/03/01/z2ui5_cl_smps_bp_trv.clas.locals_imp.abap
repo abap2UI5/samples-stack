@@ -63,7 +63,7 @@ CLASS lhc_travel IMPLEMENTATION.
     " Good enough for a sample: a productive business object would use a
     " number range object instead of MAX( ), which is not safe against two
     " users creating at the very same moment.
-    SELECT SINGLE FROM z2ui5_t_smps_trv
+    SELECT SINGLE FROM z2ui5_t_smps_trv                 "#EC CI_NOWHERE
       FIELDS MAX( travel_id )
       INTO @DATA(max_id).
 

@@ -102,7 +102,7 @@ CLASS lhc_travel IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    SELECT SINGLE FROM z2ui5_t_smps_trd
+    SELECT SINGLE FROM z2ui5_t_smps_trd                 "#EC CI_NOWHERE
       FIELDS MAX( travel_id )
       INTO @DATA(max_id).
 
