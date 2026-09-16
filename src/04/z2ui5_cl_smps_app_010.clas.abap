@@ -285,7 +285,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
   METHOD data_read.
 
-    SELECT FROM z2ui5_r_smps_trd
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
       FIELDS traveluuid,
              travelid,
              customerid,

@@ -65,7 +65,7 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
     " rather than hard coded: the demo data only starts at 1 on an empty
     " table, and after a few creates and deletes the lowest key is a
     " different one.
-    SELECT SINGLE FROM z2ui5_r_smps_trv
+    SELECT SINGLE FROM z2ui5_r_smps_trv                 "#EC CI_NOWHERE
       FIELDS MIN( TravelId ) INTO @DATA(first_id).
 
     travel_id = COND #( WHEN first_id IS NOT INITIAL THEN |{ first_id ALPHA = OUT }| ).

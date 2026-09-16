@@ -118,7 +118,7 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
   METHOD data_delete.
 
-    SELECT FROM z2ui5_r_smps_trd
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
       FIELDS TravelUuid
       ORDER BY TravelUuid
       INTO TABLE @DATA(t_keys).

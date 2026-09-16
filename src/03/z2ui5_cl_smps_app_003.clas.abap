@@ -60,7 +60,7 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
 
     " a plain SELECT on the CDS view - reading does not need EML, the list
     " is only here so there is something to change
-    SELECT FROM z2ui5_r_smps_trv
+    SELECT FROM z2ui5_r_smps_trv                        "#EC CI_NOWHERE
       FIELDS TravelId,
              CustomerId,
              Description
