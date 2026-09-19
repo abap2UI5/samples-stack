@@ -167,7 +167,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       client->popup_destroy( ).
       data_read( ).
@@ -199,7 +199,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       data_read( ).
       client->message_toast_display( |Travel { travel_id } updated| ).
@@ -227,7 +227,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       data_read( ).
       client->message_toast_display( |Travel { travel_id } accepted| ).
@@ -255,7 +255,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       data_read( ).
       client->message_toast_display( |Travel { travel_id } rejected| ).
@@ -283,7 +283,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       data_read( ).
       client->message_toast_display( |Travel { travel_id } deleted| ).

@@ -47,9 +47,9 @@ CLASS z2ui5_cl_smps_app_476 IMPLEMENTATION.
       " every SmartField value and the form title {Name} are relative to it.
       DATA(form) = page->ele( n = `SmartForm` ns = `smartForm`
           )->a( n = `id`            v = `smartForm`
-          )->a( n = `editTogglable` v = `true`
+          )->a( n = `editTogglable` b = abap_true
           )->a( n = `title`         v = `{Name}`
-          )->a( n = `flexEnabled`   v = `false`
+          )->a( n = `flexEnabled`   b = abap_false
           )->a( n = `binding`       v = `{/ProductSet('AR-FB-1000')}` ).
 
       DATA(group) = form->ele( n = `Group` ns = `smartForm`

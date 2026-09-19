@@ -65,8 +65,8 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
           )->ele( n = `controlConfiguration` ns = `smartFilterBar`
               )->tag( n = `ControlConfiguration` ns = `smartFilterBar`
                   )->a( n = `key`                                      v = `Category`
-                  )->a( n = `visibleInAdvancedArea`                    v = `true`
-                  )->a( n = `preventInitialDataFetchInValueHelpDialog` v = `false` ).
+                  )->a( n = `visibleInAdvancedArea`                    b = abap_true
+                  )->a( n = `preventInitialDataFetchInValueHelpDialog` b = abap_false ).
 
       " GWSAMPLE_BASIC carries no UI.LineItem annotation, and without one a
       " SmartTable starts with NO columns at all - it renders the "add columns to
@@ -77,15 +77,15 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
           )->a( n = `id`                      v = `smartTable_ResponsiveTable`
           )->a( n = `smartFilterId`           v = `smartFilterBar`
           )->a( n = `tableType`               v = `ResponsiveTable`
-          )->a( n = `editable`                v = `false`
+          )->a( n = `editable`                b = abap_false
           )->a( n = `initiallyVisibleFields`  v = `ProductID,Name,Category,SupplierName,Price`
           )->a( n = `entitySet`               v = `ProductSet`
-          )->a( n = `useVariantManagement`    v = `true`
-          )->a( n = `useTablePersonalisation` v = `true`
+          )->a( n = `useVariantManagement`    b = abap_true
+          )->a( n = `useTablePersonalisation` b = abap_true
           )->a( n = `header`                  v = `Products`
-          )->a( n = `showRowCount`            v = `true`
-          )->a( n = `enableExport`            v = `false`
-          )->a( n = `enableAutoBinding`       v = `true`
+          )->a( n = `showRowCount`            b = abap_true
+          )->a( n = `enableExport`            b = abap_false
+          )->a( n = `enableAutoBinding`       b = abap_true
           )->a( n = `persistencyKey`          v = `SmartTablePKey`
           )->a( n = `smartVariant`            v = `pageVariantId` ).
 

@@ -49,17 +49,13 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             RETURN.
           ENDIF.
 
-          CASE client->get_event( ).
-            WHEN `CALL_BOOKING_MASK`.
-              DATA(lr_view2) = NEW z2ui5_cl_smps_app_490( ).
-              lr_view2->view_id = 2.
-              lr_view2->varkey = `001`.
-              client->nav_app_call( lr_view2 ).
-              RETURN.
-            WHEN `BACK`.
-              client->nav_app_leave( ).
-              RETURN.
-          ENDCASE.
+          IF client->check_on_event( `CALL_BOOKING_MASK` ).
+            DATA(lr_view2) = NEW z2ui5_cl_smps_app_490( ).
+            lr_view2->view_id = 2.
+            lr_view2->varkey = `001`.
+            client->nav_app_call( lr_view2 ).
+            RETURN.
+          ENDIF.
 
         CATCH cx_root INTO DATA(lx).
           client->message_box_display( lx ).

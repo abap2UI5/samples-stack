@@ -47,11 +47,11 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
       " metadata-driven; the SemanticObjectController turns the annotated Category
       " dimension into a navigation popover and reports its two events back here.
       page->ele( n = `SmartChart` ns = `smartChart`
-          )->a( n = `enableAutoBinding`       v = `true`
+          )->a( n = `enableAutoBinding`       b = abap_true
           )->a( n = `entitySet`               v = `Products`
-          )->a( n = `useVariantManagement`    v = `true`
+          )->a( n = `useVariantManagement`    b = abap_true
           )->a( n = `persistencyKey`          v = `SmartChart_Explored`
-          )->a( n = `useChartPersonalisation` v = `true`
+          )->a( n = `useChartPersonalisation` b = abap_true
           )->a( n = `header`                  v = `Products`
           )->ele( n = `semanticObjectController` ns = `smartChart`
               )->ele( n = `SemanticObjectController` ns = `navpopover`
