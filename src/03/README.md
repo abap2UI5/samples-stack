@@ -1,6 +1,6 @@
 # 03 — RAP: consume a business object with EML
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 RAP and abap2UI5 fit together naturally: the business object keeps the business
 logic, abap2UI5 builds the UI on top of it — in plain ABAP, with no OData service
@@ -17,7 +17,7 @@ away.
 - **RAP is new to you** → start with [The business object](#the-business-object).
   It is one page, and it makes every message the samples show readable.
 
-The draft enabled half lives next door in [`04` RAP with Draft](../04/README.md).
+The draft enabled half lives next door in [`04` RAP with Draft](https://github.com/abap2UI5/samples-stack/blob/main/src/04/README.md).
 
 ## What you need
 
@@ -165,5 +165,5 @@ itself.
 
 ## Where to go next
 
-- [`04` RAP with Draft](../04/README.md) — the same BO, draft enabled.
-- [`05` Business Events](../05/README.md) — what happens *after* the save.
+- [`04` RAP with Draft](https://github.com/abap2UI5/samples-stack/blob/main/src/04/README.md) — the same BO, draft enabled.
+- [`05` Business Events](https://github.com/abap2UI5/samples-stack/blob/main/src/05/README.md) — what happens *after* the save.
