@@ -128,7 +128,12 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     DATA(uuid) = client->get_event_arg( 1 ).
 
-    IF t_travels[ travel_uuid = uuid ]-has_draft = abap_false.
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone from the list (deleted in another session) - a table expression
+    " without it raises CX_SY_ITAB_LINE_NOT_FOUND and dumps
+    DATA(has_draft) = VALUE #( t_travels[ travel_uuid = uuid ]-has_draft OPTIONAL ).
+
+    IF has_draft = abap_false.
 
       " no draft yet: the draft action Edit copies the active instance
       " into a new draft instance
@@ -158,7 +163,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       draft_read( uuid ).
       data_read( ).
@@ -194,7 +199,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       data_read( ).
       client->message_toast_display( `Draft saved - the changes are kept even after logoff` ).
@@ -222,7 +227,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       client->popup_destroy( ).
       data_read( ).
@@ -249,7 +254,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     ENDIF.
 
-    IF data_save( ) = abap_true.
+    IF data_save( ).
 
       client->popup_destroy( ).
       data_read( ).

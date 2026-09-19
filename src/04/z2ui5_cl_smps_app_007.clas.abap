@@ -75,7 +75,12 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
 
     DATA(uuid) = client->get_event_arg( 1 ).
 
-    IF t_travels[ travel_uuid = uuid ]-has_draft = abap_false.
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone from the list (deleted in another session) - a table expression
+    " without it raises CX_SY_ITAB_LINE_NOT_FOUND and dumps
+    DATA(has_draft) = VALUE #( t_travels[ travel_uuid = uuid ]-has_draft OPTIONAL ).
+
+    IF has_draft = abap_false.
 
       " No draft yet. Edit copies the active instance into a new draft.
       " Only the key is passed: a draft action already knows which of the

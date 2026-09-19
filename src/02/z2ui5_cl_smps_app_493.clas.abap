@@ -54,9 +54,7 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_navigated( ).
       view_display( ).
-    ENDIF.
-
-    IF client->get_event( ) = `SEARCH`.
+    ELSEIF client->check_on_event( `SEARCH` ).
       search( ).
       client->message_toast_display( |{ lines( mt_result ) } products| ).
     ENDIF.
@@ -106,7 +104,7 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
     " stored under - the wiring action below hands it to the variant
     " management as the PersonalizableInfo keyName.
     DATA(filter) = page->ele( n = `FilterBar` ns = `fb`
-        )->a( n = `useToolbar`     v = `false`
+        )->a( n = `useToolbar`     b = abap_false
         )->a( n = `search`         v = client->_event( `SEARCH` )
         )->a( n = `id`             v = `filterBar`
         )->a( n = `persistencyKey` v = `Z2UI5_493_FILTERBAR`
@@ -116,7 +114,7 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
         )->a( n = `name`               v = `PRODUCT`
         )->a( n = `label`              v = `Product`
         )->a( n = `groupName`          v = `__BASIC`
-        )->a( n = `visibleInFilterBar` v = `true`
+        )->a( n = `visibleInFilterBar` b = abap_true
         )->ele( n = `control` ns = `fb`
             )->tag( `Input`
                 )->a( n = `value` v = client->_bind( ms_filter-product ) ).
@@ -125,7 +123,7 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
         )->a( n = `name`               v = `CATEGORY`
         )->a( n = `label`              v = `Category`
         )->a( n = `groupName`          v = `__BASIC`
-        )->a( n = `visibleInFilterBar` v = `true`
+        )->a( n = `visibleInFilterBar` b = abap_true
         )->ele( n = `control` ns = `fb`
             )->tag( `Input`
                 )->a( n = `value` v = client->_bind( ms_filter-category ) ).
@@ -134,7 +132,7 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
         )->a( n = `name`               v = `SUPPLIER`
         )->a( n = `label`              v = `Supplier`
         )->a( n = `groupName`          v = `__BASIC`
-        )->a( n = `visibleInFilterBar` v = `true`
+        )->a( n = `visibleInFilterBar` b = abap_true
         )->ele( n = `control` ns = `fb`
             )->tag( `Input`
                 )->a( n = `value` v = client->_bind( ms_filter-supplier ) ).

@@ -146,13 +146,8 @@ CLASS z2ui5_cl_smps_app_314 IMPLEMENTATION.
                     )->a( n = `text` v = `{CompanyName}`
                 )->tag( `Text`
                     )->a( n = `text` v = `{WebAddress}` ).
-*             )->tag( `Text` )->a( n = `text` v = `{SupplementID}`
-*             )->tag( `Text` )->a( n = `text` v = `{SupplementText}`
-*             )->tag( `Text` )->a( n = `text` v = `{Price}`
-*             )->tag( `Text` )->a( n = `text` v = `{CurrencyCode}` ).
 
     client->view_display( val = view->stringify( ) switch_default_model_path = `/sap/opu/odata/iwbep/gwsample_basic/` ).
-*                            switch_default_model_path = `/sap/opu/odata/DMO/API_TRAVEL_U_V2/` ).
 
   ENDMETHOD.
 

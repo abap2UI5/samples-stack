@@ -99,7 +99,6 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
         t_news = VALUE #( ).
       WHEN `CLICK_HINT_ICON`.
         popover_display( ).
-        RETURN.
     ENDCASE.
 
     " The view is displayed once, on init - the Websocket control lives in

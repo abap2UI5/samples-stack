@@ -46,7 +46,7 @@ CLASS z2ui5_cl_smps_app_475 IMPLEMENTATION.
       " service, not a path into an ABAP-fed model, so there is no
       " client->_bind( ) variable to derive it from.
       DATA(form) = page->ele( n = `SmartForm` ns = `smartForm`
-          )->a( n = `editable` v = `true`
+          )->a( n = `editable` b = abap_true
           )->a( n = `binding`  v = `{/ProductSet('AR-FB-1000')}` ).
 
       form->ele( n = `layout` ns = `smartForm`
