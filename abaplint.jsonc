@@ -31,9 +31,10 @@
     }
   ],
   "syntax": {
-    // EML (READ/MODIFY/COMMIT ENTITIES) requires ABAP Platform >= 1909,
-    // therefore this sample is not downported like the other repositories
-    "version": "v757",
+    // GENERATED - the branch "05-business-events" carries src/05 alone, so it is
+    // checked at the release that package needs, not at the v757 of the
+    // full tree on main. See .github/packages.json.
+    "version": "v754",
     // the RAP business object /DMO/I_TRAVEL_M of the SAP flight reference
     // scenario is not part of the dependencies, only Z2UI5* objects are
     // resolved strictly
