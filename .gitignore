@@ -8,3 +8,7 @@ web/apps.json
 # derived: one thumbnail per sample, photographed by
 # scripts/generate-screenshots.mjs on every deploy (AGENTS.md section 8)
 web/thumbs/
+
+# the linter's README badges: every run rewrites them, CI publishes them to
+# the `badges` branch - never committed here
+.github/badges/
