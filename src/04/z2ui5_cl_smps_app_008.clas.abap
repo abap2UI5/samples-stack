@@ -60,7 +60,7 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
 
   METHOD draft_save.
 
-    DATA(uuid) = client->get_event_arg( 1 ).
+    DATA(uuid) = client->get_event_arg( ).
     DATA(s_draft) = t_drafts[ travel_uuid = uuid ].
 
     " An ordinary UPDATE - the only thing that makes it a draft update is
@@ -134,8 +134,7 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - EML - 08 Change and Save a Draft`

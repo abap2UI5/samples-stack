@@ -180,7 +180,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_save.
 
-    DATA(travel_id) = client->get_event_arg( 1 ).
+    DATA(travel_id) = client->get_event_arg( ).
     DATA(s_travel) = t_travels[ travel_id = travel_id ].
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_accept.
 
-    DATA(travel_id) = client->get_event_arg( 1 ).
+    DATA(travel_id) = client->get_event_arg( ).
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_reject.
 
-    DATA(travel_id) = client->get_event_arg( 1 ).
+    DATA(travel_id) = client->get_event_arg( ).
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
@@ -267,7 +267,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_delete.
 
-    DATA(travel_id) = client->get_event_arg( 1 ).
+    DATA(travel_id) = client->get_event_arg( ).
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
@@ -343,9 +343,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - EML - 05 Manage Travels`

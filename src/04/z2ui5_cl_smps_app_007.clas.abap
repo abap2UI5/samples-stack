@@ -73,7 +73,7 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
     DATA s_failed   TYPE RESPONSE FOR FAILED EARLY z2ui5_r_smps_trd.
     DATA s_reported TYPE RESPONSE FOR REPORTED EARLY z2ui5_r_smps_trd.
 
-    DATA(uuid) = client->get_event_arg( 1 ).
+    DATA(uuid) = client->get_event_arg( ).
 
     " OPTIONAL: the uuid comes from the client, and the row it names may be
     " gone from the list (deleted in another session) - a table expression
@@ -177,8 +177,7 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(table) = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - EML - 07 Enter Draft Mode`

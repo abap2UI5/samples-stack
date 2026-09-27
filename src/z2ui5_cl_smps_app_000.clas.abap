@@ -87,11 +87,14 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
       END OF cs_color.
 
     CONSTANTS:
-      BEGIN OF cs_event,
+      "! the backend events of this app - not named cs_event, which is the
+      "! client's own constant for the FRONTEND actions (client->cs_event-...),
+      "! so that neither a reader nor the linter takes one for the other
+      BEGIN OF cs_backend_event,
         regenerate TYPE string VALUE `REGENERATE` ##NO_TEXT,
         nav        TYPE string VALUE `NAV_APP` ##NO_TEXT,
         install    TYPE string VALUE `INSTALL` ##NO_TEXT,
-      END OF cs_event.
+      END OF cs_backend_event.
 
     CONSTANTS:
       "! the overview apps of the abap2UI5 family, in the order the shared header
@@ -297,7 +300,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     CASE client->get_event( ).
 
-      WHEN cs_event-regenerate.
+      WHEN cs_backend_event-regenerate.
 
         " both business objects at once - the samples of src/03 run against
         " the one without draft, those of src/04 against the draft enabled
@@ -309,7 +312,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         ENDIF.
         client->message_toast_display( text ).
 
-      WHEN cs_event-install.
+      WHEN cs_backend_event-install.
 
         " a header icon whose repository is not on this system - anchor class,
         " GitHub URL and repository name travel as the event arguments
@@ -317,7 +320,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                          href   = client->get_event_arg( 2 )
                          name   = client->get_event_arg( 3 ) ).
 
-      WHEN cs_event-nav.
+      WHEN cs_backend_event-nav.
 
         " a header button whose target overview app is on this system - the
         " class travels as the event argument and is resolved here, for the
@@ -455,7 +458,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         )->a( n = `icon`    v = `sap-icon://refresh`
         )->a( n = `type`    v = `Transparent`
         )->a( n = `visible` b = demo_data_installed
-        )->a( n = `press`   v = client->_event( cs_event-regenerate ) ).
+        )->a( n = `press`   v = client->_event( cs_backend_event-regenerate ) ).
 
     " then the sample repositories of the abap2UI5 family, one icon each ...
     header_button( toolbar     = right
@@ -538,7 +541,6 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     DATA target TYPE string.
     DATA hint   TYPE string.
     DATA color  TYPE string.
-    DATA press  TYPE string.
 
     DATA(tooltip) = |{ name } - { descr }|.
 
@@ -564,26 +566,10 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         target = class_old.
       ENDIF.
 
-      IF target IS NOT INITIAL.
-        " installed on this system: jump right into it, the back button returns
-        hint  = tooltip.
-        press = client->_event( val = cs_event-nav arg = target ).
-
-      ELSEIF class IS INITIAL.
-        " no CLASS to look for: the documentation and GitHub entries are no
-        " destination inside the system to begin with, they open their site
-        hint  = tooltip.
-        press = open_url( href ).
-
+      IF target IS INITIAL AND class IS NOT INITIAL.
+        hint = |{ tooltip } - not installed on this system|.
       ELSE.
-        " a repository that is not on this system is a normal, active entry -
-        " the press says what is missing and where to get it (install_display),
-        " instead of dropping the user on GitHub without a word
-        hint  = |{ tooltip } - not installed on this system|.
-        press = client->_event( val   = cs_event-install
-                                t_arg = VALUE #( ( class )
-                                                 ( href )
-                                                 ( name ) ) ).
+        hint = tooltip.
       ENDIF.
 
     ENDIF.
@@ -619,8 +605,31 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       toolbar->a( n = `color` t = color ).
     ENDIF.
 
-    IF press IS NOT INITIAL.
-      toolbar->a( n = `press` v = press ).
+    " the press is written at the control, not held in a variable first - a
+    " captured client->_event( ) is a runtime value to the abap2UI5 linter,
+    " which then drops the attribute from the view it checks. One a( ) with a
+    " COND rather than one per branch: the linter reads the branches of an IF
+    " as one sequence, and would see the press set three times
+    IF here = abap_false.
+      toolbar->a( n = `press`
+                  v = COND #(
+                        " installed on this system: jump right into it, the
+                        " back button returns
+                        WHEN target IS NOT INITIAL
+                        THEN client->_event( val = cs_backend_event-nav arg = target )
+                        " no CLASS to look for: the documentation and GitHub
+                        " entries are no destination inside the system to begin
+                        " with, they open their site
+                        WHEN class IS INITIAL
+                        THEN open_url( href )
+                        " a repository that is not on this system is a normal,
+                        " active entry - the press says what is missing and
+                        " where to get it (install_display), instead of
+                        " dropping the user on GitHub without a word
+                        ELSE client->_event( val   = cs_backend_event-install
+                                             t_arg = VALUE #( ( class )
+                                                              ( href )
+                                                              ( name ) ) ) ) ).
     ENDIF.
 
   ENDMETHOD.
