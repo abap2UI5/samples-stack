@@ -18,7 +18,8 @@
   // and a default-on gate whose runtime is missing steps aside for the property
   // gate and the run stays green - a corpus that claims every view loads should
   // not be able to pass without having loaded them. Saying so makes a missing
-  // @abap2ui5/render-runtime an error instead.
+  // @abap2ui5/linter-render (the render runtime, render-runtime up to 0.7.0)
+  // an error instead.
   "render": true,
 
   // The two README badges. Every run rewrites these shields.io endpoint

@@ -60,14 +60,16 @@ CLASS z2ui5_cl_smps_app_319 DEFINITION PUBLIC.
         END OF product_type,
       END OF m_selection.
 
-    " local demo data (source) + the filtered result + the derived SELECT-OPTIONS
-    DATA t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
-    DATA t_result  TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
-    DATA t_selopt  TYPE STANDARD TABLE OF ty_s_selopt WITH EMPTY KEY.
-    DATA hint      TYPE string.
+    " the filtered result + the derived SELECT-OPTIONS - both bound
+    DATA t_result TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
+    DATA t_selopt TYPE STANDARD TABLE OF ty_s_selopt WITH EMPTY KEY.
+    DATA hint     TYPE string.
 
   PROTECTED SECTION.
     DATA m_client TYPE REF TO z2ui5_if_client.
+    " the local demo data the result is filtered from - never bound, so it
+    " needs no PUBLIC: state survives the roundtrip at PROTECTED too
+    DATA t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
 
     METHODS on_init.
     METHODS view_display.
@@ -129,7 +131,6 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core`
             )->a( n = `xmlns:smi`    v = `sap.ui.comp.smartmultiinput`
             )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
 
@@ -276,6 +277,9 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
       low    = s-value1.
       high   = s-value2.
 
+      " The WHEN literals below are condition operators, not event names -
+      " the linter reads any WHEN `X` as an event handler.
+      " abap2ui5lint-disable handler-without-event
       CASE to_upper( s-operation ).
         WHEN `EQ`.           option = `EQ`.
         WHEN `NE`.           option = `NE`.
@@ -292,6 +296,7 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
         WHEN `EMPTY`.        option = `EQ`. low = ``.
         WHEN OTHERS.         option = `EQ`.
       ENDCASE.
+      " abap2ui5lint-enable handler-without-event
 
       APPEND VALUE #( sign = sign option = option low = low high = high ) TO lr_type.
       APPEND VALUE #( sign = sign option = option low = low high = high ) TO t_selopt.

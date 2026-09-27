@@ -36,7 +36,6 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
               )->a( n = `height`       v = `100%`
               )->a( n = `xmlns`        v = `sap.m`
               )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-              )->a( n = `xmlns:core`   v = `sap.ui.core`
               )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
       DATA(page) = view->ele( `Shell`
           )->ele( `Page`
@@ -74,7 +73,7 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
                   )->a( n = `text` v = `Launchpad active`
               )->tag( `Input`
                   )->a( n = `enabled` b = abap_false
-                  )->a( n = `value`   b = check_launchpad_active
+                  )->a( n = `value`   v = client->_bind( check_launchpad_active )
               )->tag( `Button`
                   )->a( n = `press`   v = client->follow_up_action( client->cs_event-cross_app_nav_to_prev_app )
                   )->a( n = `text`    v = `back to the previous app`

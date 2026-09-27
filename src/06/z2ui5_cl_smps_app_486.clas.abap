@@ -6,10 +6,11 @@ CLASS z2ui5_cl_smps_app_486 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     DATA instance_counter TYPE i READ-ONLY.
-    DATA session_is_stateful TYPE abap_bool READ-ONLY.
     DATA session_text TYPE string READ-ONLY.
 
   PROTECTED SECTION.
+    DATA session_is_stateful TYPE abap_bool.
+
     METHODS initialize_view
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -33,9 +34,7 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
     TRY.
 
-        IF client->check_on_init( ).
-          initialize_view( client ).
-        ELSEIF client->check_on_navigated( ).
+        IF client->check_on_navigated( ).
           initialize_view( client ).
         ENDIF.
 
@@ -58,7 +57,6 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core`
             )->a( n = `xmlns:tnt`    v = `sap.tnt` ).
 
     DATA(page) = view->ele( `Shell`

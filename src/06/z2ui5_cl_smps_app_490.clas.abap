@@ -5,7 +5,6 @@ CLASS z2ui5_cl_smps_app_490 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA view_id TYPE i.
     DATA text TYPE string VALUE `call booking mask`.
     DATA varkey TYPE char120.
 
@@ -14,6 +13,8 @@ CLASS z2ui5_cl_smps_app_490 DEFINITION PUBLIC.
         client TYPE REF TO z2ui5_if_client.
 
   PROTECTED SECTION.
+    DATA view_id TYPE i.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -34,7 +35,6 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
                     )->a( n = `height`       v = `100%`
                     )->a( n = `xmlns`        v = `sap.m`
                     )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-                    )->a( n = `xmlns:core`   v = `sap.ui.core`
                     )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
             DATA(page) = view->ele( `Shell`
                 )->ele( `Page`
@@ -127,9 +127,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `Stateful Application with lock`

@@ -52,8 +52,7 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `RAP Events Demo - Event Log (abap2UI5)`

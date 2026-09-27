@@ -5,8 +5,6 @@ CLASS z2ui5_cl_smps_app_485 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA lock_counter TYPE i READ-ONLY.
-    DATA session_is_stateful TYPE abap_bool READ-ONLY.
     DATA session_text TYPE string READ-ONLY.
     DATA lock_text TYPE string READ-ONLY.
     DATA:
@@ -16,6 +14,9 @@ CLASS z2ui5_cl_smps_app_485 DEFINITION PUBLIC.
       END OF error.
 
   PROTECTED SECTION.
+    DATA lock_counter TYPE i.
+    DATA session_is_stateful TYPE abap_bool.
+
     METHODS initialize_view
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -47,7 +48,6 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:core`   v = `sap.ui.core`
             )->a( n = `xmlns:tnt`    v = `sap.tnt` ).
 
     DATA(page) = view->ele( `Shell`
