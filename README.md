@@ -1,10 +1,10 @@
 [![abap version](https://img.shields.io/badge/abap%20version-standard%20%28%E2%89%A5%201909%29-blue)](#setup)
 [![namespace](https://img.shields.io/badge/namespace-z2ui5__cl__smps-blue)](abaplint.jsonc)
-[![abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fmain%2F.github%2Fbadges%2Fabap2ui5.json)](#what-is-in-here)
+[![abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fbadges%2Fabap2ui5.json)](#what-is-in-here)
 <br>
 <br>
 [![abap-standard](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml)
-[![check-abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fmain%2F.github%2Fbadges%2Fcheck-abap2ui5.json)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-abap2UI5.yaml)
+[![check-abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fbadges%2Fcheck-abap2ui5.json)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-abap2UI5.yaml)
 [![check-app-rules](https://github.com/abap2UI5/samples-stack/actions/workflows/check-app-rules.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-app-rules.yaml)
 <br>
 [![check-overview](https://github.com/abap2UI5/samples-stack/actions/workflows/check-overview.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/check-overview.yaml)

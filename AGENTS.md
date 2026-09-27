@@ -115,8 +115,9 @@ scripts sat in `.github/scripts/` and in `scripts/` at the same time until
 `abap2UI5/samples` — so "where does a new check go" had no answer, and the two
 halves could not share `lib/`. `scripts/` is what both sibling repositories use.
 
-`.github/` keeps what GitHub reads: the workflows, the badges, and
-`packages.json`, which is a workflow input.
+`.github/` keeps what GitHub reads: the workflows and `packages.json`, which
+is a workflow input. The README badges are not kept there: CI publishes them
+to the `badges` branch.
 
 **Every check has a workflow, and every workflow is in `npm run check`.** A
 check only `npm run check` runs cannot make a pull request red, which is the
