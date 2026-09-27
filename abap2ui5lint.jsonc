@@ -78,21 +78,26 @@
 
     "sapui5-only-control": { "exclude": ["/src/02/"] },
     // A render error carries no line, so a source directive cannot reach it —
-    // the config is the only instrument. Two shapes here, both about what the
-    // static harness can serve rather than about the app:
+    // the config is the only instrument. Besides src/02 (the Smart Controls
+    // package, above) one shape here, about what the static harness can serve
+    // rather than about the app:
     //
     //   * src/03 + src/04 (RAP) bind an ObjectStatus `state` to a CDS entity
     //     field. The field has no ABAP declaration to read a type from, so the
     //     mock model seeds '' and strict validation rejects it as a ValueState
     //     — the running app gets Success/Warning/Error from the entity
-    //   * app 489 loads abap2UI5's own custom control z2ui5/cc/Websocket,
-    //     which the framework serves at runtime and the harness does not have
+    //
+    // App 489 (abap2UI5's companion control z2ui5/cc/Websocket) left this
+    // list with @abap2ui5/linter 0.8.2, whose harness carries a stand-in for
+    // every live companion control. In src/02, 314 renders clean as well - it
+    // shows the OData model switch, no sap.ui.comp control - so the linter
+    // notes its waiver as stale; the folder stays excluded as a whole, as the
+    // package it is.
     "render-error": {
       "exclude": [
         "/src/02/",
         "/src/03/z2ui5_cl_smps_app_005\\.",
-        "/src/04/z2ui5_cl_smps_app_(006|010)\\.",
-        "/src/07/z2ui5_cl_smps_app_489\\."
+        "/src/04/z2ui5_cl_smps_app_(006|010)\\."
       ]
     }
   },
