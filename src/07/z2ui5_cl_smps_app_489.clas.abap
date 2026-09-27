@@ -238,9 +238,6 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
       DATA(escaped) = substring( val = rest off = pos len = 1 ).
       pos = pos + 1.
 
-      " The WHEN literals below are escape characters, not event names -
-      " the linter reads any WHEN `X` as an event handler.
-      " abap2ui5lint-disable handler-without-event
       CASE escaped.
         WHEN `n`.
           result = result && |\n|.
@@ -253,7 +250,6 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
           " json_escape( ) would never write
           result = result && escaped.
       ENDCASE.
-      " abap2ui5lint-enable handler-without-event
     ENDWHILE.
 
   ENDMETHOD.

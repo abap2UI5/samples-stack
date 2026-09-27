@@ -277,9 +277,6 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
       low    = s-value1.
       high   = s-value2.
 
-      " The WHEN literals below are condition operators, not event names -
-      " the linter reads any WHEN `X` as an event handler.
-      " abap2ui5lint-disable handler-without-event
       CASE to_upper( s-operation ).
         WHEN `EQ`.           option = `EQ`.
         WHEN `NE`.           option = `NE`.
@@ -296,7 +293,6 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
         WHEN `EMPTY`.        option = `EQ`. low = ``.
         WHEN OTHERS.         option = `EQ`.
       ENDCASE.
-      " abap2ui5lint-enable handler-without-event
 
       APPEND VALUE #( sign = sign option = option low = low high = high ) TO lr_type.
       APPEND VALUE #( sign = sign option = option low = low high = high ) TO t_selopt.

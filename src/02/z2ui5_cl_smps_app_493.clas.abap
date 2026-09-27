@@ -92,13 +92,11 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
     " is the only piece a SmartFilterBar would bring along by itself - see
     " sample 478 for that variant of the same screen. Its initialise( )
     " handshake is cs_event-filter_bar_variant_init at the end of this method,
-    " not cs_event-smart_variant_init - the linter knows only the second.
-    " abap2ui5lint-disable smart-variant-without-init
+    " not cs_event-smart_variant_init.
     page->ele( `HBox`
         )->tag( n = `SmartVariantManagement` ns = `smartVariantManagement`
             )->a( n = `id`             v = `variantMgmt`
             )->a( n = `persistencyKey` v = `Z2UI5_493_VARIANT` ).
-    " abap2ui5lint-enable smart-variant-without-init
 
     " A CLASSIC sap.ui.comp.filterbar.FilterBar: unlike a SmartFilterBar it
     " has no OData metadata to build itself from, so its filters are named

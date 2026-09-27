@@ -89,7 +89,7 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
     CONSTANTS:
       "! the backend events of this app - not named cs_event, which is the
       "! client's own constant for the FRONTEND actions (client->cs_event-...),
-      "! so that neither a reader nor the linter takes one for the other
+      "! so that a reader does not take one for the other
       BEGIN OF cs_backend_event,
         regenerate TYPE string VALUE `REGENERATE` ##NO_TEXT,
         nav        TYPE string VALUE `NAV_APP` ##NO_TEXT,
