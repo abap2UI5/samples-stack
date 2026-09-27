@@ -43,8 +43,7 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
 
     SELECT
       SINGLE FROM icfservloc
@@ -82,9 +81,10 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
         )->a( n = `text`  v = `submit`
         )->a( n = `type`  v = `Accept` ).
 
-    view->tag( n = `Focus` ns = `z2ui5`
-        )->a( n = `focusId` v = `inputApp` ).
     client->view_display( view->stringify( ) ).
+    client->follow_up_action(
+        val   = z2ui5_if_client=>cs_event-set_focus
+        t_arg = VALUE #( ( `inputApp` ) ) ).
 
   ENDMETHOD.
 

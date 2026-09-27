@@ -85,16 +85,14 @@
     //     field. The field has no ABAP declaration to read a type from, so the
     //     mock model seeds '' and strict validation rejects it as a ValueState
     //     — the running app gets Success/Warning/Error from the entity
-    //   * app 487 and 489 load abap2UI5's own custom controls (z2ui5/cc/Focus,
-    //     z2ui5/cc/Websocket), which the framework serves at runtime and the
-    //     harness does not have
+    //   * app 489 loads abap2UI5's own custom control z2ui5/cc/Websocket,
+    //     which the framework serves at runtime and the harness does not have
     "render-error": {
       "exclude": [
         "/src/02/",
         "/src/03/z2ui5_cl_smps_app_005\\.",
         "/src/04/z2ui5_cl_smps_app_(006|010)\\.",
-        "/src/07/z2ui5_cl_smps_app_489\\.",
-        "/src/08/z2ui5_cl_smps_app_487\\."
+        "/src/07/z2ui5_cl_smps_app_489\\."
       ]
     }
   },
