@@ -80,7 +80,7 @@ an API-key header. So the key has two possible homes:
 |---|---|
 | [`013`](z2ui5_cl_smps_app_013.clas.abap) | the settings — provider, destination, model, key — and a connection test with one press |
 | [`014`](z2ui5_cl_smps_app_014.clas.abap) | a chat: FeedInput and FeedListItems, the conversation sent with every question, the answer fetched in a second roundtrip behind a busy feed. The screen of `Z2UI5_CL_SMP_APP_540` in [abap2UI5/samples](https://github.com/abap2UI5/samples), answered by a real model instead of rules |
-| [`015`](z2ui5_cl_smps_app_015.clas.abap) | a table of sales figures and *Summarize with AI*: the rows go to the model as context and its summary comes back into a panel — with the prompt hygiene a real app needs: at most 50 rows, only the columns the question needs (no internal keys, no user names), the data fenced off and declared as data |
+| [`015`](z2ui5_cl_smps_app_015.clas.abap) | a table of sales figures and *Summarize with AI*: the rows go to the model as context and its summary comes back into a panel — with the prompt hygiene a real app needs: at most 50 rows, only the columns the question needs (no internal keys, no user names), the data fenced off and declared as data. The real-model counterpart of `Z2UI5_CL_SMP_APP_541` in [abap2UI5/samples](https://github.com/abap2UI5/samples), which explains a selection with a local provider instead |
 
 Start any of them with `?app_start=z2ui5_cl_smps_app_<no>`, or from the overview
 app `?app_start=z2ui5_cl_smps_app_000`. Begin with `013`. Without a configuration

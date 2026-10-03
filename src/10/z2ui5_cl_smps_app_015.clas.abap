@@ -6,6 +6,12 @@
 "! under the table. Same interface as the chat (Z2UI5_IF_SMPS_LLM), same
 "! settings (Z2UI5_CL_SMPS_APP_013) - only the prompt is different.
 "!
+"! Its counterpart without a model is Z2UI5_CL_SMP_APP_541 in
+"! abap2UI5/samples: explain-this-data over a table, the selected rows
+"! summarised by a local deterministic provider, with a pointer here for
+"! the real call - this is that call. Its source:
+"! https://github.com/abap2UI5/samples/blob/main/src/z2ui5_cl_smp_app_541.clas.abap
+"!
 "! The prompt is where a real app has to be careful, and this one shows how:
 "!
 "!   - FEWER ROWS: at most max_rows rows travel, and the prompt says so when

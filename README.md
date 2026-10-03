@@ -1,6 +1,7 @@
 [![abap version](https://img.shields.io/badge/abap%20version-standard%20%28%E2%89%A5%201909%29-blue)](#setup)
 [![namespace](https://img.shields.io/badge/namespace-z2ui5__cl__smps-blue)](abaplint.jsonc)
 [![abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fbadges%2Fabap2ui5.json)](#what-is-in-here)
+[![AI-ready: llms.txt · skills · MCP](https://img.shields.io/badge/AI--ready-llms.txt%20%C2%B7%20skills%20%C2%B7%20MCP-blue)](https://abap2ui5.github.io/docs/get_started/ai.html)
 <br>
 <br>
 [![abap-standard](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml)
@@ -50,6 +51,16 @@ for and try it out — the others can wait until you need them.
 > the technology you came for and by the release your system runs, and every
 > card says what the sample needs from that system before you install
 > anything.
+
+Building with an AI coding agent? The
+[AI page](https://abap2ui5.github.io/docs/get_started/ai.html) of the
+documentation sets up the skills and the
+[MCP server](https://github.com/abap2UI5/mcp-server) — whose sample search
+covers every sample here:
+`claude mcp add abap2ui5 -- npx --yes -p @abap2ui5/mcp-server abap2ui5-mcp`.
+The Claude Code plugin is two commands:
+`/plugin marketplace add abap2UI5/abap2UI5`, then
+`/plugin install abap2ui5@abap2ui5`.
 
 ## Which package do I need?
 

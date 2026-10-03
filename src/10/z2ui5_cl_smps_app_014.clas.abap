@@ -4,8 +4,9 @@
 "! A chat screen in front of a REAL language model: FeedInput, a feed of
 "! FeedListItems, and every question sent together with the conversation so
 "! far. The screen is the one of Z2UI5_CL_SMP_APP_540 in abap2UI5/samples,
-"! which answers with a rule-based stand-in and points here for the real
-"! call - this is that call.
+"! which answers with a local rule-based provider and points here for the
+"! real call - this is that call. Its source:
+"! https://github.com/abap2UI5/samples/blob/main/src/z2ui5_cl_smp_app_540.clas.abap
 "!
 "! The app knows one interface, Z2UI5_IF_SMPS_LLM, and asks
 "! Z2UI5_CL_SMPS_LLM_FACTORY for an implementation. Which provider answers -
