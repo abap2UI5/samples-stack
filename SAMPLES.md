@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 32 of them — with what it shows and a
+Every app in this repository — 35 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -108,12 +108,21 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | Cross-App Navigation Sender<br>hands two values over to another tile<br><sub>launchpad fiori flp cross app navigation sender intent</sub> | [`Z2UI5_CL_SMPS_APP_483`](src/09/z2ui5_cl_smps_app_483.clas.abap) |
 | Cross-App Navigation Receiver<br>reads them back out of its startup parameters<br><sub>launchpad fiori flp cross app navigation receiver intent</sub> | [`Z2UI5_CL_SMPS_APP_484`](src/09/z2ui5_cl_smps_app_484.clas.abap) |
 
+### AI / LLM — `src/10`
+
+| Sample | Class |
+|---|---|
+| Settings and Connection Test<br>where the two AI samples get their model from - provider, destination, model and key, saved once and tested with one press<br><sub>ai llm chat settings configuration destination sm59 islm</sub> | [`Z2UI5_CL_SMPS_APP_013`](src/10/z2ui5_cl_smps_app_013.clas.abap) |
+| Chat with a Language Model<br>a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration<br><sub>ai llm chat chatbot feedinput feedlistitem anthropic openai</sub> | [`Z2UI5_CL_SMPS_APP_014`](src/10/z2ui5_cl_smps_app_014.clas.abap) |
+| Summarize a Table with AI<br>a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel<br><sub>ai llm chat summarize table prompt hygiene anthropic</sub> | [`Z2UI5_CL_SMPS_APP_015`](src/10/z2ui5_cl_smps_app_015.clas.abap) |
+
 ---
 
 ## Not samples
 
-8 classes here are not apps and carry no tile: behavior pools,
-demo data, an event consumer and the generated APC protocol class. They are
+16 classes here are not apps and carry no tile: behavior pools,
+demo data, an event consumer, the generated APC protocol class and the
+language-model layer the AI samples call. They are
 reached **by** a sample rather than looked up, which is why they are exempt from
 the keyword rule — but a catalogue that claims to account for the tree has to be
 able to say they exist.
@@ -128,3 +137,11 @@ able to say they exist.
 | [`Z2UI5_CL_SMPS_BP_TCK`](src/05/01/z2ui5_cl_smps_bp_tck.clas.abap) | RAP Events Demo - Ticket Behavior Pool |
 | [`Z2UI5_CL_SMPS_EVT_TCK`](src/05/01/z2ui5_cl_smps_evt_tck.clas.abap) | RAP Events Demo - Local Event Consumer (writes log) |
 | [`Z2UI5_CL_SMPS_APP_489_WS`](src/07/z2ui5_cl_smps_app_489_ws.clas.abap) | Generated APC WebSocket protocol impementation class |
+| [`Z2UI5_CL_SMPS_LLM_CLAUDE`](src/10/z2ui5_cl_smps_llm_claude.clas.abap) | LLM - Anthropic Messages API |
+| [`Z2UI5_CL_SMPS_LLM_FACTORY`](src/10/z2ui5_cl_smps_llm_factory.clas.abap) | LLM - Configuration and Provider Factory |
+| [`Z2UI5_CL_SMPS_LLM_JSON`](src/10/z2ui5_cl_smps_llm_json.clas.abap) | LLM - JSON Written and Read by Hand |
+| [`Z2UI5_CL_SMPS_LLM_OPENAI`](src/10/z2ui5_cl_smps_llm_openai.clas.abap) | LLM - OpenAI-Compatible Chat Completions |
+| [`Z2UI5_CX_SMPS_LLM`](src/10/z2ui5_cx_smps_llm.clas.abap) | LLM - Exception |
+| [`Z2UI5_CL_SMPS_LLM_SM59`](src/10/01/z2ui5_cl_smps_llm_sm59.clas.abap) | LLM - HTTP Transport over an SM59 Destination |
+| [`Z2UI5_CL_SMPS_LLM_CLOUD`](src/10/02/z2ui5_cl_smps_llm_cloud.clas.abap) | LLM - HTTP Transport for ABAP Cloud |
+| [`Z2UI5_CL_SMPS_LLM_ISLM`](src/10/03/z2ui5_cl_smps_llm_islm.clas.abap) | LLM - SAP ABAP AI SDK (ISLM) |

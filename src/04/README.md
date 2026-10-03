@@ -16,7 +16,7 @@ whole lifecycle fits in a handful of statements.
 [`03`](../03/README.md) — draft handling adds nothing on top of EML.
 
 **Branch:** [`04-rap-draft`](https://github.com/abap2UI5/samples-stack/tree/04-rap-draft)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 ABAP Platform >= 1909 or a BTP ABAP Environment. The draft enabled business object
 and its two tables come with this package ([`src/04/01`](01)).

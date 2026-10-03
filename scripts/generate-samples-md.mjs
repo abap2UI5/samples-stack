@@ -123,7 +123,8 @@ ${body}
 ## Not samples
 
 ${helpers.length} classes here are not apps and carry no tile: behavior pools,
-demo data, an event consumer and the generated APC protocol class. They are
+demo data, an event consumer, the generated APC protocol class and the
+language-model layer the AI samples call. They are
 reached **by** a sample rather than looked up, which is why they are exempt from
 the keyword rule — but a catalogue that claims to account for the tree has to be
 able to say they exist.

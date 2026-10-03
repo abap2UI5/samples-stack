@@ -1,6 +1,7 @@
 [![abap version](https://img.shields.io/badge/abap%20version-standard%20%28%E2%89%A5%201909%29-blue)](#setup)
 [![namespace](https://img.shields.io/badge/namespace-z2ui5__cl__smps-blue)](abaplint.jsonc)
 [![abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5%2Fsamples-stack%2Fbadges%2Fabap2ui5.json)](#what-is-in-here)
+[![AI-ready: llms.txt · skills · MCP](https://img.shields.io/badge/AI--ready-llms.txt%20%C2%B7%20skills%20%C2%B7%20MCP-blue)](https://abap2ui5.github.io/docs/get_started/ai.html)
 <br>
 <br>
 [![abap-standard](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml/badge.svg)](https://github.com/abap2UI5/samples-stack/actions/workflows/abap-standard.yaml)
@@ -20,7 +21,7 @@
 # abap2UI5 — samples-stack
 
 **Learn how abap2UI5 plays with your stack — OData, RAP, Smart Controls,
-WebSockets, the Fiori Launchpad and more.**
+WebSockets, the Fiori Launchpad, language models and more.**
 
 abap2UI5 is more than a standalone framework for building apps. At its core it
 is deliberately agnostic: it makes no assumption about where your data comes
@@ -30,8 +31,8 @@ plugs into what your system already offers.
 
 This repository shows exactly that. OData, Smart Controls, RAP with and without
 draft, RAP business events, stateful sessions and ABAP locks, WebSockets via
-AMC/APC, the MIME repository, the Fiori Launchpad — abap2UI5 works alongside
-each of them, and each one keeps doing what it is good at. Nothing here
+AMC/APC, the MIME repository, the Fiori Launchpad, a large language model over
+HTTPS — abap2UI5 works alongside each of them, and each one keeps doing what it is good at. Nothing here
 replaces an existing technology; everything here complements one. Whether you
 use any of it is entirely up to you — *everything is possible, nothing is
 required*.
@@ -51,9 +52,19 @@ for and try it out — the others can wait until you need them.
 > card says what the sample needs from that system before you install
 > anything.
 
+Building with an AI coding agent? The
+[AI page](https://abap2ui5.github.io/docs/get_started/ai.html) of the
+documentation sets up the skills and the
+[MCP server](https://github.com/abap2UI5/mcp-server) — whose sample search
+covers every sample here:
+`claude mcp add abap2ui5 -- npx --yes -p @abap2ui5/mcp-server abap2ui5-mcp`.
+The Claude Code plugin is two commands:
+`/plugin marketplace add abap2UI5/abap2UI5`, then
+`/plugin install abap2ui5@abap2ui5`.
+
 ## Which package do I need?
 
-Most readers need exactly one. The nine areas are unrelated technologies, none
+Most readers need exactly one. The ten areas are unrelated technologies, none
 depends on another — so find the row that says what you came to do, take that
 package, and skip the rest:
 
@@ -68,6 +79,7 @@ package, and skip the rest:
 | Push messages from ABAP into every open browser tab, without JavaScript | [`src/07`](src/07/README.md) — AMC/APC | on-premise; activate one ICF node in `SICF` |
 | Play or serve a file the MIME repository already holds | [`src/08`](src/08/README.md) — MIME Play Audio | on-premise; activate one ICF service in `SICF` |
 | Expose your app in the Fiori Launchpad — tile, startup parameters, cross-app navigation | [`src/09`](src/09/README.md) — Launchpad | a launchpad with a tile pointing at abap2UI5 |
+| Call a large language model from your app — a chat, or a table summarized by AI | [`src/10`](src/10/README.md) — AI / LLM | an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK |
 
 Each package README opens with a **What you need** section that turns the last
 column into concrete steps; the table below adds the exact release floors.
@@ -85,6 +97,7 @@ column into concrete steps; the table below adds the exact release floors.
 | [`src/07`](src/07) | **[AMC/APC](src/07/README.md)** — a news feed over WebSocket | on-premise APC/AMC, the ICF node `Z2UI5_APC_SMP_2` | Standard only, ≥ 7.50 |
 | [`src/08`](src/08) | **[MIME Play Audio](src/08/README.md)** — play a sound from the MIME repository | the ICF service `/SAP/PUBLIC/BC/ABAP/mime_demo` | Standard only, ≥ 7.50 |
 | [`src/09`](src/09) | **[Launchpad](src/09/README.md)** — startup parameters, shell title, cross-app navigation | a Fiori Launchpad with a tile pointing at abap2UI5 | Cloud + Standard ≥ 7.40 SP08 |
+| [`src/10`](src/10) | **[AI / LLM](src/10/README.md)** — chat with a language model, summarize a table with AI | an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK | Cloud + Standard ≥ 7.40 SP08 |
 
 The numbering is a reading order, not a dependency chain: `01` starts where
 most systems already are — an activated OData service — and each package from
@@ -125,6 +138,11 @@ is the higher of two floors:
   business events lift `05` to 2021. If `RAISE ENTITY EVENT` does not activate on
   your system, `05` is out of reach and nothing else in this repository is
   affected.
+- *the HTTP client of the stack.* `10` calls a language model over HTTPS, and
+  the two stacks release different clients for that — `cl_http_client` on an
+  SM59 destination on Standard, `cl_web_http_client_manager` on ABAP Cloud. So
+  the package carries one small transport class per stack, each activating on
+  its own stack only, and the samples pick whichever is there at runtime.
 
 The repository **as a whole** therefore asks for 1909, because `03`–`05` do. A
 single package can ask for much less — which matters if you are only here for one
@@ -133,7 +151,7 @@ of them.
 ## Setup
 
 1. Install [abap2UI5](https://github.com/abap2UI5/abap2UI5).
-2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all nine
+2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all ten
    packages, or the branch of the single package you came for (see
    [One package at a time](#one-package-at-a-time)). `main` as a whole runs on
    ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for,
@@ -166,7 +184,7 @@ It is also the honest answer to *what does my system actually support*: the
 overview looks every sample up at runtime instead of referencing it statically, so
 a package your release cannot activate — or one you never installed — is listed
 with its Open button disabled and a Status saying so, rather than taking the whole
-overview down. Start it first, and the list tells you which of the nine packages
+overview down. Start it first, and the list tells you which of the ten packages
 this system can run.
 
 ## One package at a time
@@ -192,6 +210,7 @@ overview app and nothing else:
 | [`07-amc-apc`](../../tree/07-amc-apc) | [`src/07`](src/07) — AMC/APC | Standard only, ≥ 7.50 |
 | [`08-mime`](../../tree/08-mime) | [`src/08`](src/08) — MIME Play Audio | Standard only, ≥ 7.50 |
 | [`09-launchpad`](../../tree/09-launchpad) | [`src/09`](src/09) — Launchpad | Cloud + Standard ≥ 7.40 SP08 |
+| [`10-ai-llm`](../../tree/10-ai-llm) | [`src/10`](src/10) — AI / LLM | Cloud + Standard ≥ 7.40 SP08 |
 
 The overview app ships on every branch and keeps listing **every sample in the
 repository**, so it stays the catalogue of what the other branches hold — the
@@ -264,7 +283,7 @@ in CI. The node checks carry no dependencies, so they take seconds.
 | `check-prose-names` | every class name written in prose exists — including the sibling repositories' |
 | `check-framework-pin` | the abaplint config pins abap2UI5 to a release tag, never to whatever is on `main` |
 | `check-catalogue` | `catalogue.json` and `catalogue-derived.json` are in sync with the tree — and with them every package has a README row that parses, every app sits in a package, and none is missing its `@summary` or `@keywords` |
-| `create-package-branches` | rebuilds the nine per-package branches, each verified with abaplint at its own release before it is pushed |
+| `create-package-branches` | rebuilds the ten per-package branches, each verified with abaplint at its own release before it is pushed |
 
 `check-overview` exists because the overview app names its samples as strings and
 resolves them at runtime — that is what lets it survive a package the system cannot

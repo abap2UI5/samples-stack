@@ -17,7 +17,7 @@ on-premise: in ABAP Cloud there is neither the repository nor the node to reach 
 through.
 
 **Branch:** [`08-mime`](https://github.com/abap2UI5/samples-stack/tree/08-mime)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 **Setup:** activate the ICF service `/SAP/PUBLIC/BC/ABAP/mime_demo` in `SICF`. The
 app checks the node and warns if it is inactive.

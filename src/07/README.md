@@ -18,7 +18,7 @@ ABAP Cloud counterpart; the 7.50 comes from the ABAP the two classes are written
 in, the channels themselves arrived earlier.
 
 **Branch:** [`07-amc-apc`](https://github.com/abap2UI5/samples-stack/tree/07-amc-apc)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 **Setup:** activate the ICF service `/sap/bc/apc/sap/z2ui5_apc_smp_2` in `SICF`. The
 app checks this itself and shows a friendly warning strip while the node is still

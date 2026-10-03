@@ -3,7 +3,7 @@
 // force-pushed as that package's branch. See create-package-branches.yaml.
 //
 // Why: abapGit imports a whole repository, there is no sparse checkout. This
-// repository spans nine packages with different floors - three of them are
+// repository spans ten packages with different floors - three of them are
 // on-premise only, three need 1909 or newer - so a system that only wants
 // src/01 today has to take src/06, src/07 and src/08 with it and gets
 // activation errors for technology it never asked for. One branch per package
@@ -75,7 +75,7 @@ rmSync(join('.github', 'workflows'), { recursive: true, force: true });
 // 3. abaplint checks the branch at the release the package actually needs
 //    rather than at the v757 of the full tree. That is what verifies the
 //    "Runs on" column, and it is also what catches a package that has quietly
-//    grown a dependency on one of the other eight.
+//    grown a dependency on one of the others.
 const lint = readFileSync('abaplint.jsonc', 'utf8').split('\n');
 const version = lint.findIndex((line) => /"version"\s*:/.test(line));
 if (version < 0) throw new Error('no "version" key in abaplint.jsonc');
@@ -104,7 +104,7 @@ writeFileSync(
 );
 
 // 5. a root README that says what this branch is, before anyone wonders why
-//    eight packages are missing
+//    the other packages are missing
 const wrap = (text) =>
   text.split(' ').reduce((lines, word) => {
     const last = lines[lines.length - 1];
@@ -119,8 +119,8 @@ writeFileSync(
 
 **One package, nothing else.** This branch is generated from
 [\`main\`](${MAIN}/README.md) and carries [\`src/${pkg.dir}\`](src/${pkg.dir}) only, so
-you can pull the one thing you came for instead of all nine packages of the
-repository — the other eight bring technology your system may not have, or may
+you can pull the one thing you came for instead of all ${packages.length} packages of the
+repository — the other ${packages.length - 1} bring technology your system may not have, or may
 not be able to activate at all.
 
 **Runs on:** ${pkg.runsOn}
@@ -147,7 +147,7 @@ committed here is gone at the next build, and a pull request against it cannot b
 merged anywhere useful.
 
 - **Issues and pull requests go to [\`main\`](https://github.com/${REPO})**, which
-  carries all nine packages and their READMEs.
+  carries all ${packages.length} packages and their READMEs.
 - Built by [\`create-package-branches.yaml\`](${MAIN}/.github/workflows/create-package-branches.yaml)
   from [\`.github/packages.json\`](${MAIN}/.github/packages.json); abaplint checked
   this tree at \`${pkg.syntax}\` before it was pushed.

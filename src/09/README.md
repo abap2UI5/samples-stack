@@ -19,7 +19,7 @@ framework, so what decides here is whether you have a launchpad, not which ABAP
 release serves it.
 
 **Branch:** [`09-launchpad`](https://github.com/abap2UI5/samples-stack/tree/09-launchpad)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 A **Fiori Launchpad** with a tile pointing at abap2UI5 — an on-premise FLP
 (`/ui2/flp`), the launchpad sandbox (`test/flpSandbox`), or a launchpad site on BTP.
