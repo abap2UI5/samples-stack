@@ -1,6 +1,6 @@
 # 10 — AI / LLM
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 An abap2UI5 app that talks to a **large language model**: a chat, and a table of
 business data summarized by AI. The app stays what every abap2UI5 app is — one
@@ -121,6 +121,6 @@ Z2UI5_CL_SMPS_LLM_ISLM            src/10/03 - the ABAP AI SDK, no HTTP of its ow
 
 ## Where to go next
 
-- [`09` Launchpad](../09/README.md) — put the chat on a tile.
-- [`03` RAP](../03/README.md) — summarize the travels of a business object
+- [`09` Launchpad](https://github.com/abap2UI5/samples-stack/blob/main/src/09/README.md) — put the chat on a tile.
+- [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — summarize the travels of a business object
   instead of the demo rows: `Z2UI5_CL_SMPS_APP_015` only needs a table.
