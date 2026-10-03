@@ -15,7 +15,7 @@ name: create-package-branches
 # Every branch is verified before it is pushed: abaplint at the release that
 # package declares, which is what keeps the "Runs on" column of the README
 # honest and what catches a package that has quietly grown a dependency on one
-# of the other eight. On a pull request the whole thing runs except the push,
+# of the other nine. On a pull request the whole thing runs except the push,
 # so a change that would break a branch fails while it can still be fixed.
 
 on:
@@ -32,7 +32,7 @@ concurrency:
   # pushes to main share refs/heads/main and the newest wins, which is what we
   # want - a superseded run would publish older content. A pull request run
   # gets its own group. Sharing one group across refs would let a pull request
-  # cancel a main run mid-publish and leave the nine branches half updated,
+  # cancel a main run mid-publish and leave the ten branches half updated,
   # some at the new main and some at the old, without anything going red.
   group: create-package-branches-${{ github.ref }}
   cancel-in-progress: true

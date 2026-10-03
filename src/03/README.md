@@ -24,7 +24,7 @@ The draft enabled half lives next door in [`04` RAP with Draft](../04/README.md)
 **Release:** Cloud + Standard ≥ 7.54 (1909) — that is what EML asks for.
 
 **Branch:** [`03-rap`](https://github.com/abap2UI5/samples-stack/tree/03-rap)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 ABAP Platform >= 1909 or a BTP ABAP Environment. The business object
 `Z2UI5_R_SMPS_TRV` and its table come with this package ([`src/03/01`](01)), so

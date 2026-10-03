@@ -71,7 +71,7 @@ is a link to the class file, which is the qualification.
 
 ## 3. The generated one-package branches
 
-abapGit imports a whole repository; there is no sparse checkout. Nine packages
+abapGit imports a whole repository; there is no sparse checkout. Ten packages
 with different floors would mean a system that wants OData also takes APC and
 gets activation errors for technology it never asked for. So every package is
 force-pushed to its own branch by `create-package-branches.yaml`, and the

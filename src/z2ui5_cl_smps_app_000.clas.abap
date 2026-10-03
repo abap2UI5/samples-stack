@@ -68,6 +68,7 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
     DATA t_websocket TYPE ty_t_sample.
     DATA t_mime      TYPE ty_t_sample.
     DATA t_launchpad TYPE ty_t_sample.
+    DATA t_ai        TYPE ty_t_sample.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -415,6 +416,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                     hint  = `these four show what the shell adds - start them from a launchpad tile, not from here`
                     items = client->_bind( t_launchpad ) ).
 
+    render_package( page  = page
+                    title = `10 - AI / LLM`
+                    hint  = `a language model over HTTPS - set up the provider in the settings first, then chat or summarize`
+                    items = client->_bind( t_ai ) ).
+
     client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
@@ -649,7 +655,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD render_package.
 
-    " collapsible: nine packages are a long page, and most readers came for
+    " collapsible: ten packages are a long page, and most readers came for
     " one of them
     DATA(panel) = page->ele( `Panel`
         )->a( n = `headerText` t = title
@@ -956,6 +962,20 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                 title     = `Cross-app navigation - receiver`
                 detail    = `reads them back out of its startup parameters`
                 classname = `Z2UI5_CL_SMPS_APP_484` ) ) ).
+
+    t_ai = VALUE #(
+      ( sample( no        = `013`
+                title     = `Settings and connection test`
+                detail    = `where the two AI samples get their model from - provider, destination, model and key, saved once and tested with one press`
+                classname = `Z2UI5_CL_SMPS_APP_013` ) )
+      ( sample( no        = `014`
+                title     = `Chat with a language model`
+                detail    = `a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration`
+                classname = `Z2UI5_CL_SMPS_APP_014` ) )
+      ( sample( no        = `015`
+                title     = `Summarize a table with AI`
+                detail    = `a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel`
+                classname = `Z2UI5_CL_SMPS_APP_015` ) ) ).
 
   ENDMETHOD.
 

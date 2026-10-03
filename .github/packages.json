@@ -71,5 +71,14 @@
     "runsOn": "Cloud + Standard ≥ 7.40 SP08",
     "syntax": "v740sp08",
     "shared": []
+  },
+  {
+    "dir": "10",
+    "branch": "10-ai-llm",
+    "title": "AI / LLM",
+    "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+    "syntax": "v751",
+    "note": "The HTTP transport comes once per stack, and each half activates on its own stack only: src/10/01 (cl_http_client on an SM59 destination) on Standard, src/10/02 (cl_web_http_client_manager on a BTP destination) on ABAP Cloud, src/10/03 only where SAP's ABAP AI SDK is installed. An activation error for the half your system does not have is expected - the samples create the transport by name and use the one that is there. That is also why this branch is linted at 7.51 although the package runs from 7.40 SP08: everything but src/10/02 parses at 7.40 SP08, and src/10/02 is ABAP Cloud code whose released enums need 7.51 syntax.",
+    "shared": []
   }
 ]

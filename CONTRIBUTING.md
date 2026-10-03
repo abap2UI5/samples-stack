@@ -16,6 +16,6 @@ npm ci
 npm run check        # abaplint + abap2UI5-linter + the overview check
 ```
 
-`npm run check` is what CI runs. Work on `main`; the nine package branches are
+`npm run check` is what CI runs. Work on `main`; the ten package branches are
 generated and force-pushed from it, so anything committed there is lost at the
 next build.

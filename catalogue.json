@@ -124,6 +124,18 @@
       "note": "",
       "branch": "09-launchpad",
       "readme": "src/09/README.md"
+    },
+    {
+      "package": "src/10",
+      "technology": "AI / LLM",
+      "topic": "chat with a language model, summarize a table with AI",
+      "needs": "an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK",
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "release": "7.40 SP08",
+      "note": "The HTTP transport comes once per stack, and each half activates on its own stack only: src/10/01 (cl_http_client on an SM59 destination) on Standard, src/10/02 (cl_web_http_client_manager on a BTP destination) on ABAP Cloud, src/10/03 only where SAP's ABAP AI SDK is installed. An activation error for the half your system does not have is expected - the samples create the transport by name and use the one that is there. That is also why this branch is linted at 7.51 although the package runs from 7.40 SP08: everything but src/10/02 parses at 7.40 SP08, and src/10/02 is ABAP Cloud code whose released enums need 7.51 syntax.",
+      "branch": "10-ai-llm",
+      "readme": "src/10/README.md"
     }
   ],
   "samples": [
@@ -821,6 +833,75 @@
       "needs": "a Fiori Launchpad with a tile pointing at abap2UI5",
       "branch": "09-launchpad",
       "setup": "src/09/README.md"
+    },
+    {
+      "class": "Z2UI5_CL_SMPS_APP_013",
+      "path": "src/10/z2ui5_cl_smps_app_013.clas.abap",
+      "package": "src/10",
+      "technology": "AI / LLM",
+      "title": "Settings and Connection Test",
+      "summary": "where the two AI samples get their model from - provider, destination, model and key, saved once and tested with one press",
+      "keywords": [
+        "ai",
+        "llm",
+        "chat",
+        "settings",
+        "configuration",
+        "destination",
+        "sm59",
+        "islm"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "needs": "an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK",
+      "branch": "10-ai-llm",
+      "setup": "src/10/README.md"
+    },
+    {
+      "class": "Z2UI5_CL_SMPS_APP_014",
+      "path": "src/10/z2ui5_cl_smps_app_014.clas.abap",
+      "package": "src/10",
+      "technology": "AI / LLM",
+      "title": "Chat with a Language Model",
+      "summary": "a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration",
+      "keywords": [
+        "ai",
+        "llm",
+        "chat",
+        "chatbot",
+        "feedinput",
+        "feedlistitem",
+        "anthropic",
+        "openai"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "needs": "an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK",
+      "branch": "10-ai-llm",
+      "setup": "src/10/README.md"
+    },
+    {
+      "class": "Z2UI5_CL_SMPS_APP_015",
+      "path": "src/10/z2ui5_cl_smps_app_015.clas.abap",
+      "package": "src/10",
+      "technology": "AI / LLM",
+      "title": "Summarize a Table with AI",
+      "summary": "a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel",
+      "keywords": [
+        "ai",
+        "llm",
+        "chat",
+        "summarize",
+        "table",
+        "prompt",
+        "hygiene",
+        "anthropic"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "needs": "an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK",
+      "branch": "10-ai-llm",
+      "setup": "src/10/README.md"
     }
   ]
 }

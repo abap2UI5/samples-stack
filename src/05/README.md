@@ -17,7 +17,7 @@ the second shows what arrived. RAP does the wiring in between.
 repository, and the only package whose limit is not EML.
 
 **Branch:** [`05-business-events`](https://github.com/abap2UI5/samples-stack/tree/05-business-events)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 ABAP Platform >= 1909 or a BTP ABAP Environment covers the EML part — but this
 package also needs a release that already carries **RAP business events**. They are

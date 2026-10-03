@@ -15,7 +15,7 @@ view and the service path, nothing more.
 paths, so nothing here reaches past the ABAP the package is written in.
 
 **Branch:** [`01-odata`](https://github.com/abap2UI5/samples-stack/tree/01-odata)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 An activated OData V2 service. The sample points at the services of the SAP flight
 reference scenario:

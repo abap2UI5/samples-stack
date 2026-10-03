@@ -16,7 +16,7 @@ side of these nine samples asks for nothing beyond the release the package is
 written in — what they need is the service, not the platform.
 
 **Branch:** [`02-smart-controls`](https://github.com/abap2UI5/samples-stack/tree/02-smart-controls)
-— this package alone, without the other eight on your system.
+— this package alone, without the other nine on your system.
 
 - **SAPUI5**, since `sap.ui.comp` is part of the SAPUI5 distribution.
 - **An activated OData V2 service.** Most samples point at the Gateway demo service
