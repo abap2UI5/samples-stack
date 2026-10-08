@@ -35,6 +35,14 @@ CLASS z2ui5_cl_smps_llm_cloud DEFINITION PUBLIC
   PRIVATE SECTION.
     DATA destination TYPE string.
 
+    "! Closes the connection, on every path of post( ) - a timeout in
+    "! execute( ) or a response that is not UTF-8 would otherwise leave it
+    "! open until the session ends.
+    "! @parameter client | the client, unbound when it was never created
+    METHODS client_close
+      IMPORTING
+        client TYPE REF TO if_web_http_client.
+
 ENDCLASS.
 
 
@@ -49,6 +57,8 @@ CLASS z2ui5_cl_smps_llm_cloud IMPLEMENTATION.
 
   METHOD z2ui5_if_smps_llm_http~post.
 
+    DATA client TYPE REF TO if_web_http_client.
+
     TRY.
         " service_specific: the destination authenticates as itself, not as
         " the user in front of the screen - an API key belongs to the system
@@ -56,7 +66,7 @@ CLASS z2ui5_cl_smps_llm_cloud IMPLEMENTATION.
                                      i_name       = destination
                                      i_authn_mode = if_a4c_cp_service=>service_specific ).
 
-        DATA(client) = cl_web_http_client_manager=>create_by_http_destination( http_destination ).
+        client = cl_web_http_client_manager=>create_by_http_destination( http_destination ).
         DATA(request) = client->get_http_request( ).
 
         request->set_uri_path( path ).
@@ -74,12 +84,31 @@ CLASS z2ui5_cl_smps_llm_cloud IMPLEMENTATION.
         DATA(response) = client->execute( if_web_http_client=>post ).
         result-status = response->get_status( )-code.
         result-body   = cl_abap_conv_codepage=>create_in( )->convert( response->get_binary( ) ).
-        client->close( ).
 
       CATCH cx_http_dest_provider_error cx_web_http_client_error cx_web_message_error
             cx_sy_conversion_codepage INTO DATA(error).
+        " closed here as well: a CLEANUP would not run, it runs only when an
+        " exception LEAVES the TRY, and this one catches its own
+        client_close( client ).
         z2ui5_cx_smps_llm=>raise( text     = |Destination { destination }: { error->get_text( ) }|
                                   previous = error ).
+    ENDTRY.
+
+    client_close( client ).
+
+  ENDMETHOD.
+
+
+  METHOD client_close.
+
+    IF client IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        client->close( ).
+      CATCH cx_web_http_client_error ##NO_HANDLER.
+        " already closed - nothing left to release
     ENDTRY.
 
   ENDMETHOD.

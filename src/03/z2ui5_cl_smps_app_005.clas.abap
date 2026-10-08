@@ -170,9 +170,15 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     IF data_save( ).
 
+      " the travel is saved by now - read the key early numbering drew with
+      " OPTIONAL, so a MAPPED without the row costs the id in the toast and
+      " not a CX_SY_ITAB_LINE_NOT_FOUND dump after a successful save
+      DATA(s_new) = VALUE #( s_mapped-travel[ 1 ] OPTIONAL ).
       client->popup_destroy( ).
       data_read( ).
-      client->message_toast_display( |Travel { s_mapped-travel[ 1 ]-travelid ALPHA = OUT } created| ).
+      client->message_toast_display( COND #( WHEN s_new IS INITIAL
+                                             THEN `Travel created`
+                                             ELSE |Travel { s_new-travelid ALPHA = OUT } created| ) ).
 
     ENDIF.
 

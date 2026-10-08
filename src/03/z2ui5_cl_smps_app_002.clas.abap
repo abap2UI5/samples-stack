@@ -128,8 +128,11 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
     ENDIF.
 
     " thanks to early numbering the key assigned by the business object is
-    " available in MAPPED, addressed by the %cid sent above
-    created_id = |{ s_mapped-travel[ %cid = `CREATE_1` ]-travelid ALPHA = OUT }|.
+    " available in MAPPED, addressed by the %cid sent above. OPTIONAL: the
+    " travel is saved by now, and a MAPPED without the row must cost the id
+    " in the toast, not a CX_SY_ITAB_LINE_NOT_FOUND dump after the save
+    DATA(s_new) = VALUE #( s_mapped-travel[ %cid = `CREATE_1` ] OPTIONAL ).
+    created_id = |{ s_new-travelid ALPHA = OUT }|.
     client->message_toast_display( |Travel { created_id } created| ).
 
   ENDMETHOD.
