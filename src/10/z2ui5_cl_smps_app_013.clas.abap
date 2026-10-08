@@ -35,7 +35,9 @@ CLASS z2ui5_cl_smps_app_013 DEFINITION PUBLIC.
 
     DATA transport_text TYPE string.
     DATA result_text TYPE string.
-    DATA result_type TYPE string.
+    "! bound to a MessageType, which UI5 validates even while the strip is
+    "! hidden - an empty string terminates the app on the first display
+    DATA result_type TYPE string VALUE `Information`.
     DATA result_visible TYPE abap_bool.
 
   PROTECTED SECTION.

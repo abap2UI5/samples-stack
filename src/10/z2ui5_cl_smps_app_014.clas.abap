@@ -40,7 +40,9 @@ CLASS z2ui5_cl_smps_app_014 DEFINITION PUBLIC.
     DATA system_prompt TYPE string.
 
     DATA status_text TYPE string.
-    DATA status_type TYPE string.
+    "! bound to a MessageType, which UI5 validates even while the strip is
+    "! hidden - an empty string terminates the app on the first display
+    DATA status_type TYPE string VALUE `Information`.
     DATA status_visible TYPE abap_bool.
     DATA configured TYPE abap_bool.
 
