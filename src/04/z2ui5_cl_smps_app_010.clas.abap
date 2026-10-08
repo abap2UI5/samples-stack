@@ -59,6 +59,12 @@ CLASS z2ui5_cl_smps_app_010 DEFINITION PUBLIC.
       IMPORTING
         uuid TYPE string.
 
+    "! writes the popup's fields into the draft - Save Draft and Activate both
+    "! start here, so what the user typed is never lost on the way
+    METHODS draft_update
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS data_save
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -176,27 +182,8 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
   METHOD on_event_save_draft.
 
-    MODIFY ENTITIES OF z2ui5_r_smps_trd
-      ENTITY travel
-        UPDATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
-        WITH VALUE #( ( %tky         = VALUE #( traveluuid = s_draft-travel_uuid
-                                                %is_draft  = if_abap_behv=>mk-on )
-                        agencyid     = s_draft-agency_id
-                        customerid   = s_draft-customer_id
-                        begindate    = s_draft-begin_date
-                        enddate      = s_draft-end_date
-                        bookingfee   = s_draft-booking_fee
-                        currencycode = s_draft-currency
-                        description  = s_draft-description ) )
-      FAILED DATA(s_failed)
-      REPORTED DATA(s_reported).
-
-    IF s_failed-travel IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+    IF draft_update( ) = abap_false.
       RETURN.
-
     ENDIF.
 
     IF data_save( ).
@@ -210,6 +197,12 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
 
   METHOD on_event_activate.
+
+    " what the popup shows is what gets activated - fields changed since the
+    " last Save Draft go into the draft first, in the same transaction
+    IF draft_update( ) = abap_false.
+      RETURN.
+    ENDIF.
 
     " the validations of the business object run during activation -
     " an invalid draft stays a draft and the messages are displayed
@@ -261,6 +254,36 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
       client->message_toast_display( |Draft of travel { s_draft-travel_id } discarded| ).
 
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD draft_update.
+
+    MODIFY ENTITIES OF z2ui5_r_smps_trd
+      ENTITY travel
+        UPDATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
+        WITH VALUE #( ( %tky         = VALUE #( traveluuid = s_draft-travel_uuid
+                                                %is_draft  = if_abap_behv=>mk-on )
+                        agencyid     = s_draft-agency_id
+                        customerid   = s_draft-customer_id
+                        begindate    = s_draft-begin_date
+                        enddate      = s_draft-end_date
+                        bookingfee   = s_draft-booking_fee
+                        currencycode = s_draft-currency
+                        description  = s_draft-description ) )
+      FAILED DATA(s_failed)
+      REPORTED DATA(s_reported).
+
+    IF s_failed-travel IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      RETURN.
+
+    ENDIF.
+
+    result = abap_true.
 
   ENDMETHOD.
 

@@ -95,11 +95,15 @@ the instances as a table, and writes them into the log:
 
 ```abap
 METHODS on_ticket_created FOR ENTITY EVENT
-  ticketcreated FOR z2ui5_r_smps_tck~TicketCreated.
+  ticketcreated FOR ticket~TicketCreated.
 
 METHODS on_status_changed FOR ENTITY EVENT
-  statuschanged FOR z2ui5_r_smps_tck~StatusChanged.
+  statuschanged FOR ticket~StatusChanged.
 ```
+
+`ticket` is the entity's alias from the behavior definition (`alias Ticket`) —
+name the entity by it, not by `z2ui5_r_smps_tck`, or the extended check reports
+that the alias should be used instead.
 
 Nothing registers this class anywhere — the `FOR ENTITY EVENT` declaration *is* the
 subscription. Add a second handler and it runs too; delete this one and the BO

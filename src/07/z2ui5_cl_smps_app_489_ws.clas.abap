@@ -45,10 +45,13 @@ CLASS z2ui5_cl_smps_app_489_ws IMPLEMENTATION.
 
   METHOD if_apc_wsp_extension~on_message.
 
+    " MESSAGE ... TYPE 'X' rather than RAISE SHORTDUMP: both end the request
+    " in a short dump that names the exception's text, but RAISE SHORTDUMP
+    " only exists from 7.53 on, and this package runs from 7.50
     TRY.
         send( i_message->get_text( ) ).
       CATCH cx_root INTO DATA(error).
-        RAISE SHORTDUMP error.
+        MESSAGE error TYPE 'X'.
     ENDTRY.
 
   ENDMETHOD.
@@ -65,7 +68,7 @@ CLASS z2ui5_cl_smps_app_489_ws IMPLEMENTATION.
         get_producer( )->send( c_msg-__new_connection__ ).
 
       CATCH cx_root INTO DATA(error).
-        RAISE SHORTDUMP error.
+        MESSAGE error TYPE 'X'.
     ENDTRY.
 
   ENDMETHOD.
@@ -77,7 +80,7 @@ CLASS z2ui5_cl_smps_app_489_ws IMPLEMENTATION.
         get_producer( )->send( c_msg-__closed__ ).
 
       CATCH cx_root INTO DATA(error).
-        RAISE SHORTDUMP error.
+        MESSAGE error TYPE 'X'.
     ENDTRY.
 
   ENDMETHOD.

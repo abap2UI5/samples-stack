@@ -137,7 +137,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
     DATA(hbox) = vbox->ele( `HBox`
         )->a( n = `alignItems` v = `Center` ).
     hbox->tag( `Title`
-        )->a( n = `text` v = `Current Lock Value in Table ZTEST` ).
+        )->a( n = `text` v = `Current Lock Value in Table Z2UI5_T_SMPS_01` ).
     hbox->tag( `Input`
         )->a( n = `editable` b = abap_false
         )->a( n = `value`    v = client->_bind( varkey ) ).

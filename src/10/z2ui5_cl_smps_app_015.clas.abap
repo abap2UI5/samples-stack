@@ -113,11 +113,12 @@ CLASS z2ui5_cl_smps_app_015 IMPLEMENTATION.
           RETURN.
         ENDIF.
         " the request goes out in a SECOND roundtrip - this one only puts
-        " the panel into its busy state, so the press shows at once
+        " the panel into its busy state, so the press shows at once - the X
+        " keeps the global busy overlay down, so that panel stays visible
         busy           = abap_true.
         status_visible = abap_false.
         client->follow_up_action( val   = z2ui5_if_client=>cs_event-start_timer
-                                  t_arg = VALUE #( ( `RUN` ) ( `0` ) ) ).
+                                  t_arg = VALUE #( ( `RUN` ) ( `0` ) ( `X` ) ) ).
 
       WHEN `RUN`.
         summary_get( ).
