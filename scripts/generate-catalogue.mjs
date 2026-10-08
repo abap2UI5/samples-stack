@@ -55,7 +55,14 @@ const die = (message) => {
 
 /* -------------------------------------------------------------------- build */
 
-const allPackages = packages(ROOT);
+/* The packages THIS TREE carries. On main that is every entry of
+ * packages.json - check-overview.mjs fails on a declared package without its
+ * directory, so the filter drops nothing there. On a generated one-package
+ * branch (build-package-branch.mjs regenerates this file after it has removed
+ * the other packages) it is that package alone: an entry naming a README or a
+ * class the branch does not have is a dead link for whoever pulled it. */
+const allPackages = packages(ROOT)
+  .filter((p) => p.dir === '.' || fs.existsSync(path.join(ROOT, 'src', p.dir)));
 const byDir = new Map(allPackages.map((p) => [p.dir, p]));
 const apps = scanSamples(ROOT).filter((s) => s.isApp);
 

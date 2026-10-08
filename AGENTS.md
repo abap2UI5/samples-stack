@@ -91,6 +91,11 @@ What that costs you when you edit:
   entity — that would not survive every branch.
 - Each branch is linted at **its own** release before it is pushed, which is
   what makes the "Runs on" column in the README true rather than aspirational.
+- `SAMPLES.md` and `catalogue.json` are **regenerated** on each branch, by the
+  same generators over the reduced tree, so they list that package alone and
+  link to nothing the branch does not carry. The generators scan the tree they
+  run in; that is the only branch-specific behaviour, and on `main` it drops
+  nothing.
 
 ## 4. Build & verify
 

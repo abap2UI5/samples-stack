@@ -55,6 +55,10 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
 
   METHOD data_generate.
 
+    " the system date through the released API: ABAP Cloud refuses a read of
+    " sy-datum, and the package says Cloud + Standard
+    DATA(today) = cl_abap_context_info=>get_system_date( ).
+
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
         CREATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
@@ -62,22 +66,22 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
                       ( %cid        = `DEMO_1`
                         agencyid    = '070001'
                         customerid  = '000001'
-                        begindate   = sy-datum
-                        enddate     = sy-datum + 14
+                        begindate   = today
+                        enddate     = today + 14
                         bookingfee  = '20.00'
                         description = 'Demo travel - sightseeing' )
                       ( %cid        = `DEMO_2`
                         agencyid    = '070002'
                         customerid  = '000002'
-                        begindate   = sy-datum + 30
-                        enddate     = sy-datum + 37
+                        begindate   = today + 30
+                        enddate     = today + 37
                         bookingfee  = '35.50'
                         description = 'Demo travel - business trip' )
                       ( %cid        = `DEMO_3`
                         agencyid    = '070003'
                         customerid  = '000003'
-                        begindate   = sy-datum + 60
-                        enddate     = sy-datum + 74
+                        begindate   = today + 60
+                        enddate     = today + 74
                         bookingfee  = '12.75'
                         description = 'Demo travel - city break' ) )
       FAILED DATA(s_failed).
@@ -94,6 +98,7 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
       FAILED DATA(s_failed_commit).
 
     IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
       result = `Demo data rejected by the business object on commit.`.
       RETURN.
     ENDIF.
@@ -126,7 +131,14 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
+      FAILED DATA(s_failed_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `Deletion refused by the business object on commit.`.
+      RETURN.
+    ENDIF.
 
     result = |{ lines( t_keys ) } travel(s) deleted.|.
 

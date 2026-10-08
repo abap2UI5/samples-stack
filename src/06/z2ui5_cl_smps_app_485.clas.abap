@@ -122,8 +122,12 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
       WHEN `REFRESH`.
         update_lock_counter( ).
       WHEN `ROLLBACK`.
+        " counted before and after, so the toast says what the ROLLBACK
+        " released and not what the last Refresh happened to show
+        DATA(locks_before) = lcl_locking=>get_lock_counter( ).
         ROLLBACK WORK.
-        client->message_toast_display( |ROLLBACK WORK done, { lock_counter } locks released. Press 'Refresh lock counter'| ).
+        update_lock_counter( ).
+        client->message_toast_display( |ROLLBACK WORK done, { locks_before - lock_counter } lock(s) released| ).
     ENDCASE.
 
   ENDMETHOD.
@@ -151,8 +155,12 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
         error = VALUE #( ).
 
         IF client->check_on_init( ).
-          update_lock_counter( ).
+          " the view first: the counter reads the lock table through a
+          " function module that can fail, and the bound text reaches the
+          " browser either way - after the view, a failure leaves a screen
+          " under the error box instead of none
           initialize_view( client ).
+          update_lock_counter( ).
         ELSEIF client->check_on_navigated( ).
           initialize_view( client ).
         ENDIF.

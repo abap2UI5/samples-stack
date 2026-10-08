@@ -138,6 +138,7 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
       result = abap_true.
 
     ELSE.
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
     ENDIF.
 

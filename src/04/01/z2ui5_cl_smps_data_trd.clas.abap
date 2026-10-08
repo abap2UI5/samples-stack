@@ -52,6 +52,10 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
   METHOD data_generate.
 
+    " the system date through the released API: ABAP Cloud refuses a read of
+    " sy-datum, and the package says Cloud + Standard
+    DATA(today) = cl_abap_context_info=>get_system_date( ).
+
     " a new instance of a draft enabled business object is born as a draft
     MODIFY ENTITIES OF z2ui5_r_smps_trd
       ENTITY travel
@@ -61,22 +65,22 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
                       ( %cid        = `DEMO_1`
                         agencyid    = '070001'
                         customerid  = '000001'
-                        begindate   = sy-datum
-                        enddate     = sy-datum + 14
+                        begindate   = today
+                        enddate     = today + 14
                         bookingfee  = '20.00'
                         description = 'Demo travel - sightseeing' )
                       ( %cid        = `DEMO_2`
                         agencyid    = '070002'
                         customerid  = '000002'
-                        begindate   = sy-datum + 30
-                        enddate     = sy-datum + 37
+                        begindate   = today + 30
+                        enddate     = today + 37
                         bookingfee  = '35.50'
                         description = 'Demo travel - business trip' )
                       ( %cid        = `DEMO_3`
                         agencyid    = '070003'
                         customerid  = '000003'
-                        begindate   = sy-datum + 60
-                        enddate     = sy-datum + 74
+                        begindate   = today + 60
+                        enddate     = today + 74
                         bookingfee  = '12.75'
                         description = 'Demo travel - city break' ) )
       MAPPED DATA(s_mapped)
@@ -88,7 +92,14 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+      FAILED DATA(s_failed_draft).
+
+    IF s_failed_draft IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `The demo drafts were refused on commit.`.
+      RETURN.
+    ENDIF.
 
     " Activate runs the validations, so anything wrong surfaces here
     MODIFY ENTITIES OF z2ui5_r_smps_trd
@@ -107,6 +118,7 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       FAILED DATA(s_failed_commit).
 
     IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
       result = `Demo data rejected by the business object on commit.`.
       RETURN.
     ENDIF.
@@ -169,7 +181,14 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      COMMIT ENTITIES.
+      COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+        FAILED DATA(s_failed_commit_discard).
+
+      IF s_failed_commit_discard IS NOT INITIAL.
+        ROLLBACK ENTITIES.
+        result = `Existing drafts could not be discarded on commit.`.
+        RETURN.
+      ENDIF.
 
     ENDIF.
 
@@ -191,7 +210,14 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+      FAILED DATA(s_failed_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `Deletion refused by the business object on commit.`.
+      RETURN.
+    ENDIF.
 
     result = |{ lines( t_drafts ) } draft(s) discarded, { lines( t_keys ) } travel(s) deleted.|.
 

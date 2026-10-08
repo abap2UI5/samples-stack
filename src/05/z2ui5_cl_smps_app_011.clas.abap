@@ -99,6 +99,7 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
       data_read( ).
       view_display( ).
     ELSE.
+      ROLLBACK ENTITIES.
       client->message_toast_display( `Save failed` ).
     ENDIF.
   ENDMETHOD.
@@ -136,6 +137,7 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
       data_read( ).
       view_display( ).
     ELSE.
+      ROLLBACK ENTITIES.
       client->message_toast_display( `Save failed` ).
     ENDIF.
   ENDMETHOD.
