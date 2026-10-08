@@ -298,7 +298,7 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
     SELECT
       SINGLE FROM icfservloc
       FIELDS icfactive
-      WHERE icf_name = `Z2UI5_APC_SMP_2`
+      WHERE icf_name = @( `Z2UI5_APC_SMP_2` )
       INTO @DATA(icfactive).
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(

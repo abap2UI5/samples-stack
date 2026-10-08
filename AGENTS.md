@@ -87,7 +87,8 @@ What that costs you when you edit:
   BY NAME and resolves them at runtime for exactly that reason — and it carries
   its own url helper rather than calling one, because `src/00` travels only
   with the two packages that name it in `shared`. `check:overview` fails on a
-  static `Z2UI5_CL_SMPS_*` reference that would not survive every branch.
+  static `Z2UI5_*_SMPS_*` reference — a class, an interface, a table, a CDS
+  entity — that would not survive every branch.
 - Each branch is linted at **its own** release before it is pushed, which is
   what makes the "Runs on" column in the README true rather than aspirational.
 

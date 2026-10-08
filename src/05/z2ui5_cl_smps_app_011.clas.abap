@@ -7,10 +7,11 @@ CLASS z2ui5_cl_smps_app_011 DEFINITION PUBLIC CREATE PUBLIC.
 
     TYPES:
       BEGIN OF ty_s_ticket,
-        title      TYPE z2ui5_e_smps_title,
-        priority   TYPE z2ui5_e_smps_priority,
-        status     TYPE z2ui5_e_smps_status,
-        created_by TYPE syuname,
+        ticket_uuid TYPE string,
+        title       TYPE z2ui5_e_smps_title,
+        priority    TYPE z2ui5_e_smps_priority,
+        status      TYPE z2ui5_e_smps_status,
+        created_by  TYPE syuname,
       END OF ty_s_ticket.
     DATA mt_tickets TYPE STANDARD TABLE OF ty_s_ticket WITH EMPTY KEY.
 
@@ -28,6 +29,7 @@ CLASS z2ui5_cl_smps_app_011 DEFINITION PUBLIC CREATE PUBLIC.
     METHODS on_init.
     METHODS on_event.
     METHODS on_event_create.
+    METHODS on_event_update.
     METHODS data_read.
     METHODS view_display.
 
@@ -58,6 +60,8 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     CASE client->get_event( ).
       WHEN `CREATE`.
         on_event_create( ).
+      WHEN `UPDATE`.
+        on_event_update( ).
       WHEN `REFRESH`.
         data_read( ).
         view_display( ).
@@ -99,12 +103,57 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+  METHOD on_event_update.
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone by now - deleted in another session, or out of the top 50
+    DATA(uuid) = client->get_event_arg( ).
+    DATA(s_ticket) = VALUE #( mt_tickets[ ticket_uuid = uuid ] OPTIONAL ).
+    IF s_ticket IS INITIAL.
+      client->message_toast_display( `Ticket not found - press refresh` ).
+      RETURN.
+    ENDIF.
+
+    " Update the status via the RAP business object -> the additional save
+    " sees the update and raises the data event StatusChanged with its payload
+    MODIFY ENTITIES OF z2ui5_r_smps_tck
+      ENTITY Ticket
+        UPDATE FIELDS ( status )
+        WITH VALUE #( ( ticketuuid = s_ticket-ticket_uuid
+                        status     = s_ticket-status ) )
+      FAILED DATA(failed).
+
+    IF failed-ticket IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      client->message_toast_display( `Update failed` ).
+      RETURN.
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
+      FAILED DATA(commit_failed).
+
+    IF commit_failed IS INITIAL.
+      client->message_toast_display( |Ticket '{ s_ticket-title }' set to { s_ticket-status } - business event fired| ).
+      data_read( ).
+      view_display( ).
+    ELSE.
+      client->message_toast_display( `Save failed` ).
+    ENDIF.
+  ENDMETHOD.
+
   METHOD data_read.
     SELECT FROM z2ui5_t_smps_tck                        "#EC CI_NOWHERE
-      FIELDS title, priority, status, created_by
+      FIELDS ticket_uuid, title, priority, status, created_by
       ORDER BY created_at DESCENDING
-      INTO CORRESPONDING FIELDS OF TABLE @mt_tickets
+      INTO TABLE @DATA(t_result)
       UP TO 50 ROWS.
+
+    " the key travels to the browser as text - a RAW16 has no JSON form
+    mt_tickets = VALUE #( FOR s_result IN t_result
+        ( ticket_uuid = |{ s_result-ticket_uuid }|
+          title       = s_result-title
+          priority    = s_result-priority
+          status      = s_result-status
+          created_by  = s_result-created_by ) ).
   ENDMETHOD.
 
   METHOD view_display.
@@ -170,7 +219,11 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
         )->end(
         )->ele( `Column`
             )->tag( `Text`
-                )->a( n = `text` v = `Created By` ).
+                )->a( n = `text` v = `Created By`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
 
     table->ele( `items`
         )->ele( `ColumnListItem`
@@ -179,10 +232,14 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
                     )->a( n = `text` v = `{TITLE}`
                 )->tag( `Text`
                     )->a( n = `text` v = `{PRIORITY}`
+                )->tag( `Input`
+                    )->a( n = `value` v = `{STATUS}`
                 )->tag( `Text`
-                    )->a( n = `text` v = `{STATUS}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CREATED_BY}` ).
+                    )->a( n = `text` v = `{CREATED_BY}`
+                )->tag( `Button`
+                    )->a( n = `press` v = client->_event( val = `UPDATE`
+                                            arg = `${TICKET_UUID}` )
+                    )->a( n = `text`  v = `Update Status` ).
 
     client->view_display( view->stringify( ) ).
   ENDMETHOD.

@@ -48,7 +48,7 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
     SELECT
       SINGLE FROM icfservloc
       FIELDS icfactive
-      WHERE icf_name = `MIME_DEMO`
+      WHERE icf_name = @( `MIME_DEMO` )
       INTO @DATA(icfactive).
 
     " Note, these are demo sounds and are part of the abap2UI5 sample repo.

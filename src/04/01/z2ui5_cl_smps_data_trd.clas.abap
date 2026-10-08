@@ -123,24 +123,34 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       ORDER BY TravelUuid
       INTO TABLE @DATA(t_keys).
 
-    IF t_keys IS INITIAL.
+    " The CDS entity shows active instances only. A draft that was never
+    " activated - a new instance is born as a draft, and data_generate( )
+    " leaves its drafts behind when Activate refuses them - exists in the
+    " draft table alone, so the draft keys are read from there. Reading the
+    " draft table is fine; writing it is what EML is for.
+    SELECT FROM z2ui5_d_smps_trd                        "#EC CI_NOWHERE
+      FIELDS traveluuid
+      ORDER BY traveluuid
+      INTO TABLE @DATA(t_draft_keys).
+
+    IF t_keys IS INITIAL AND t_draft_keys IS INITIAL.
       result = `Nothing to delete.`.
       RETURN.
     ENDIF.
 
-    " An active instance may carry a draft, and that draft has to go first.
-    " Ask which ones actually have one instead of discarding blindly: a
-    " Discard on an instance without a draft lands in FAILED, and an EML
-    " failure that is neither rolled back nor evaluated leaves the RAP
-    " transaction marked for abortion. Every later statement of the same LUW
-    " then aborts - which is how this method used to end the whole request in
-    " a CX_SADL_DUMP_APPL_MODEL_ERROR instead of deleting anything.
+    " Every draft has to go before its active instance can. Ask which ones EML
+    " actually returns instead of discarding blindly: a Discard on an instance
+    " without a draft lands in FAILED, and an EML failure that is neither
+    " rolled back nor evaluated leaves the RAP transaction marked for abortion.
+    " Every later statement of the same LUW then aborts - which is how this
+    " method used to end the whole request in a CX_SADL_DUMP_APPL_MODEL_ERROR
+    " instead of deleting anything.
     "
     " Reading the keys with %is_draft = mk-on is the same trick sample 06
     " uses: what comes back in RESULT has a draft.
     READ ENTITIES OF z2ui5_r_smps_trd
       ENTITY travel
-        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_keys
+        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_draft_keys
                                           ( %tky = VALUE #( traveluuid = s_row-traveluuid
                                                             %is_draft  = if_abap_behv=>mk-on ) ) )
       RESULT DATA(t_drafts).
@@ -163,6 +173,11 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
     ENDIF.
 
+    IF t_keys IS INITIAL.
+      result = |{ lines( t_drafts ) } draft(s) discarded.|.
+      RETURN.
+    ENDIF.
+
     MODIFY ENTITIES OF z2ui5_r_smps_trd
       ENTITY travel
         DELETE FROM VALUE #( FOR s_key IN t_keys
@@ -178,7 +193,7 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
     COMMIT ENTITIES.
 
-    result = |{ lines( t_keys ) } travel(s) deleted.|.
+    result = |{ lines( t_drafts ) } draft(s) discarded, { lines( t_keys ) } travel(s) deleted.|.
 
   ENDMETHOD.
 

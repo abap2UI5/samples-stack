@@ -44,7 +44,9 @@ Start them with `?app_start=z2ui5_cl_smps_app_011` and
 `?app_start=z2ui5_cl_smps_app_012`, or from the overview app
 `?app_start=z2ui5_cl_smps_app_000`, whose Open button puts each in its own tab. Open
 both in two browser tabs, create a ticket in the first, press refresh in the
-second — the log entry the handler wrote is there.
+second — the log entry the handler wrote is there. Then change a ticket's status
+in the first tab's table and press *Update Status*: that is an update, so the
+data event `StatusChanged` arrives, with its payload in the log text.
 
 Events are raised in the save sequence and consumed **afterwards**, so the log
 entry appears once the transaction is through, not during the roundtrip that

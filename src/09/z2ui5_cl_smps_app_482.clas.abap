@@ -75,8 +75,9 @@ CLASS z2ui5_cl_smps_app_482 IMPLEMENTATION.
                 )->a( n = `press` v = client->_event( `SET_TITLE` )
                 )->a( n = `text`  v = `Set Title`
             )->tag( `Button`
-                )->a( n = `press` v = client->_event_nav_app_leave( )
-                )->a( n = `text`  v = `Go Back` ).
+                )->a( n = `press`   v = client->_event_nav_app_leave( )
+                )->a( n = `text`    v = `Go Back`
+                )->a( n = `visible` b = client->check_app_prev_stack( ) ).
 
     client->view_display( view->stringify( ) ).
 
