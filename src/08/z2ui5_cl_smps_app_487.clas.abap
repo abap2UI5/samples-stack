@@ -1,4 +1,4 @@
-" @keywords mime audio sound play_audio wav follow_up_action
+" @keywords mime audio sound play_audio mp3 follow_up_action
 " @summary a success and an error tone, addressed by their ICF path
 CLASS z2ui5_cl_smps_app_487 DEFINITION PUBLIC.
 
@@ -29,9 +29,9 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
 
     IF client->check_on_navigated( ).
       view_display( ).
+    ELSEIF client->check_on_event( ).
+      on_event( ).
     ENDIF.
-
-    on_event( ).
 
   ENDMETHOD.
 

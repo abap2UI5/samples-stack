@@ -97,7 +97,7 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 
 | Sample | Class |
 |---|---|
-| **MIME** — Audio and Play Sound<br>a success and an error tone, addressed by their ICF path<br><sub>mime audio sound play_audio wav follow_up_action</sub> | [`Z2UI5_CL_SMPS_APP_487`](src/08/z2ui5_cl_smps_app_487.clas.abap) |
+| **MIME** — Audio and Play Sound<br>a success and an error tone, addressed by their ICF path<br><sub>mime audio sound play_audio mp3 follow_up_action</sub> | [`Z2UI5_CL_SMPS_APP_487`](src/08/z2ui5_cl_smps_app_487.clas.abap) |
 
 ### Launchpad — `src/09`
 

@@ -55,9 +55,13 @@ CLASS z2ui5_cl_smps_app_010 DEFINITION PUBLIC.
     METHODS popup_edit_display.
     METHODS data_read.
 
+    "! abap_false when the draft is gone - discarded or activated in
+    "! another session between the Edit and this read
     METHODS draft_read
       IMPORTING
-        uuid TYPE string.
+        uuid          TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     "! writes the popup's fields into the draft - Save Draft and Activate both
     "! start here, so what the user typed is never lost on the way
@@ -171,9 +175,11 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     IF data_save( ).
 
-      draft_read( uuid ).
+      DATA(draft_found) = draft_read( uuid ).
       data_read( ).
-      popup_edit_display( ).
+      IF draft_found = abap_true.
+        popup_edit_display( ).
+      ENDIF.
 
     ENDIF.
 
@@ -296,7 +302,15 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
                                                    %is_draft  = if_abap_behv=>mk-on ) ) )
       RESULT DATA(t_result).
 
-    DATA(s_result) = t_result[ 1 ].
+    " READ ENTITIES returns no row, and no exception, for a key that is not
+    " there - a table expression without a guard would dump on it
+    READ TABLE t_result INTO DATA(s_result) INDEX 1.
+    IF sy-subrc <> 0.
+      client->message_box_display( text = `The draft could not be read - it was discarded or activated in the meantime`
+                                   type = `error` ).
+      RETURN.
+    ENDIF.
+
     s_draft = VALUE #(
       travel_uuid = uuid
       travel_id   = |{ s_result-travelid ALPHA = OUT }|
@@ -307,6 +321,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
       booking_fee = |{ s_result-bookingfee }|
       currency    = |{ s_result-currencycode }|
       description = |{ s_result-description }| ).
+    result = abap_true.
 
   ENDMETHOD.
 

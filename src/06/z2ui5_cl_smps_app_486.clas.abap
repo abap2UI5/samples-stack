@@ -42,9 +42,9 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
           " would undo an "End session" on every navigation
           set_session_stateful( client = client stateful = session_is_stateful ).
           initialize_view( client ).
+        ELSEIF client->check_on_event( ).
+          on_event( client ).
         ENDIF.
-
-        on_event( client ).
 
       CATCH cx_root INTO DATA(lx).
         client->message_box_display( lx->get_text( ) ).

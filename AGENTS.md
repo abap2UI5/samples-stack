@@ -93,8 +93,14 @@ What that costs you when you edit:
   what makes the "Runs on" column in the README true rather than aspirational.
   A branch whose "Runs on" says Cloud is linted a second time at
   `"version": "Cloud"` — the release run reads a `sy-datum` as fine, the Cloud
-  run does not. (It does not judge API release state: an unknown non-Z class is
-  outside `errorNamespace` either way.)
+  run does not. It does not judge API release state — an unknown non-Z class is
+  outside `errorNamespace` either way. That is `npm run check:released-api`
+  (`scripts/check-released-api.mjs`, its own workflow): every cloud-capable
+  package once more at Cloud with `errorNamespace` matching every name, so
+  whatever the `steampunk-2305-api` dependency — the released objects — does
+  not carry is an error. Its exception list names `src/10/01` and `src/10/03`
+  (Standard-only and SDK-only by design, see `src/10/README.md`) and one open
+  finding in `src/05`; both kinds are printed on every run.
 - `SAMPLES.md` and `catalogue.json` are **regenerated** on each branch, by the
   same generators over the reduced tree, so they list that package alone and
   link to nothing the branch does not carry. The generators scan the tree they
@@ -105,7 +111,7 @@ What that costs you when you edit:
 
 ```sh
 npm ci
-npm run check        # abaplint + abap2UI5-linter + overview + keywords + abapdoc + SAMPLES.md + catalogue.json + app-rules
+npm run check        # abaplint + abap2UI5-linter + overview + keywords + abapdoc + SAMPLES.md + catalogue.json + app-rules + released-api
 ```
 
 Individually: `npm run lint` (abaplint), `npm run check:abap2ui5` (the app

@@ -165,17 +165,17 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
           " would undo an "End session" on every navigation
           set_session_stateful( client = client stateful = session_is_stateful ).
           initialize_view( client ).
+        ELSEIF client->check_on_event( ).
+          TRY.
+              on_event( client ).
+            " a lock that could not be taken is the outcome this sample is
+            " about, so it is shown in the MessageStrip of the view rather
+            " than in a popup - see lcx_error in the local implementations
+            CATCH lcx_error INTO DATA(x_error).
+              error-text = x_error->get_text( ).
+              error-flag = abap_true.
+          ENDTRY.
         ENDIF.
-
-        TRY.
-            on_event( client ).
-          " a lock that could not be taken is the outcome this sample is about,
-          " so it is shown in the MessageStrip of the view rather than in a
-          " popup - see lcx_error in the local implementations
-          CATCH lcx_error INTO DATA(x_error).
-            error-text = x_error->get_text( ).
-            error-flag = abap_true.
-        ENDTRY.
 
       CATCH cx_root INTO DATA(lx).
         client->message_box_display( lx->get_text( ) ).

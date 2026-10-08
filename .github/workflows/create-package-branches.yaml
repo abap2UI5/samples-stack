@@ -78,7 +78,8 @@ jobs:
     # (a read of sy-datum, a statement outside the Cloud language scope) as
     # fine - this is the run that found the sy-datum reads in src/03 and
     # src/04. It does NOT judge API release state: a non-Z class absent from
-    # the steampunk dependency is outside errorNamespace and stays silent. "Cloud-capable" is decided
+    # the steampunk dependency is outside errorNamespace and stays silent -
+    # check-released-api.yaml is the run that does. "Cloud-capable" is decided
     # exactly as scripts/lib/read-packages.mjs decides it for catalogue.json:
     # /cloud/i on runsOn. The config is a throwaway copy; the branch keeps the
     # release config.

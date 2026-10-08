@@ -81,7 +81,9 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
       RESULT DATA(t_result)
       FAILED DATA(s_failed).
 
-    IF s_failed-travel IS NOT INITIAL.
+    " FAILED names a key RAP could not read; an empty RESULT is checked as
+    " well, so the read of the first row below can never dump
+    IF s_failed-travel IS NOT INITIAL OR t_result IS INITIAL.
 
       s_travel = VALUE #( ).
       client->message_box_display( text = |Travel { travel_id } does not exist| type = `error` ).

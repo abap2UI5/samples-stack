@@ -737,7 +737,7 @@
         "audio",
         "sound",
         "play_audio",
-        "wav",
+        "mp3",
         "follow_up_action"
       ],
       "runsOn": "Standard only, ≥ 7.50",
