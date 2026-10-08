@@ -162,7 +162,7 @@ merged anywhere useful.
   carries all ${packages.length} packages and their READMEs.
 - Built by [\`create-package-branches.yaml\`](${MAIN}/.github/workflows/create-package-branches.yaml)
   from [\`.github/packages.json\`](${MAIN}/.github/packages.json); abaplint checked
-  this tree at \`${pkg.syntax}\` before it was pushed.
+  this tree at \`${pkg.syntax}\`${/cloud/i.test(pkg.runsOn) ? ' and in the ABAP Cloud language version' : ''} before it was pushed.
 
 ## License
 

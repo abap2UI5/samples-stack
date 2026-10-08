@@ -160,8 +160,9 @@ z2ui5_cl_smps_context=>msg_display( client = client
                                     val    = s_reported-travel ).
 ```
 
-Every sample in this package calls it, which is why none of them formats a message
-itself.
+Every sample in this package that changes data calls it, which is why none of them
+formats a message itself. (`001` only reads: a key that does not exist lands in
+`FAILED`, which carries no message, so it says so in a message box of its own.)
 
 ## Where to go next
 

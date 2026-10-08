@@ -110,6 +110,15 @@ CLASS lcl_locking DEFINITION CREATE PRIVATE.
       RETURNING
         VALUE(result) TYPE char120.
 
+    "! the message a failed function module left in sy-msg*
+    "! @parameter fallback | the text when it left none
+    "! @parameter result | the message text, else the fallback
+    CLASS-METHODS message_text
+      IMPORTING
+        fallback      TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 CLASS lcl_locking IMPLEMENTATION.
@@ -127,8 +136,7 @@ CLASS lcl_locking IMPLEMENTATION.
         system_failure = 2
         OTHERS         = 3.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(error_text).
-      RAISE EXCEPTION TYPE lcx_error EXPORTING val = error_text.
+      RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock on { lock_key } could not be set (sy-subrc { sy-subrc })| ).
     ENDIF.
 
   ENDMETHOD.
@@ -153,8 +161,7 @@ CLASS lcl_locking IMPLEMENTATION.
         system_failure        = 2
         OTHERS                = 3.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(error_text).
-      RAISE EXCEPTION TYPE lcx_error EXPORTING val = error_text.
+      RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock entries could not be read (sy-subrc { sy-subrc })| ).
     ENDIF.
 
     DATA(lv_pattern) = |Z2UI5_T_SMPS_01*{ lock_argument( ) }*|.
@@ -166,6 +173,20 @@ CLASS lcl_locking IMPLEMENTATION.
         RETURN.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD message_text.
+
+    " a function module that fails without a message leaves sy-msgid empty -
+    " and a MESSAGE statement on an empty message is no text to show
+    IF sy-msgid IS NOT INITIAL.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO result.
+    ENDIF.
+    IF result IS INITIAL.
+      result = fallback.
+    ENDIF.
 
   ENDMETHOD.
 

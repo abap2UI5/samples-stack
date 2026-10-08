@@ -181,8 +181,15 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_save.
 
+    " OPTIONAL: the id comes from the client, and the row it names may be
+    " gone from the list by now - a table expression without it raises
+    " CX_SY_ITAB_LINE_NOT_FOUND and dumps
     DATA(travel_id) = client->get_event_arg( ).
-    DATA(s_travel) = t_travels[ travel_id = travel_id ].
+    DATA(s_travel) = VALUE #( t_travels[ travel_id = travel_id ] OPTIONAL ).
+    IF s_travel IS INITIAL.
+      client->message_toast_display( `Travel not found - press refresh` ).
+      RETURN.
+    ENDIF.
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel

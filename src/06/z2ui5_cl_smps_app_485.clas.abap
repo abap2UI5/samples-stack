@@ -40,8 +40,6 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD initialize_view.
 
-    set_session_stateful( client = client stateful = abap_true ).
-
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
@@ -159,9 +157,13 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
           " function module that can fail, and the bound text reaches the
           " browser either way - after the view, a failure leaves a screen
           " under the error box instead of none
+          set_session_stateful( client = client stateful = abap_true ).
           initialize_view( client ).
           update_lock_counter( ).
         ELSEIF client->check_on_navigated( ).
+          " the session as the user left it - switching it back on here
+          " would undo an "End session" on every navigation
+          set_session_stateful( client = client stateful = session_is_stateful ).
           initialize_view( client ).
         ENDIF.
 

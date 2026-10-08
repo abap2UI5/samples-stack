@@ -31,8 +31,10 @@ The target mapping's URL is the abap2UI5 ICF node plus the app to start:
 
 The framework detects the launchpad from that context (`scenario=LAUNCHPAD` in the
 query, or `/ui2/flp` / `test/flpSandbox` in the path) and sets
-`check_launchpad_active`. Every sample here checks the flag and tells you with a
-message box when it was started standalone — where it then has no shell to talk to.
+`check_launchpad_active`. `481` to `483` check the flag and tell you with a message
+box when they were started standalone — where they then have no shell to talk to;
+`484`, the receiver, shows the flag in its form and hides its two navigation
+buttons instead.
 
 ## The samples
 
@@ -47,7 +49,7 @@ Start any of them with `?app_start=z2ui5_cl_smps_app_<no>` — from a tile, that
 what the target mapping's URL carries. The overview app
 `?app_start=z2ui5_cl_smps_app_000` lists them too, but its Open button starts them
 standalone, and standalone is exactly the case where they have no shell to talk to
-and say so in a message box.
+and say so.
 
 ## The one pair worth configuring
 

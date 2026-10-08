@@ -60,8 +60,15 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
 
   METHOD draft_save.
 
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone from the list by now - a table expression without it raises
+    " CX_SY_ITAB_LINE_NOT_FOUND and dumps
     DATA(uuid) = client->get_event_arg( ).
-    DATA(s_draft) = t_drafts[ travel_uuid = uuid ].
+    DATA(s_draft) = VALUE #( t_drafts[ travel_uuid = uuid ] OPTIONAL ).
+    IF s_draft IS INITIAL.
+      client->message_toast_display( `Draft not found - it may have been activated or discarded meanwhile` ).
+      RETURN.
+    ENDIF.
 
     " An ordinary UPDATE - the only thing that makes it a draft update is
     " %is_draft = mk-on in the key. The active instance stays untouched.

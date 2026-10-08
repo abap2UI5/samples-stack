@@ -65,7 +65,9 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
           IF client->check_on_event( `CALL_BOOKING_MASK` ).
             DATA(lr_view2) = NEW z2ui5_cl_smps_app_490( ).
             lr_view2->view_id = 2.
-            lr_view2->varkey = `001`.
+            " four digits, the width NEXT_LOCK counts up in - so the first
+            " lock reads 0001 and the next one 0002, not 001 and 0002
+            lr_view2->varkey = `0001`.
             client->nav_app_call( lr_view2 ).
             RETURN.
           ENDIF.

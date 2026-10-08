@@ -91,6 +91,10 @@ What that costs you when you edit:
   entity — that would not survive every branch.
 - Each branch is linted at **its own** release before it is pushed, which is
   what makes the "Runs on" column in the README true rather than aspirational.
+  A branch whose "Runs on" says Cloud is linted a second time at
+  `"version": "Cloud"` — the release run reads a `sy-datum` as fine, the Cloud
+  run does not. (It does not judge API release state: an unknown non-Z class is
+  outside `errorNamespace` either way.)
 - `SAMPLES.md` and `catalogue.json` are **regenerated** on each branch, by the
   same generators over the reduced tree, so they list that package alone and
   link to nothing the branch does not carry. The generators scan the tree they
