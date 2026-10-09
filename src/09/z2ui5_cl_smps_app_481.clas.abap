@@ -72,8 +72,9 @@ CLASS z2ui5_cl_smps_app_481 IMPLEMENTATION.
             )->tag( `Label`
                 )->a( n = `text` v = ``
             )->tag( `Button`
-                )->a( n = `press` v = client->_event_nav_app_leave( )
-                )->a( n = `text`  v = `Go Back` ).
+                )->a( n = `press`   v = client->_event_nav_app_leave( )
+                )->a( n = `text`    v = `Go Back`
+                )->a( n = `visible` b = client->check_app_prev_stack( ) ).
 
     client->view_display( view->stringify( ) ).
 

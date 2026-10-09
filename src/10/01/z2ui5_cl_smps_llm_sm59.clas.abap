@@ -102,8 +102,21 @@ CLASS z2ui5_cl_smps_llm_sm59 IMPLEMENTATION.
     ENDIF.
 
     client->response->get_status( IMPORTING code = result-status ).
-    result-body = cl_abap_codepage=>convert_from( client->response->get_data( ) ).
+    DATA(raw) = client->response->get_data( ).
     client->close( EXCEPTIONS OTHERS = 1 ).
+
+    " a body that is not UTF-8 - typically the HTML error page of a proxy or
+    " gateway in its own code page - raises a dynamic check exception the
+    " callers would not catch; turned into the one exception they do, as the
+    " cloud transport does
+    TRY.
+        result-body = cl_abap_codepage=>convert_from( raw ).
+      CATCH cx_sy_conversion_codepage cx_sy_codepage_converter_init cx_parameter_invalid_range
+            cx_parameter_invalid_type INTO DATA(error).
+        z2ui5_cx_smps_llm=>raise( text     = |SM59 destination { destination }: HTTP { result-status }, | &&
+                                             |the response is not UTF-8 - { error->get_text( ) }|
+                                  previous = error ).
+    ENDTRY.
 
   ENDMETHOD.
 

@@ -17,7 +17,8 @@ CLASS z2ui5_cl_smps_data_trv DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "!
     "! Deleting first is what makes the keys predictable: early numbering
     "! continues behind MAX( travel_id ), so on an empty table the demo
-    "! travels always come out as 1, 2, 3.
+    "! travels always come out as 1, 2, 3. When the business object refuses
+    "! the delete, nothing is created - the result says so instead.
     CLASS-METHODS data_reset
       RETURNING
         VALUE(result) TYPE string.
@@ -48,12 +49,29 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
 
   METHOD data_reset.
 
-    result = |{ data_delete( ) } { data_generate( ) }|.
+    result = data_delete( ).
+
+    " a refused delete leaves travels behind, and the demo set would number
+    " on behind them - stop here rather than create travels 4, 5, 6
+    SELECT FROM z2ui5_r_smps_trv                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(left_over).
+
+    IF left_over > 0.
+      result = |{ result } No demo data created, { left_over } travel(s) are still there.|.
+      RETURN.
+    ENDIF.
+
+    result = |{ result } { data_generate( ) }|.
 
   ENDMETHOD.
 
 
   METHOD data_generate.
+
+    " the system date through the released API: ABAP Cloud refuses a read of
+    " sy-datum, and the package says Cloud + Standard
+    DATA(today) = cl_abap_context_info=>get_system_date( ).
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
@@ -62,22 +80,22 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
                       ( %cid        = `DEMO_1`
                         agencyid    = '070001'
                         customerid  = '000001'
-                        begindate   = sy-datum
-                        enddate     = sy-datum + 14
+                        begindate   = today
+                        enddate     = today + 14
                         bookingfee  = '20.00'
                         description = 'Demo travel - sightseeing' )
                       ( %cid        = `DEMO_2`
                         agencyid    = '070002'
                         customerid  = '000002'
-                        begindate   = sy-datum + 30
-                        enddate     = sy-datum + 37
+                        begindate   = today + 30
+                        enddate     = today + 37
                         bookingfee  = '35.50'
                         description = 'Demo travel - business trip' )
                       ( %cid        = `DEMO_3`
                         agencyid    = '070003'
                         customerid  = '000003'
-                        begindate   = sy-datum + 60
-                        enddate     = sy-datum + 74
+                        begindate   = today + 60
+                        enddate     = today + 74
                         bookingfee  = '12.75'
                         description = 'Demo travel - city break' ) )
       FAILED DATA(s_failed).
@@ -94,6 +112,7 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
       FAILED DATA(s_failed_commit).
 
     IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
       result = `Demo data rejected by the business object on commit.`.
       RETURN.
     ENDIF.
@@ -126,7 +145,14 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
+      FAILED DATA(s_failed_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `Deletion refused by the business object on commit.`.
+      RETURN.
+    ENDIF.
 
     result = |{ lines( t_keys ) } travel(s) deleted.|.
 

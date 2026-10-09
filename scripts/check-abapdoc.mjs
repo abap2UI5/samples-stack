@@ -25,6 +25,9 @@
  *     Move it INTO the chain, directly before the member it documents.
  *   - a `"!` block whose next line is `END OF`, `ENDCLASS`, `ENDINTERFACE` or
  *     a section start documents nothing.
+ *   - a `"!` block followed by a blank line or a plain `"` comment documents
+ *     nothing either: "directly before" means with nothing in between (a Code
+ *     Inspector run on a 7.58 system reported exactly that shape, 2026-10-04).
  *   - a `"!` block inside a running statement (the code line above it ends in
  *     neither `.` nor `:` nor `,`) sits in a parameter list. A parameter is
  *     documented from the method's own block: `"! @parameter <name> | <text>`.
@@ -66,18 +69,30 @@ for (const file of walk(SRC)) {
     // only the FIRST line of a doc block speaks for the block
     if (/^\s*"!/.test(src[i - 1] || '')) return;
 
-    // the code line above: skip blanks and plain `"` comments
+    // the code line above: skip blanks and comments - plain ones, and a "!
+    // block a blank line cut off above this one (reported on its own)
     let p = i - 1;
-    while (p >= 0 && (!src[p].trim() || /^\s*"[^!]/.test(src[p]) || src[p].trim() === '"')) p -= 1;
+    while (p >= 0 && (!src[p].trim() || /^\s*"/.test(src[p]))) p -= 1;
     const prev = p >= 0 ? src[p].trim() : '';
 
-    // the statement below: skip blanks and the rest of the doc block itself
+    // the line right below the block - "directly before" means NOTHING in
+    // between: a blank line or a plain `"` comment detaches the block exactly
+    // like a misplaced one (SLIN, measured on a 7.58 system)
+    let end = i + 1;
+    while (end < src.length && /^\s*"!/.test(src[end])) end += 1;
+    const gap = end < src.length && (!src[end].trim() || /^\s*"(?!!)/.test(src[end]));
+
+    // the statement below: skip blanks, plain comments and the rest of the block
     let n = i + 1;
-    while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) n += 1;
+    while (n < src.length && (/^\s*"/.test(src[n]) || !src[n].trim())) n += 1;
     const next = n < src.length ? src[n].trim() : '';
 
     const at = `${rel}:${i + 1}`;
-    if (prev && !/[.:,]$/.test(prev)) {
+    if (gap) {
+      findings.push(
+        `${at} — a blank line or a plain " comment between the "! block and \`${next}\` detaches it; the block has to sit directly on the declaration`
+      );
+    } else if (prev && !/[.:,]$/.test(prev)) {
       findings.push(
         `${at} — "! inside a parameter list documents nothing; use "! @parameter <name> | <text> in the method's own block`
       );

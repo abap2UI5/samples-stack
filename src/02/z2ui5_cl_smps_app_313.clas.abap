@@ -49,22 +49,25 @@ CLASS z2ui5_cl_smps_app_313 IMPLEMENTATION.
               )->tag( n = `ControlConfiguration` ns = `smartFilterBar`
                   )->a( n = `key`                                      v = `ProductType`
                   )->a( n = `visibleInAdvancedArea`                    b = abap_true
-                  )->a( n = `preventInitialDataFetchInValueHelpDialog` b = abap_false
-          )->end(
-          )->ele( n = `SmartTable` ns = `smartTable`
-              )->a( n = `id`                      v = `smartFiltertable`
-              )->a( n = `smartFilterId`           v = `smartFilterBar`
-              )->a( n = `tableType`               v = `ResponsiveTable`
-              )->a( n = `editable`                b = abap_false
-              )->a( n = `initiallyVisibleFields`  v = `ProductType,ProductType_Text`
-              )->a( n = `entitySet`               v = `ProductType_2`
-              )->a( n = `useVariantManagement`    b = abap_true
-              )->a( n = `useExportToExcel`        b = abap_true
-              )->a( n = `useTablePersonalisation` b = abap_true
-              )->a( n = `header`                  v = `Test`
-              )->a( n = `showRowCount`            b = abap_true
-              )->a( n = `enableExport`            b = abap_false
-              )->a( n = `enableAutoBinding`       b = abap_false ).
+                  )->a( n = `preventInitialDataFetchInValueHelpDialog` b = abap_false ).
+
+      " a statement of its own, so the table is the filter bar's sibling on
+      " the page - chained behind an end( ) it landed INSIDE the filter bar,
+      " in the content aggregation of the Grid the FilterBar extends
+      page->ele( n = `SmartTable` ns = `smartTable`
+          )->a( n = `id`                      v = `smartFiltertable`
+          )->a( n = `smartFilterId`           v = `smartFilterBar`
+          )->a( n = `tableType`               v = `ResponsiveTable`
+          )->a( n = `editable`                b = abap_false
+          )->a( n = `initiallyVisibleFields`  v = `ProductType,ProductType_Text`
+          )->a( n = `entitySet`               v = `ProductType_2`
+          )->a( n = `useVariantManagement`    b = abap_true
+          )->a( n = `useExportToExcel`        b = abap_true
+          )->a( n = `useTablePersonalisation` b = abap_true
+          )->a( n = `header`                  v = `Test`
+          )->a( n = `showRowCount`            b = abap_true
+          )->a( n = `enableExport`            b = abap_false
+          )->a( n = `enableAutoBinding`       b = abap_false ).
 
       client->view_display( val = view->stringify( ) switch_default_model_path = `/sap/opu/odata/sap/UI_PRODUCTLIST/` ).
 

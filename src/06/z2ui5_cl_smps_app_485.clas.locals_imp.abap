@@ -93,6 +93,11 @@ CLASS lcl_locking DEFINITION CREATE PRIVATE.
         gusevbt  TYPE n LENGTH 10,
       END OF ty_seqg3.
 
+    " the key this sample locks. Z2UI5_T_SMPS_01 is client-dependent, and
+    " ENQUEUE_E_TABLE takes the table key as one string, client included -
+    " see lock_argument
+    CONSTANTS lock_key TYPE c LENGTH 4 VALUE 'Z100'.
+
     CLASS-METHODS acquire_lock.
 
     CLASS-METHODS get_lock_counter
@@ -101,24 +106,37 @@ CLASS lcl_locking DEFINITION CREATE PRIVATE.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CLASS-METHODS lock_argument
+      RETURNING
+        VALUE(result) TYPE char120.
+
+    "! the message a failed function module left in sy-msg*
+    "! @parameter fallback | the text when it left none
+    "! @parameter result | the message text, else the fallback
+    CLASS-METHODS message_text
+      IMPORTING
+        fallback      TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 CLASS lcl_locking IMPLEMENTATION.
 
   METHOD acquire_lock.
 
+    DATA(lv_varkey) = lock_argument( ).
     DATA(lv_fm) = 'ENQUEUE_E_TABLE'.
     CALL FUNCTION lv_fm
       EXPORTING
         tabname        = 'Z2UI5_T_SMPS_01'
-        varkey         = 'Z100'
+        varkey         = lv_varkey
       EXCEPTIONS
         foreign_lock   = 1
         system_failure = 2
         OTHERS         = 3.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(error_text).
-      RAISE EXCEPTION TYPE lcx_error EXPORTING val = error_text.
+      RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock on { lock_key } could not be set (sy-subrc { sy-subrc })| ).
     ENDIF.
 
   ENDMETHOD.
@@ -127,13 +145,14 @@ CLASS lcl_locking IMPLEMENTATION.
   METHOD get_lock_counter.
     DATA enqueue_table TYPE STANDARD TABLE OF ty_seqg3 WITH EMPTY KEY.
 
-    DATA argument TYPE c LENGTH 150.
-    argument = |Z2UI5_T_SMPS_01                        Z100*|.
-
+    " no GARG filter: the lock argument of E_TABLE is the table name padded to
+    " the length of RSTABLE-TABNAME followed by the key, and a filter string
+    " that gets that padding wrong matches nothing. All locks of this user are
+    " read and the one of this sample is picked out below - by lock object,
+    " table name and key, independent of the column layout
     DATA(lv_fm) = 'ENQUEUE_READ'.
     CALL FUNCTION lv_fm
       EXPORTING
-        garg                  = argument
         guname                = sy-uname
       TABLES
         enq                   = enqueue_table
@@ -142,11 +161,39 @@ CLASS lcl_locking IMPLEMENTATION.
         system_failure        = 2
         OTHERS                = 3.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(error_text).
-      RAISE EXCEPTION TYPE lcx_error EXPORTING val = error_text.
+      RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock entries could not be read (sy-subrc { sy-subrc })| ).
     ENDIF.
 
-    result = VALUE #( enqueue_table[ 1 ]-gusevb OPTIONAL ).
+    DATA(lv_pattern) = |Z2UI5_T_SMPS_01*{ lock_argument( ) }*|.
+    LOOP AT enqueue_table INTO DATA(ls_enqueue).
+      IF ls_enqueue-gobj = 'E_TABLE' AND ls_enqueue-garg CP lv_pattern.
+        " the cumulative counter of the update task owner - ENQUEUE_E_TABLE
+        " locks with the default _SCOPE 2, which hands the lock to it
+        result = ls_enqueue-gusevb.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD message_text.
+
+    " a function module that fails without a message leaves sy-msgid empty -
+    " and a MESSAGE statement on an empty message is no text to show
+    IF sy-msgid IS NOT INITIAL.
+      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO result.
+    ENDIF.
+    IF result IS INITIAL.
+      result = fallback.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD lock_argument.
+
+    result = |{ sy-mandt }{ lock_key }|.
 
   ENDMETHOD.
 

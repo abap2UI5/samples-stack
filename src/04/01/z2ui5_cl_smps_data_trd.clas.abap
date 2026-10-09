@@ -14,6 +14,8 @@ CLASS z2ui5_cl_smps_data_trd DEFINITION PUBLIC FINAL CREATE PUBLIC.
     INTERFACES if_oo_adt_classrun.
 
     "! Deletes everything, then creates the demo set. This is what F9 runs.
+    "! When the business object refuses a discard or a delete, nothing is
+    "! created - the result says so instead.
     CLASS-METHODS data_reset
       RETURNING
         VALUE(result) TYPE string.
@@ -45,12 +47,33 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
   METHOD data_reset.
 
-    result = |{ data_delete( ) } { data_generate( ) }|.
+    result = data_delete( ).
+
+    " a refused discard or delete leaves rows behind, and a reset that keeps
+    " old travels and drafts next to the new ones is no reset - stop here
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(left_over).
+
+    SELECT FROM z2ui5_d_smps_trd                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(drafts_left_over).
+
+    IF left_over > 0 OR drafts_left_over > 0.
+      result = |{ result } No demo data created, { left_over } travel(s) and { drafts_left_over } draft(s) are still there.|.
+      RETURN.
+    ENDIF.
+
+    result = |{ result } { data_generate( ) }|.
 
   ENDMETHOD.
 
 
   METHOD data_generate.
+
+    " the system date through the released API: ABAP Cloud refuses a read of
+    " sy-datum, and the package says Cloud + Standard
+    DATA(today) = cl_abap_context_info=>get_system_date( ).
 
     " a new instance of a draft enabled business object is born as a draft
     MODIFY ENTITIES OF z2ui5_r_smps_trd
@@ -61,22 +84,22 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
                       ( %cid        = `DEMO_1`
                         agencyid    = '070001'
                         customerid  = '000001'
-                        begindate   = sy-datum
-                        enddate     = sy-datum + 14
+                        begindate   = today
+                        enddate     = today + 14
                         bookingfee  = '20.00'
                         description = 'Demo travel - sightseeing' )
                       ( %cid        = `DEMO_2`
                         agencyid    = '070002'
                         customerid  = '000002'
-                        begindate   = sy-datum + 30
-                        enddate     = sy-datum + 37
+                        begindate   = today + 30
+                        enddate     = today + 37
                         bookingfee  = '35.50'
                         description = 'Demo travel - business trip' )
                       ( %cid        = `DEMO_3`
                         agencyid    = '070003'
                         customerid  = '000003'
-                        begindate   = sy-datum + 60
-                        enddate     = sy-datum + 74
+                        begindate   = today + 60
+                        enddate     = today + 74
                         bookingfee  = '12.75'
                         description = 'Demo travel - city break' ) )
       MAPPED DATA(s_mapped)
@@ -88,7 +111,14 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+      FAILED DATA(s_failed_draft).
+
+    IF s_failed_draft IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `The demo drafts were refused on commit.`.
+      RETURN.
+    ENDIF.
 
     " Activate runs the validations, so anything wrong surfaces here
     MODIFY ENTITIES OF z2ui5_r_smps_trd
@@ -107,6 +137,7 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       FAILED DATA(s_failed_commit).
 
     IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
       result = `Demo data rejected by the business object on commit.`.
       RETURN.
     ENDIF.
@@ -123,24 +154,34 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       ORDER BY TravelUuid
       INTO TABLE @DATA(t_keys).
 
-    IF t_keys IS INITIAL.
+    " The CDS entity shows active instances only. A draft that was never
+    " activated - a new instance is born as a draft, and data_generate( )
+    " leaves its drafts behind when Activate refuses them - exists in the
+    " draft table alone, so the draft keys are read from there. Reading the
+    " draft table is fine; writing it is what EML is for.
+    SELECT FROM z2ui5_d_smps_trd                        "#EC CI_NOWHERE
+      FIELDS traveluuid
+      ORDER BY traveluuid
+      INTO TABLE @DATA(t_draft_keys).
+
+    IF t_keys IS INITIAL AND t_draft_keys IS INITIAL.
       result = `Nothing to delete.`.
       RETURN.
     ENDIF.
 
-    " An active instance may carry a draft, and that draft has to go first.
-    " Ask which ones actually have one instead of discarding blindly: a
-    " Discard on an instance without a draft lands in FAILED, and an EML
-    " failure that is neither rolled back nor evaluated leaves the RAP
-    " transaction marked for abortion. Every later statement of the same LUW
-    " then aborts - which is how this method used to end the whole request in
-    " a CX_SADL_DUMP_APPL_MODEL_ERROR instead of deleting anything.
+    " Every draft has to go before its active instance can. Ask which ones EML
+    " actually returns instead of discarding blindly: a Discard on an instance
+    " without a draft lands in FAILED, and an EML failure that is neither
+    " rolled back nor evaluated leaves the RAP transaction marked for abortion.
+    " Every later statement of the same LUW then aborts - which is how this
+    " method used to end the whole request in a CX_SADL_DUMP_APPL_MODEL_ERROR
+    " instead of deleting anything.
     "
     " Reading the keys with %is_draft = mk-on is the same trick sample 06
     " uses: what comes back in RESULT has a draft.
     READ ENTITIES OF z2ui5_r_smps_trd
       ENTITY travel
-        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_keys
+        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_draft_keys
                                           ( %tky = VALUE #( traveluuid = s_row-traveluuid
                                                             %is_draft  = if_abap_behv=>mk-on ) ) )
       RESULT DATA(t_drafts).
@@ -159,8 +200,20 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      COMMIT ENTITIES.
+      COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+        FAILED DATA(s_failed_commit_discard).
 
+      IF s_failed_commit_discard IS NOT INITIAL.
+        ROLLBACK ENTITIES.
+        result = `Existing drafts could not be discarded on commit.`.
+        RETURN.
+      ENDIF.
+
+    ENDIF.
+
+    IF t_keys IS INITIAL.
+      result = |{ lines( t_drafts ) } draft(s) discarded.|.
+      RETURN.
     ENDIF.
 
     MODIFY ENTITIES OF z2ui5_r_smps_trd
@@ -176,9 +229,16 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    COMMIT ENTITIES.
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trd
+      FAILED DATA(s_failed_commit).
 
-    result = |{ lines( t_keys ) } travel(s) deleted.|.
+    IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      result = `Deletion refused by the business object on commit.`.
+      RETURN.
+    ENDIF.
+
+    result = |{ lines( t_drafts ) } draft(s) discarded, { lines( t_keys ) } travel(s) deleted.|.
 
   ENDMETHOD.
 

@@ -105,11 +105,12 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
         " the popup opens on a set that passes both validations, so Create
         " goes through on the first press - see z2ui5_cl_smps_app_002, which
         " also explains why the end date needs the CONV d( )
-        DATA(end_date) = CONV d( sy-datum + 14 ).
+        DATA(today) = cl_abap_context_info=>get_system_date( ).
+        DATA(end_date) = CONV d( today + 14 ).
 
         s_create = VALUE #( agency_id   = `070001`
                             customer_id = `000001`
-                            begin_date  = |{ sy-datum }|
+                            begin_date  = |{ today }|
                             end_date    = |{ end_date }|
                             booking_fee = `20.00`
                             currency    = `EUR`
@@ -169,9 +170,15 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     IF data_save( ).
 
+      " the travel is saved by now - read the key early numbering drew with
+      " OPTIONAL, so a MAPPED without the row costs the id in the toast and
+      " not a CX_SY_ITAB_LINE_NOT_FOUND dump after a successful save
+      DATA(s_new) = VALUE #( s_mapped-travel[ 1 ] OPTIONAL ).
       client->popup_destroy( ).
       data_read( ).
-      client->message_toast_display( |Travel { s_mapped-travel[ 1 ]-travelid ALPHA = OUT } created| ).
+      client->message_toast_display( COND #( WHEN s_new IS INITIAL
+                                             THEN `Travel created`
+                                             ELSE |Travel { s_new-travelid ALPHA = OUT } created| ) ).
 
     ENDIF.
 
@@ -180,8 +187,15 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_save.
 
+    " OPTIONAL: the id comes from the client, and the row it names may be
+    " gone from the list by now - a table expression without it raises
+    " CX_SY_ITAB_LINE_NOT_FOUND and dumps
     DATA(travel_id) = client->get_event_arg( ).
-    DATA(s_travel) = t_travels[ travel_id = travel_id ].
+    DATA(s_travel) = VALUE #( t_travels[ travel_id = travel_id ] OPTIONAL ).
+    IF s_travel IS INITIAL.
+      client->message_toast_display( `Travel not found - press refresh` ).
+      RETURN.
+    ENDIF.
 
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
@@ -330,6 +344,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
       result = abap_true.
 
     ELSE.
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
     ENDIF.
 
@@ -351,7 +366,8 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
 
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_travels ) ).
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data for three, or Create your own` ).
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
@@ -363,8 +379,9 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
                 )->a( n = `icon`  v = `sap-icon://add`
                 )->a( n = `type`  v = `Emphasized`
             )->tag( `Button`
-                )->a( n = `press` v = client->_event( `GENERATE` )
-                )->a( n = `text`  v = `Generate Demo Data`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every travel, then creates the three demo travels again`
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `REFRESH` )
                 )->a( n = `icon`    v = `sap-icon://refresh`

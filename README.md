@@ -177,8 +177,9 @@ repository you are in. Always name a sample by its class.
 You do not have to look a number up. `?app_start=z2ui5_cl_smps_app_000` lists
 **every sample of this repository**, one collapsible section per package, and
 starts each one in a new browser tab — so the overview stays where it is and
-several samples can run side by side. Its header button fills the demo data of
-both RAP packages.
+several samples can run side by side. Its header button, *Regenerate Demo Data*,
+deletes every travel of both RAP packages — yours included — and creates the demo
+set again.
 
 It is also the honest answer to *what does my system actually support*: the
 overview looks every sample up at runtime instead of referencing it statically, so
@@ -267,7 +268,7 @@ check:overview`. `npm run fmt:chains` applies the house chain layout.
 
 Every `check-*` workflow below is a step of `npm run check`, and every step
 has its workflow — which is what makes a green run here mean a green run
-there. The last two rows are build-and-publish jobs, not checks, and run only
+there. The last row is a build-and-publish job, not a check, and runs only
 in CI. The node checks carry no dependencies, so they take seconds.
 
 | Workflow | What it does |
@@ -276,13 +277,15 @@ in CI. The node checks carry no dependencies, so they take seconds.
 | `check-abap2UI5` | [`abap2ui5lint`](https://github.com/abap2UI5/linter) — the app class and the view it produces, together; also writes the two badges above |
 | `check-overview` | the hand-kept indexes: every sample is listed in the overview app, the package table matches `.github/packages.json`, and the *Which package do I need?* table routes to every package |
 | `check-samples-md` | [`SAMPLES.md`](SAMPLES.md) still is what the generator would write — and every app that exists is in an entry |
-| `check-catalogue` | [`catalogue.json`](catalogue.json) still is what the generator would write — the same catalogue as data, committed for tooling that fetches one file instead of scanning the tree |
 | `check-keywords` | every app carries `@keywords` and `@summary`, and the overview's detail line still is the class's `@summary` |
+| `check-page-titles` | every sample's main page title starts with `abap2UI5 - ` |
 | `check-abapdoc` | every `"!` block documents the declaration below it, rather than attaching to nothing |
+| `check-atc` | the extended-check (SLIN/ATC) findings a script can decide — a `SELECT` without `WHERE` that does not say so, `sy-subrc` after a dynamic `ASSIGN`, a text symbol passed as a `string` |
 | `check-app-rules` | the shared abaplint rule block still matches its source in [abap2UI5](https://github.com/abap2UI5/abap2UI5) |
 | `check-prose-names` | every class name written in prose exists — including the sibling repositories' |
 | `check-framework-pin` | the abaplint config pins abap2UI5 to a release tag, never to whatever is on `main` |
-| `check-catalogue` | `catalogue.json` and `catalogue-derived.json` are in sync with the tree — and with them every package has a README row that parses, every app sits in a package, and none is missing its `@summary` or `@keywords` |
+| `check-released-api` | every package whose *Runs on* says Cloud, linted at Cloud against the released objects — an API ABAP Cloud does not release is an error |
+| `check-catalogue` | [`catalogue.json`](catalogue.json) and `catalogue-derived.json` still are what the generators would write — the same catalogue as data, committed for tooling that fetches one file instead of scanning the tree — and with them every package has a README row that parses, every app sits in a package, and none is missing its `@summary` or `@keywords` |
 | `create-package-branches` | rebuilds the ten per-package branches, each verified with abaplint at its own release before it is pushed |
 
 `check-overview` exists because the overview app names its samples as strings and

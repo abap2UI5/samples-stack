@@ -53,6 +53,9 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `SAVE` ).
       draft_save( ).
+    ELSEIF client->check_on_event( `REFRESH` ).
+      " a draft the Enter Draft Mode sample created in a tab of its own
+      data_read( ).
     ENDIF.
 
   ENDMETHOD.
@@ -60,8 +63,15 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
 
   METHOD draft_save.
 
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone from the list by now - a table expression without it raises
+    " CX_SY_ITAB_LINE_NOT_FOUND and dumps
     DATA(uuid) = client->get_event_arg( ).
-    DATA(s_draft) = t_drafts[ travel_uuid = uuid ].
+    DATA(s_draft) = VALUE #( t_drafts[ travel_uuid = uuid ] OPTIONAL ).
+    IF s_draft IS INITIAL.
+      client->message_toast_display( `Draft not found - it may have been activated or discarded meanwhile` ).
+      RETURN.
+    ENDIF.
 
     " An ordinary UPDATE - the only thing that makes it a draft update is
     " %is_draft = mk-on in the key. The active instance stays untouched.
@@ -92,6 +102,7 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
 
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-travel ).
       RETURN.
 
@@ -146,12 +157,18 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
         )->a( n = `type` v = `Information` ).
 
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_drafts ) ).
+        )->a( n = `items`      v = client->_bind( t_drafts )
+        )->a( n = `noDataText` v = `No drafts yet - press Edit in the Enter Draft Mode app, then press refresh here` ).
 
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
-                )->a( n = `text` v = `UPDATE ... WITH %is_draft = mk-on` ).
+                )->a( n = `text` v = `UPDATE ... WITH %is_draft = mk-on`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
 
     table->ele( `columns`
         )->ele( `Column`

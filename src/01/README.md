@@ -25,8 +25,14 @@ reference scenario:
 /sap/opu/odata/DMO/ui_flight_r_v2/
 ```
 
+They come with the [flight reference scenario](https://github.com/SAP-samples/abap-platform-refscen-flight)
+(`/DMO/`, ABAP Platform ≥ 1909, installed with abapGit): publish its two OData V2
+service bindings `/DMO/API_TRAVEL_U_V2` and `/DMO/UI_FLIGHT_R_V2` in ADT, and the
+paths above answer.
+
 Any two OData V2 services of your own system do just as well — swap the paths and
-the sample keeps working.
+the sample keeps working. That is also the way on a release below 1909, where the
+flight scenario does not install.
 
 ## The sample
 

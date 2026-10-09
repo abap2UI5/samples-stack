@@ -14,6 +14,7 @@
 // DESTRUCTIVE - it rewrites the working tree in place. Run it on a throwaway
 // CI checkout, never on a tree you still want.
 
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
@@ -63,6 +64,17 @@ const samples = walk(SRC)
 for (const entry of readdirSync(SRC)) {
   if (keep.has(entry) || SRC_ALWAYS.test(entry)) continue;
   rmSync(join(SRC, entry), { recursive: true, force: true });
+}
+
+// 1b. SAMPLES.md and catalogue.json, regenerated for what is left. Copied
+//     over from main they list every package and link to classes and READMEs
+//     this branch does not carry. The generators stay the one source: they
+//     scan the tree they run in, which is now this package alone. Before step
+//     5, because the catalogue reads the package table of the root README,
+//     which that step replaces. catalogue-derived.json is left as it is - it
+//     is keyed by class, links nowhere, and needs a linter pass to rebuild.
+for (const generator of ['generate-samples-md.mjs', 'generate-catalogue.mjs']) {
+  execFileSync(process.execPath, [join('scripts', generator)], { stdio: 'inherit' });
 }
 
 // 2. the workflows. A generated branch runs no CI of its own: pushes made with
@@ -150,7 +162,7 @@ merged anywhere useful.
   carries all ${packages.length} packages and their READMEs.
 - Built by [\`create-package-branches.yaml\`](${MAIN}/.github/workflows/create-package-branches.yaml)
   from [\`.github/packages.json\`](${MAIN}/.github/packages.json); abaplint checked
-  this tree at \`${pkg.syntax}\` before it was pushed.
+  this tree at \`${pkg.syntax}\`${/cloud/i.test(pkg.runsOn) ? ' and in the ABAP Cloud language version' : ''} before it was pushed.
 
 ## License
 

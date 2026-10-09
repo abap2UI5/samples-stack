@@ -59,14 +59,15 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
       " object - CustomerId is filled and EndDate is not before BeginDate -
       " so pressing Create right away produces a travel. Change a value and
       " the same button shows what the validations answer instead.
-      " CONV d( ) is what turns the sum back into a date: sy-datum + 14 is
+      " CONV d( ) is what turns the sum back into a date: today + 14 is
       " calculated as a day number, and a string template renders that number
       " instead of a date - the field showed 739853
-      DATA(end_date) = CONV d( sy-datum + 14 ).
+      DATA(today) = cl_abap_context_info=>get_system_date( ).
+      DATA(end_date) = CONV d( today + 14 ).
 
       s_travel = VALUE #( agency_id   = `070001`
                           customer_id = `000001`
-                          begin_date  = |{ sy-datum }|
+                          begin_date  = |{ today }|
                           end_date    = |{ end_date }|
                           booking_fee = `20.00`
                           currency    = `EUR`
@@ -117,14 +118,21 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
 
+      " a failed save keeps the changes in the transactional buffer - discard
+      " them, or the next EML statement and abap2UI5's own COMMIT WORK at the
+      " end of the roundtrip run into them
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-travel ).
       RETURN.
 
     ENDIF.
 
     " thanks to early numbering the key assigned by the business object is
-    " available in MAPPED, addressed by the %cid sent above
-    created_id = |{ s_mapped-travel[ %cid = `CREATE_1` ]-travelid ALPHA = OUT }|.
+    " available in MAPPED, addressed by the %cid sent above. OPTIONAL: the
+    " travel is saved by now, and a MAPPED without the row must cost the id
+    " in the toast, not a CX_SY_ITAB_LINE_NOT_FOUND dump after the save
+    DATA(s_new) = VALUE #( s_mapped-travel[ %cid = `CREATE_1` ] OPTIONAL ).
+    created_id = |{ s_new-travelid ALPHA = OUT }|.
     client->message_toast_display( |Travel { created_id } created| ).
 
   ENDMETHOD.

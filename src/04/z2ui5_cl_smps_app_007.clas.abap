@@ -63,6 +63,9 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `OPEN` ).
       draft_open( ).
+    ELSEIF client->check_on_event( `REFRESH` ).
+      " a draft the other samples created or ended in a tab of their own
+      data_read( ).
     ENDIF.
 
   ENDMETHOD.
@@ -128,6 +131,7 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
 
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-travel ).
       RETURN.
 
@@ -184,12 +188,18 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
             )->ele( `Table`
-                )->a( n = `items` v = client->_bind( t_travels ) ).
+                )->a( n = `items`      v = client->_bind( t_travels )
+                )->a( n = `noDataText` v = `No travels yet - press Regenerate Demo Data in the overview app` ).
 
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
-                )->a( n = `text` v = `EXECUTE Edit  /  EXECUTE Resume` ).
+                )->a( n = `text` v = `EXECUTE Edit  /  EXECUTE Resume`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
 
     table->ele( `columns`
         )->ele( `Column`

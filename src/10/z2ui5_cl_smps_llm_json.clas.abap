@@ -5,7 +5,7 @@
 "! the cloud releases - and this package runs on both stacks from 7.40 SP08
 "! on. So:
 "!
-"!   - OUTBOUND, the request body is a string template; string_escape( ) is
+"!   - OUTBOUND, the request body is a string template; string_escape( )
 "!     makes free text - a chat message, a table cell - safe inside it.
 "!   - INBOUND, get_string( ) reads the ONE string field a provider's answer
 "!     is about (content -> text, choices -> message -> content, or error ->
@@ -49,6 +49,8 @@ CLASS z2ui5_cl_smps_llm_json DEFINITION PUBLIC
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    TYPES ty_byte TYPE x LENGTH 1.
+
     "! Reads the string token that starts at POS (the character after the
     "! opening quote) and leaves POS behind its closing quote.
     CLASS-METHODS string_read
@@ -58,6 +60,17 @@ CLASS z2ui5_cl_smps_llm_json DEFINITION PUBLIC
         result TYPE string
       CHANGING
         pos    TYPE i.
+
+    "! The code of a control character (below U+0020), for its \u00XX
+    "! escape. Read from the character's bytes, as ABAP has no function
+    "! from a character to its code that both stacks release.
+    "! @parameter char   | one character below the blank
+    "! @parameter result | its code, 00 to 1F
+    CLASS-METHODS control_code
+      IMPORTING
+        char          TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_byte.
 
     "! Moves POS past blanks, tabs and line breaks.
     CLASS-METHODS blanks_skip
@@ -84,15 +97,62 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
 
   METHOD string_escape.
 
+    DATA escaped TYPE string.
+
     " The backslash goes FIRST - escaping it after the others would escape
     " the backslashes they just introduced. Tab, line feed and carriage
-    " return are the control characters business text actually contains.
+    " return are the control characters business text usually contains.
     result = val.
     result = replace( val = result sub = `\` with = `\\` occ = 0 ).
     result = replace( val = result sub = `"` with = `\"` occ = 0 ).
     result = replace( val = result sub = |\n| with = `\n` occ = 0 ).
     result = replace( val = result sub = |\r| with = `\r` occ = 0 ).
     result = replace( val = result sub = |\t| with = `\t` occ = 0 ).
+
+    " Every other character below the blank (U+0000 to U+001F) is just as
+    " illegal raw in a JSON string - the provider answers 400 - and text
+    " pasted from a PDF or a spreadsheet does carry form feeds and vertical
+    " tabs. JSON writes them \u00XX. A run without one is copied whole.
+    DATA(length) = strlen( result ).
+    DATA(pos)    = 0.
+    DATA(start)  = 0.
+    WHILE pos < length.
+      DATA(char) = substring( val = result off = pos len = 1 ).
+      IF char < ` `.
+        escaped = escaped && substring( val = result off = start len = pos - start )
+                          && |\\u00{ control_code( char ) }|.
+        start = pos + 1.
+      ENDIF.
+      pos = pos + 1.
+    ENDWHILE.
+
+    IF start > 0.
+      result = escaped && substring( val = result off = start ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD control_code.
+
+    " ABAP has no function from a character to its code that both stacks
+    " release, so the code is read from the character's bytes: two on a
+    " Unicode system (UTF-16), one of them 00 - which one depends on the
+    " byte order of the platform, so all of them are OR-ed together
+    DATA single TYPE c LENGTH 1.
+    DATA offset TYPE i.
+    FIELD-SYMBOLS <bytes> TYPE x.
+
+    single = char.
+    ASSIGN single TO <bytes> CASTING.
+    IF <bytes> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+
+    DO xstrlen( <bytes> ) TIMES.
+      result = result BIT-OR <bytes>+offset(1).
+      offset = offset + 1.
+    ENDDO.
 
   ENDMETHOD.
 

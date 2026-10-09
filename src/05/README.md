@@ -44,7 +44,9 @@ Start them with `?app_start=z2ui5_cl_smps_app_011` and
 `?app_start=z2ui5_cl_smps_app_012`, or from the overview app
 `?app_start=z2ui5_cl_smps_app_000`, whose Open button puts each in its own tab. Open
 both in two browser tabs, create a ticket in the first, press refresh in the
-second — the log entry the handler wrote is there.
+second — the log entry the handler wrote is there. Then change a ticket's status
+in the first tab's table and press *Update Status*: that is an update, so the
+data event `StatusChanged` arrives, with its payload in the log text.
 
 Events are raised in the save sequence and consumed **afterwards**, so the log
 entry appears once the transaction is through, not during the roundtrip that
@@ -95,11 +97,15 @@ the instances as a table, and writes them into the log:
 
 ```abap
 METHODS on_ticket_created FOR ENTITY EVENT
-  ticketcreated FOR z2ui5_r_smps_tck~TicketCreated.
+  ticketcreated FOR ticket~TicketCreated.
 
 METHODS on_status_changed FOR ENTITY EVENT
-  statuschanged FOR z2ui5_r_smps_tck~StatusChanged.
+  statuschanged FOR ticket~StatusChanged.
 ```
+
+`ticket` is the entity's alias from the behavior definition (`alias Ticket`) —
+name the entity by it, not by `z2ui5_r_smps_tck`, or the extended check reports
+that the alias should be used instead.
 
 Nothing registers this class anywhere — the `FOR ENTITY EVENT` declaration *is* the
 subscription. Add a second handler and it runs too; delete this one and the BO
@@ -133,6 +139,16 @@ they are not part of the repository, so the first publish creates them fresh.
 `RAISE ENTITY EVENT` and `FOR ENTITY EVENT` are beyond the abaplint parser, so the
 parser errors this package reports are about the linter, not about the code: it
 activates fine in an ABAP system.
+
+**On ABAP Cloud, one open question.** The released-API check
+(`npm run check:released-api`) reports the two data elements
+`Z2UI5_E_SMPS_TCK_UUID` and `Z2UI5_E_SMPS_LOG_UUID`: they take the domain
+`SYSUUID_X16`, and the released-object list of ABAP Cloud carries the data element
+of that name, not the domain. Nobody has imported the package into a BTP ABAP
+Environment yet to see whether that matters. If the two do not activate there,
+that is the cause — and everything that types a key with them (both tables, the
+CDS entities, the handler) fails after them. Recreate the two data elements in
+your system with the predefined type `RAW` length 16, and the rest activates.
 
 ## Where to go next
 

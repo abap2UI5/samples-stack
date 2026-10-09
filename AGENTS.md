@@ -87,22 +87,40 @@ What that costs you when you edit:
   BY NAME and resolves them at runtime for exactly that reason — and it carries
   its own url helper rather than calling one, because `src/00` travels only
   with the two packages that name it in `shared`. `check:overview` fails on a
-  static `Z2UI5_CL_SMPS_*` reference that would not survive every branch.
+  static `Z2UI5_*_SMPS_*` reference — a class, an interface, a table, a CDS
+  entity — that would not survive every branch.
 - Each branch is linted at **its own** release before it is pushed, which is
   what makes the "Runs on" column in the README true rather than aspirational.
+  A branch whose "Runs on" says Cloud is linted a second time at
+  `"version": "Cloud"` — the release run reads a `sy-datum` as fine, the Cloud
+  run does not. It does not judge API release state — an unknown non-Z class is
+  outside `errorNamespace` either way. That is `npm run check:released-api`
+  (`scripts/check-released-api.mjs`, its own workflow): every cloud-capable
+  package once more at Cloud with `errorNamespace` matching every name, so
+  whatever the `steampunk-2305-api` dependency — the released objects — does
+  not carry is an error. Its exception list names `src/10/01` and `src/10/03`
+  (Standard-only and SDK-only by design, see `src/10/README.md`) and one open
+  finding in `src/05`; both kinds are printed on every run.
+- `SAMPLES.md` and `catalogue.json` are **regenerated** on each branch, by the
+  same generators over the reduced tree, so they list that package alone and
+  link to nothing the branch does not carry. The generators scan the tree they
+  run in; that is the only branch-specific behaviour, and on `main` it drops
+  nothing.
 
 ## 4. Build & verify
 
 ```sh
 npm ci
-npm run check        # abaplint + abap2UI5-linter + overview + keywords + abapdoc + SAMPLES.md + catalogue.json + app-rules
+npm run check        # pin + abaplint + abap2UI5-linter + overview + keywords + titles + abapdoc + SAMPLES.md
+                     # + catalogue.json + app-rules + atc + prose + catalogue-derived.json + released-api
 ```
 
 Individually: `npm run lint` (abaplint), `npm run check:abap2ui5` (the app
 class and the view it builds, including a headless render of every view),
-`npm run check:overview` (the five consistency directions between the overview
+`npm run check:overview` (the six consistency directions between the overview
 app, the tree, `packages.json` and the two README tables — the package table
-and the *Which package do I need?* decision table).
+and the *Which package do I need?* decision table — plus the branch names the
+overview tells a reader to pull when a package is not on the system).
 
 `npm run fmt:chains` applies the house chain layout. It rewrites whitespace
 between chain segments only — but it needs the ABAP to be *balanced* to know
@@ -215,6 +233,13 @@ gone.
   "validations run at COMMIT" would otherwise surprise a reader.
 - The class description in `.clas.xml` (`<DESCRIPT>`) is what the overview app
   shows. Keep it in Title Case and specific.
+- **The main page title starts with `abap2UI5 - `** — the first `Page` after
+  each `Shell`, as a literal: `abap2UI5 - Smart Controls - SmartTable`. What
+  follows is the sample's own name and is not prescribed (the RAP steps number
+  themselves, the session samples say `Sample: …`). A page with `showHeader`
+  false has no title and is exempt — the launchpad samples leave it to the
+  shell. Checked by `npm run check:titles` (`scripts/check-page-titles.mjs`,
+  its own workflow): three titles had drifted before it existed.
 - **Every app carries three lines about itself, and they are the only place
   each fact lives** — checked by `npm run check:keywords`:
 

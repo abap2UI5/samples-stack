@@ -69,18 +69,18 @@
     "noChain": 0
   },
   "samples": [
-    {"class":"Z2UI5_CL_SMPS_APP_000","minUi5":"1.71","needs":[],"controls":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],"controlCount":238},
+    {"class":"Z2UI5_CL_SMPS_APP_000","minUi5":"1.71","needs":[],"controls":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],"controlCount":248},
     {"class":"Z2UI5_CL_SMPS_APP_001","minUi5":"1.71","needs":[],"controls":[1,22,37,7,10,17,38],"controlCount":21},
     {"class":"Z2UI5_CL_SMPS_APP_002","minUi5":"1.71","needs":[],"controls":[1,39,22,37,7,10,17,38],"controlCount":22},
     {"class":"Z2UI5_CL_SMPS_APP_003","minUi5":"1.71","needs":[],"controls":[1,2,3,22,7,10,11,12,13,18,17],"controlCount":19},
     {"class":"Z2UI5_CL_SMPS_APP_004","minUi5":"1.71","needs":[],"controls":[1,2,3,7,10,11,12,13,18,17],"controlCount":19},
     {"class":"Z2UI5_CL_SMPS_APP_005","minUi5":"1.71","needs":[],"controls":[1,2,3,39,40,31,22,37,6,7,10,11,12,13,18,41,15,17,38],"controlCount":58},
     {"class":"Z2UI5_CL_SMPS_APP_006","minUi5":"1.71","needs":[],"controls":[1,2,3,6,7,10,11,12,13,18,41,17],"controlCount":25},
-    {"class":"Z2UI5_CL_SMPS_APP_007","minUi5":"1.71","needs":[],"controls":[1,2,3,7,10,11,12,13,18,17],"controlCount":19},
-    {"class":"Z2UI5_CL_SMPS_APP_008","minUi5":"1.71","needs":[],"controls":[1,2,3,22,5,7,10,11,12,13,18,17],"controlCount":17},
-    {"class":"Z2UI5_CL_SMPS_APP_009","minUi5":"1.71","needs":[],"controls":[1,2,3,31,5,7,10,11,12,13,18,17],"controlCount":19},
+    {"class":"Z2UI5_CL_SMPS_APP_007","minUi5":"1.71","needs":[],"controls":[1,2,3,7,10,11,12,13,18,41,17],"controlCount":21},
+    {"class":"Z2UI5_CL_SMPS_APP_008","minUi5":"1.71","needs":[],"controls":[1,2,3,22,5,7,10,11,12,13,18,41,17],"controlCount":19},
+    {"class":"Z2UI5_CL_SMPS_APP_009","minUi5":"1.71","needs":[],"controls":[1,2,3,31,5,7,10,11,12,13,18,41,17],"controlCount":21},
     {"class":"Z2UI5_CL_SMPS_APP_010","minUi5":"1.71","needs":[],"controls":[1,2,3,39,40,22,37,6,7,10,11,12,13,18,41,15,17,38],"controlCount":55},
-    {"class":"Z2UI5_CL_SMPS_APP_011","minUi5":"1.71","needs":[],"controls":[1,2,3,22,37,7,10,11,12,13,18,41,17,38],"controlCount":29},
+    {"class":"Z2UI5_CL_SMPS_APP_011","minUi5":"1.71","needs":[],"controls":[1,2,3,22,37,5,7,10,11,12,13,18,41,17,38],"controlCount":33},
     {"class":"Z2UI5_CL_SMPS_APP_012","minUi5":"1.71","needs":[],"controls":[1,2,3,7,10,11,12,13,18,41,17],"controlCount":18},
     {"class":"Z2UI5_CL_SMPS_APP_013","minUi5":"1.71","needs":[],"controls":[1,50,22,37,5,23,7,51,10,41,52,17,38],"controlCount":28},
     {"class":"Z2UI5_CL_SMPS_APP_014","minUi5":"1.71","needs":[],"controls":[1,43,44,22,45,5,7,10,14,17],"controlCount":11},
@@ -98,11 +98,11 @@
     {"class":"Z2UI5_CL_SMPS_APP_482","minUi5":"1.71","needs":[],"controls":[1,22,37,5,7,10,17,38],"controlCount":10},
     {"class":"Z2UI5_CL_SMPS_APP_483","minUi5":"1.71","needs":[],"controls":[1,22,37,5,7,10,17,38],"controlCount":11},
     {"class":"Z2UI5_CL_SMPS_APP_484","minUi5":"1.71","needs":[],"controls":[1,22,37,5,7,10,17,38],"controlCount":13},
-    {"class":"Z2UI5_CL_SMPS_APP_485","minUi5":"1.71","needs":[],"controls":[1,31,37,5,7,10,14,42,17],"controlCount":17},
+    {"class":"Z2UI5_CL_SMPS_APP_485","minUi5":"1.71","needs":[],"controls":[1,31,37,5,7,10,14,42,17],"controlCount":18},
     {"class":"Z2UI5_CL_SMPS_APP_486","minUi5":"1.71","needs":[],"controls":[1,31,37,7,10,14,42,17],"controlCount":11},
-    {"class":"Z2UI5_CL_SMPS_APP_487","minUi5":"1.71","needs":[],"controls":[1,22,5,7,12,14,17],"controlCount":8},
+    {"class":"Z2UI5_CL_SMPS_APP_487","minUi5":"1.71","needs":[],"controls":[1,22,5,7,10,12,14,17],"controlCount":9},
     {"class":"Z2UI5_CL_SMPS_APP_489","minUi5":"1.71","needs":[],"controls":[1,43,44,22,37,45,5,23,7,46,47,10,48,41,42,15,17,38,49],"controlCount":21},
-    {"class":"Z2UI5_CL_SMPS_APP_490","minUi5":"1.71","needs":[],"controls":[1,31,22,7,10,13,14,17,38],"controlCount":13},
+    {"class":"Z2UI5_CL_SMPS_APP_490","minUi5":"1.71","needs":[],"controls":[1,31,22,5,7,10,13,14,17,38],"controlCount":14},
     {"class":"Z2UI5_CL_SMPS_APP_493","minUi5":"1.71","needs":[],"controls":[2,3,31,22,5,7,10,11,12,35,36,32,17],"controlCount":27}
   ]
 }

@@ -77,8 +77,15 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
 
   METHOD data_update.
 
+    " OPTIONAL: the id comes from the client, and the row it names may be
+    " gone from the list by now - a table expression without it raises
+    " CX_SY_ITAB_LINE_NOT_FOUND and dumps
     DATA(travel_id) = client->get_event_arg( ).
-    DATA(s_travel) = t_travels[ travel_id = travel_id ].
+    DATA(s_travel) = VALUE #( t_travels[ travel_id = travel_id ] OPTIONAL ).
+    IF s_travel IS INITIAL.
+      client->message_toast_display( |Travel { travel_id } is not in the list| ).
+      RETURN.
+    ENDIF.
 
     " UPDATE FIELDS names exactly the fields that are changed - everything
     " else on the instance stays untouched, which is why no read is needed
@@ -105,6 +112,7 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
 
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-travel ).
       RETURN.
 

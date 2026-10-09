@@ -21,8 +21,8 @@ is on-premise by design, not by omission.
 — this package alone, without the other nine on your system.
 
 ABAP Standard (on-premise). The locks go through the function modules
-`ENQUEUE_E_TABLE` and `ENQUEUE_READ`, which are available there — `485`'s own page
-title points this out.
+`ENQUEUE_E_TABLE`, `DEQUEUE_E_TABLE` and `ENQUEUE_READ`, which are available
+there — the page title of `Z2UI5_CL_SMPS_APP_485` points this out.
 
 The lock table `Z2UI5_T_SMPS_01` comes with this package
 ([`src/06/01`](01)); after the import it only has to be activated, it is never

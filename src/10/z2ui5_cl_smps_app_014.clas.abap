@@ -138,9 +138,11 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
     busy           = abap_true.
     status_visible = abap_false.
 
-    " the answer comes in a SECOND roundtrip, see the class documentation
+    " the answer comes in a SECOND roundtrip, see the class documentation -
+    " the X keeps the global busy overlay down for it, so the busy feed stays
+    " visible instead of disappearing behind it after a second
     client->follow_up_action( val   = z2ui5_if_client=>cs_event-start_timer
-                              t_arg = VALUE #( ( `ANSWER` ) ( `0` ) ) ).
+                              t_arg = VALUE #( ( `ANSWER` ) ( `0` ) ( `X` ) ) ).
 
   ENDMETHOD.
 

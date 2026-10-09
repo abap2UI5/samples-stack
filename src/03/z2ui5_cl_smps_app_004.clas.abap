@@ -96,6 +96,7 @@ CLASS z2ui5_cl_smps_app_004 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
 
+      ROLLBACK ENTITIES.
       z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-travel ).
       RETURN.
 

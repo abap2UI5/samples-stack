@@ -23,6 +23,12 @@ written in — what they need is the service, not the platform.
   `GWSAMPLE_BASIC`, which ships with every on-premise system and only has to be
   activated once in `/IWFND/MAINT_SERVICE`. Where a sample uses a different service,
   it says so at the `switch_default_model_path` — adjust it to your system.
+- **`UI_PRODUCTLIST`** for `Z2UI5_CL_SMPS_APP_313` and `Z2UI5_CL_SMPS_APP_319`, a
+  standard service that not every system carries. Look for it in
+  `/IWFND/MAINT_SERVICE` and activate it like `GWSAMPLE_BASIC`;
+  `Z2UI5_CL_SMPS_APP_319` also reads its value-list annotation
+  `UI_PRODUCTLIST_VAN` through the Gateway catalog service. Where it does not
+  exist, those two have no metadata to build from; the other seven are unaffected.
 
 ## The samples
 

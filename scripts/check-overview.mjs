@@ -12,10 +12,12 @@
 //   2. every class the overview names exists in the tree         (full tree only)
 //   3. every package of .github/packages.json is in the README
 //      table with the release it declares                        (full tree only)
-//   4. every class the overview references STATICALLY survives on
+//   4. every object the overview references STATICALLY survives on
 //      every generated package branch                            (full tree only)
 //   5. the README's "Which package do I need?" table routes to
 //      every package exactly once                                (full tree only)
+//   6. every package's branch name in the overview is the one
+//      .github/packages.json builds                              (always)
 //
 // (3) is the second index this repository keeps by hand: packages.json drives
 // the generated per-package branches and the release each one is checked at,
@@ -93,9 +95,31 @@ for (const name of new Set(listed)) {
   }
 }
 
+// (6) the overview tells a reader which abapGit branch carries a package
+// that is not on the system - a renamed branch there would send them to a
+// branch that does not exist. Both files travel to every generated branch,
+// so this one is checked on a partial checkout too.
+const branchLiterals = [...overview.matchAll(/branch\s+=\s+`([^`]*)`/g)].map((match) => match[1]);
+for (const entry of packages) {
+  if (!branchLiterals.includes(entry.branch)) {
+    errors.push(
+      `${OVERVIEW} does not name the branch "${entry.branch}" of src/${entry.dir} - ` +
+        `pass it as branch = \`${entry.branch}\` to render_package( ) in view_display( )`,
+    );
+  }
+}
+for (const name of new Set(branchLiterals)) {
+  if (!packages.some((entry) => entry.branch === name)) {
+    errors.push(
+      `${OVERVIEW} names the branch "${name}", which .github/packages.json does not build - ` +
+        `known: ${packages.map((entry) => entry.branch).join(', ')}`,
+    );
+  }
+}
+
 if (complete) {
   // the overview with its comments and its string literals taken out. What is
-  // left is ABAP the compiler resolves, so a Z2UI5_CL_SMPS_* name in there is
+  // left is ABAP the compiler resolves, so a Z2UI5_*_SMPS_* name in there is
   // a STATIC reference - the by-name lookups all sit inside backticks and are
   // gone by now. Template literals keep their embedded { ... } expressions,
   // which are code as well; only their literal text is dropped.
@@ -107,15 +131,17 @@ if (complete) {
     .map((line) => (line.trimStart().startsWith('*') ? '' : line.replace(/".*$/, '')))
     .join('\n');
 
-  // where each class of the tree lives, as the top level entry under src/ that
-  // build-package-branch.mjs keeps or deletes as a whole
+  // where each object of the tree lives, as the top level entry under src/
+  // that build-package-branch.mjs keeps or deletes as a whole. Every object
+  // type counts, not classes alone: a TYPE REF TO an interface, a TYPE of a
+  // table, data element or CDS entity of another package takes the branch's
+  // overview down exactly like a class reference does. The object name is the
+  // file name up to its first dot (abapGit's naming), the MIME and namespace
+  // files under src/ never carry a Z2UI5_..._SMPS_ name and drop out below.
   const home = new Map(
     files
-      .filter((path) => path.endsWith('.clas.abap'))
-      .map((path) => [
-        basename(path).replace('.clas.abap', '').toLowerCase(),
-        path.split(/[\\/]/)[1],
-      ]),
+      .filter((path) => !basename(path).startsWith('package.'))
+      .map((path) => [basename(path).split('.')[0].toLowerCase(), path.split(/[\\/]/)[1]]),
   );
 
   // what every branch keeps out of src/ on top of its own package - the same
@@ -123,7 +149,12 @@ if (complete) {
   // is not reported here
   const always = /^(package\.devc\.xml|z2ui5_cl_smps_app_000\.clas\..*)$/;
 
-  for (const name of new Set([...code.matchAll(/z2ui5_c[lx]_smps_[a-z0-9_]+/g)].map((m) => m[0]))) {
+  // ABAP is case-insensitive, so the scan is too: Z2UI5_CL_SMPS_X=>y( ) is
+  // the same static reference as z2ui5_cl_smps_x=>y( ). Classes, exception
+  // classes, interfaces, tables, data elements and CDS entities - every
+  // Z2UI5_<type>_SMPS_ object type the naming rule hands out.
+  const staticRefs = [...code.matchAll(/\bz2ui5_[a-z]{1,2}_smps_[a-z0-9_]+/gi)].map((m) => m[0].toLowerCase());
+  for (const name of new Set(staticRefs)) {
     const dir = home.get(name);
     if (dir === undefined || always.test(dir)) continue;
 

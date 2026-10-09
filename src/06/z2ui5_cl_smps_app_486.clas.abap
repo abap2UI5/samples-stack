@@ -34,11 +34,17 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
     TRY.
 
-        IF client->check_on_navigated( ).
+        IF client->check_on_init( ).
+          set_session_stateful( client = client stateful = abap_true ).
           initialize_view( client ).
+        ELSEIF client->check_on_navigated( ).
+          " the session as the user left it - switching it back on here
+          " would undo an "End session" on every navigation
+          set_session_stateful( client = client stateful = session_is_stateful ).
+          initialize_view( client ).
+        ELSEIF client->check_on_event( ).
+          on_event( client ).
         ENDIF.
-
-        on_event( client ).
 
       CATCH cx_root INTO DATA(lx).
         client->message_box_display( lx->get_text( ) ).
@@ -48,8 +54,6 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
 
   METHOD initialize_view.
-
-    set_session_stateful( client = client stateful = abap_true ).
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
