@@ -136,7 +136,7 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
 
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
-            )->a( n = `title`          v = `SmartMultiInput - conditions to ABAP SELECT-OPTIONS`
+            )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartMultiInput to SELECT-OPTIONS`
             )->a( n = `showNavButton`  b = m_client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = m_client->_event_nav_app_leave( ) ).
 

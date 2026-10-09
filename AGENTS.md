@@ -111,7 +111,8 @@ What that costs you when you edit:
 
 ```sh
 npm ci
-npm run check        # abaplint + abap2UI5-linter + overview + keywords + abapdoc + SAMPLES.md + catalogue.json + app-rules + released-api
+npm run check        # pin + abaplint + abap2UI5-linter + overview + keywords + titles + abapdoc + SAMPLES.md
+                     # + catalogue.json + app-rules + atc + prose + catalogue-derived.json + released-api
 ```
 
 Individually: `npm run lint` (abaplint), `npm run check:abap2ui5` (the app
@@ -232,6 +233,13 @@ gone.
   "validations run at COMMIT" would otherwise surprise a reader.
 - The class description in `.clas.xml` (`<DESCRIPT>`) is what the overview app
   shows. Keep it in Title Case and specific.
+- **The main page title starts with `abap2UI5 - `** — the first `Page` after
+  each `Shell`, as a literal: `abap2UI5 - Smart Controls - SmartTable`. What
+  follows is the sample's own name and is not prescribed (the RAP steps number
+  themselves, the session samples say `Sample: …`). A page with `showHeader`
+  false has no title and is exempt — the launchpad samples leave it to the
+  shell. Checked by `npm run check:titles` (`scripts/check-page-titles.mjs`,
+  its own workflow): three titles had drifted before it existed.
 - **Every app carries three lines about itself, and they are the only place
   each fact lives** — checked by `npm run check:keywords`:
 

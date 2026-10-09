@@ -50,7 +50,7 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session with locks - (ABAP Standard Only)`
+            )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session with Locks (ABAP Standard Only)`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event( `BACK` ) ).
 
@@ -60,7 +60,7 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
         )->a( n = `visible` v = client->_bind( error-flag ) ).
 
     page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Press Lock, then Refresh lock counter - the entry is in SM12 now. End session and refresh ` &&
+        )->a( n = `text`     v = `Press Lock, then Refresh lock status - SM12 holds the lock now. End session and refresh ` &&
                                  `again: the lock went away with the session that held it, so start the session again ` &&
                                  `before the next Lock. Rollback Work releases it while the session goes on.`
         )->a( n = `type`     v = `Information`
@@ -97,7 +97,7 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
     hbox->tag( `Button`
         )->a( n = `press` v = client->_event( `REFRESH` )
-        )->a( n = `text`  v = `Refresh lock counter` ).
+        )->a( n = `text`  v = `Refresh lock status` ).
 
     hbox->tag( `Button`
         )->a( n = `press` v = client->_event( `ROLLBACK` )
@@ -120,7 +120,7 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
         client->nav_app_leave( ).
       WHEN `LOCK`.
         lcl_locking=>acquire_lock( ).
-        client->message_toast_display( `Lock acquired. Press 'Refresh lock counter'` ).
+        client->message_toast_display( `Lock acquired. Press 'Refresh lock status'` ).
       WHEN `END_SESSION`.
         set_session_stateful( client = client stateful = abap_false ).
       WHEN `START_SESSION`.

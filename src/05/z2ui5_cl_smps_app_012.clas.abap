@@ -55,7 +55,7 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
-            )->a( n = `title`          v = `RAP Events Demo - Event Log (abap2UI5)`
+            )->a( n = `title`          v = `abap2UI5 - Business Events - Event Log`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
 
