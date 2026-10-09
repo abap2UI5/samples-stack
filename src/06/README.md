@@ -1,6 +1,6 @@
 # 06 — Stateful Sessions / Locks
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 By default abap2UI5 is stateless: every roundtrip is a fresh request and the app
 state travels in the payload. When a scenario calls for more,
@@ -44,5 +44,5 @@ involved.
 
 ## Where to go next
 
-- [`07` AMC/APC](../07/README.md) — the other on-premise package, and the one that
+- [`07` AMC/APC](https://github.com/abap2UI5/samples-stack/blob/main/src/07/README.md) — the other on-premise package, and the one that
   keeps a connection open rather than a session.
