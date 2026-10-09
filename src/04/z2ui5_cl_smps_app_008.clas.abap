@@ -53,6 +53,9 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `SAVE` ).
       draft_save( ).
+    ELSEIF client->check_on_event( `REFRESH` ).
+      " a draft the Enter Draft Mode sample created in a tab of its own
+      data_read( ).
     ENDIF.
 
   ENDMETHOD.
@@ -154,12 +157,18 @@ CLASS z2ui5_cl_smps_app_008 IMPLEMENTATION.
         )->a( n = `type` v = `Information` ).
 
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_drafts ) ).
+        )->a( n = `items`      v = client->_bind( t_drafts )
+        )->a( n = `noDataText` v = `No drafts yet - press Edit in the Enter Draft Mode app, then press refresh here` ).
 
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
-                )->a( n = `text` v = `UPDATE ... WITH %is_draft = mk-on` ).
+                )->a( n = `text` v = `UPDATE ... WITH %is_draft = mk-on`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
 
     table->ele( `columns`
         )->ele( `Column`

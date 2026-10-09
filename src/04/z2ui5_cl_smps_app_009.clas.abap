@@ -58,6 +58,9 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
           draft_activate( ).
         WHEN `DISCARD`.
           draft_discard( ).
+        WHEN `REFRESH`.
+          " a draft the Enter Draft Mode sample created in a tab of its own
+          data_read( ).
       ENDCASE.
     ENDIF.
 
@@ -186,12 +189,18 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
         )->a( n = `type` v = `Information` ).
 
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_drafts ) ).
+        )->a( n = `items`      v = client->_bind( t_drafts )
+        )->a( n = `noDataText` v = `No drafts yet - press Edit in the Enter Draft Mode app, then press refresh here` ).
 
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
-                )->a( n = `text` v = `EXECUTE Activate  /  EXECUTE Discard` ).
+                )->a( n = `text` v = `EXECUTE Activate  /  EXECUTE Discard`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
 
     table->ele( `columns`
         )->ele( `Column`

@@ -118,6 +118,9 @@ try {
     out = e.stdout || ''; // abaplint exits 1 when it finds anything
     if (!out.includes('[')) {
       console.error(e.stderr || e.message);
+      console.error('\ncheck-released-api: abaplint stopped before it produced a result, so nothing was checked. '
+        + 'It clones its dependencies (steampunk-2305-api, abap2UI5) first - an unreachable github.com ends here '
+        + 'as well as a broken abaplint.jsonc. Does `npm run lint` run?');
       process.exit(2);
     }
   }

@@ -59,6 +59,14 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
         )->a( n = `type`    v = `Error`
         )->a( n = `visible` v = client->_bind( error-flag ) ).
 
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Press Lock, then Refresh lock counter - the entry is in SM12 now. End session and refresh ` &&
+                                 `again: the lock went away with the session that held it, so start the session again ` &&
+                                 `before the next Lock. Rollback Work releases it while the session goes on.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` v = `true`
+        )->a( n = `class`    v = `sapUiSmallMarginBottom` ).
+
     DATA(vbox) = page->ele( `VBox` ).
 
     DATA(hbox) = vbox->ele( `HBox`

@@ -117,7 +117,8 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
             )->ele( `Table`
-                )->a( n = `items` v = client->_bind( t_travels ) ).
+                )->a( n = `items`      v = client->_bind( t_travels )
+                )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
 
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
@@ -125,8 +126,9 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
                 )->a( n = `text` v = `READ ENTITIES ... WITH %is_draft = mk-on`
             )->tag( `ToolbarSpacer`
             )->tag( `Button`
-                )->a( n = `press` v = client->_event( `GENERATE` )
-                )->a( n = `text`  v = `Generate Demo Data`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Discards every draft and deletes every travel, then creates the three demo travels again`
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `REFRESH` )
                 )->a( n = `icon`    v = `sap-icon://refresh`

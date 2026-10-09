@@ -398,16 +398,18 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
 
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_travels ) ).
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`
                 )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRD)`
             )->tag( `ToolbarSpacer`
             )->tag( `Button`
-                )->a( n = `press` v = client->_event( `GENERATE` )
-                )->a( n = `text`  v = `Generate Demo Data`
-                )->a( n = `icon`  v = `sap-icon://add`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Discards every draft and deletes every travel, then creates the three demo travels again`
+                )->a( n = `icon`    v = `sap-icon://reset`
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `REFRESH` )
                 )->a( n = `icon`    v = `sap-icon://refresh`

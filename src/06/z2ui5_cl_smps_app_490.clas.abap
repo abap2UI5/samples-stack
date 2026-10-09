@@ -52,6 +52,13 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             DATA(page) = view->ele( `Shell`
                 )->ele( `Page`
                     )->a( n = `title` v = `Startview` ).
+            page->tag( `MessageStrip`
+                )->a( n = `text`     v = `Every lock view takes the next key of table Z2UI5_T_SMPS_01 and holds an ENQUEUE ` &&
+                                         `lock on it while the session is stateful - keep SM12 open and watch them line up. ` &&
+                                         `Back releases the lock of the view you leave, and only that one.`
+                )->a( n = `type`     v = `Information`
+                )->a( n = `showIcon` v = `true`
+                )->a( n = `class`    v = `sapUiSmallMargin` ).
             page->ele( n = `SimpleForm` ns = `form`
                 )->ele( n = `content` ns = `form`
                     )->tag( `Button`

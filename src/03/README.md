@@ -40,9 +40,11 @@ fills both business objects.
 
 Fill the tables before the first run: execute `Z2UI5_CL_SMPS_DATA_TRV` (and
 `Z2UI5_CL_SMPS_DATA_TRD` for the draft package) with F9 in ADT, or press
-*Regenerate Demo Data* in the overview — *Generate Demo Data* in a single sample
-does the same for its own business object. Both offer `data_generate( )`,
-`data_delete( )` and `data_reset( )`.
+*Regenerate Demo Data* in the overview — *Reset Demo Data* in
+`Z2UI5_CL_SMPS_APP_005` does the same for this business object alone. Every one
+of them runs `data_reset( )`, which **deletes every travel first**, the ones you
+created yourself included, so the demo travels come out as 1, 2, 3 again. Both
+classes also offer `data_generate( )` and `data_delete( )` on their own.
 
 Demo data is created through the business object, not with an `INSERT` — otherwise
 the determinations would not run and the rows would be data the BO could never

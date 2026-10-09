@@ -16,6 +16,8 @@
 //      every generated package branch                            (full tree only)
 //   5. the README's "Which package do I need?" table routes to
 //      every package exactly once                                (full tree only)
+//   6. every package's branch name in the overview is the one
+//      .github/packages.json builds                              (always)
 //
 // (3) is the second index this repository keeps by hand: packages.json drives
 // the generated per-package branches and the release each one is checked at,
@@ -90,6 +92,28 @@ for (const name of samples) {
 for (const name of new Set(listed)) {
   if (complete && !known.has(name)) {
     errors.push(`${OVERVIEW} names ${name}, but no such class exists - renamed or mistyped?`);
+  }
+}
+
+// (6) the overview tells a reader which abapGit branch carries a package
+// that is not on the system - a renamed branch there would send them to a
+// branch that does not exist. Both files travel to every generated branch,
+// so this one is checked on a partial checkout too.
+const branchLiterals = [...overview.matchAll(/branch\s+=\s+`([^`]*)`/g)].map((match) => match[1]);
+for (const entry of packages) {
+  if (!branchLiterals.includes(entry.branch)) {
+    errors.push(
+      `${OVERVIEW} does not name the branch "${entry.branch}" of src/${entry.dir} - ` +
+        `pass it as branch = \`${entry.branch}\` to render_package( ) in view_display( )`,
+    );
+  }
+}
+for (const name of new Set(branchLiterals)) {
+  if (!packages.some((entry) => entry.branch === name)) {
+    errors.push(
+      `${OVERVIEW} names the branch "${name}", which .github/packages.json does not build - ` +
+        `known: ${packages.map((entry) => entry.branch).join(', ')}`,
+    );
   }
 }
 

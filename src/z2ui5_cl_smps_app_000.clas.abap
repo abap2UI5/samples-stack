@@ -187,12 +187,19 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
         VALUE(result) TYPE string.
 
     "! one package each - same markup, different binding
+    "! @parameter branch | the generated abapGit branch that carries the
+    "! package alone - named in the panel once a row of it is not on this
+    "! system, so the reader knows what to pull; npm run check:overview
+    "! keeps the names in step with .github/packages.json
+    "! @parameter samples | the rows ITEMS binds, read for that decision
     METHODS render_package
       IMPORTING
-        page  TYPE REF TO z2ui5_cl_ui5_view_builder
-        title TYPE string
-        hint  TYPE string
-        items TYPE string.
+        page    TYPE REF TO z2ui5_cl_ui5_view_builder
+        title   TYPE string
+        hint    TYPE string
+        branch  TYPE string
+        samples TYPE ty_t_sample
+        items   TYPE string.
 
     "! one row of a list, including the runtime lookup of CLASSNAME
     METHODS sample
@@ -371,55 +378,75 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         )->a( n = `showIcon` v = `true`
         )->a( n = `class`    v = `sapUiSmallMarginBottom` ).
 
-    render_package( page  = page
-                    title = `01 - OData`
-                    hint  = `bind a table to an OData V2 model - needs an activated OData V2 service`
-                    items = client->_bind( t_odata ) ).
+    render_package( page    = page
+                    title   = `01 - OData`
+                    hint    = `bind a table to an OData V2 model - needs an activated OData V2 service`
+                    branch  = `01-odata`
+                    samples = t_odata
+                    items   = client->_bind( t_odata ) ).
 
-    render_package( page  = page
-                    title = `02 - Smart Controls`
-                    hint  = `sap.ui.comp driven by OData metadata - needs SAPUI5 and an activated Gateway service`
-                    items = client->_bind( t_smart ) ).
+    render_package( page    = page
+                    title   = `02 - Smart Controls`
+                    hint    = `sap.ui.comp driven by OData metadata - needs SAPUI5 and an activated Gateway service`
+                    branch  = `02-smart-controls`
+                    samples = t_smart
+                    items   = client->_bind( t_smart ) ).
 
-    render_package( page  = page
-                    title = `03 - RAP`
-                    hint  = `one EML statement per sample on Z2UI5_R_SMPS_TRV - the business object ships with the package`
-                    items = client->_bind( t_rap ) ).
+    render_package( page    = page
+                    title   = `03 - RAP`
+                    hint    = `one EML statement per sample on Z2UI5_R_SMPS_TRV - the business object ships with the package`
+                    branch  = `03-rap`
+                    samples = t_rap
+                    items   = client->_bind( t_rap ) ).
 
-    render_package( page  = page
-                    title = `04 - RAP with Draft`
-                    hint  = `Z2UI5_R_SMPS_TRD - start at 06, it carries the trick the other three reuse`
-                    items = client->_bind( t_draft ) ).
+    render_package( page    = page
+                    title   = `04 - RAP with Draft`
+                    hint    = `Z2UI5_R_SMPS_TRD - start at 06, it carries the trick the other three reuse`
+                    branch  = `04-rap-draft`
+                    samples = t_draft
+                    items   = client->_bind( t_draft ) ).
 
-    render_package( page  = page
-                    title = `05 - Business Events`
-                    hint  = `needs a release that already carries RAP business events - open both samples side by side`
-                    items = client->_bind( t_events ) ).
+    render_package( page    = page
+                    title   = `05 - Business Events`
+                    hint    = `needs a release that already carries RAP business events - open both samples side by side`
+                    branch  = `05-business-events`
+                    samples = t_events
+                    items   = client->_bind( t_events ) ).
 
-    render_package( page  = page
-                    title = `06 - Stateful Sessions / Locks`
-                    hint  = `ABAP Standard (on-premise) - keep SM12 open next to the browser and start with 486`
-                    items = client->_bind( t_stateful ) ).
+    render_package( page    = page
+                    title   = `06 - Stateful Sessions / Locks`
+                    hint    = `ABAP Standard (on-premise) - keep SM12 open next to the browser and start with 486`
+                    branch  = `06-stateful-locks`
+                    samples = t_stateful
+                    items   = client->_bind( t_stateful ) ).
 
-    render_package( page  = page
-                    title = `07 - AMC/APC`
-                    hint  = `on-premise WebSockets - activate the ICF node /sap/bc/apc/sap/z2ui5_apc_smp_2`
-                    items = client->_bind( t_websocket ) ).
+    render_package( page    = page
+                    title   = `07 - AMC/APC`
+                    hint    = `on-premise WebSockets - activate the ICF node /sap/bc/apc/sap/z2ui5_apc_smp_2`
+                    branch  = `07-amc-apc`
+                    samples = t_websocket
+                    items   = client->_bind( t_websocket ) ).
 
-    render_package( page  = page
-                    title = `08 - MIME Play Audio`
-                    hint  = `activate the ICF service /SAP/PUBLIC/BC/ABAP/mime_demo`
-                    items = client->_bind( t_mime ) ).
+    render_package( page    = page
+                    title   = `08 - MIME Play Audio`
+                    hint    = `activate the ICF service /SAP/PUBLIC/BC/ABAP/mime_demo`
+                    branch  = `08-mime`
+                    samples = t_mime
+                    items   = client->_bind( t_mime ) ).
 
-    render_package( page  = page
-                    title = `09 - Launchpad`
-                    hint  = `these four show what the shell adds - start them from a launchpad tile, not from here`
-                    items = client->_bind( t_launchpad ) ).
+    render_package( page    = page
+                    title   = `09 - Launchpad`
+                    hint    = `these four show what the shell adds - start them from a launchpad tile, not from here`
+                    branch  = `09-launchpad`
+                    samples = t_launchpad
+                    items   = client->_bind( t_launchpad ) ).
 
-    render_package( page  = page
-                    title = `10 - AI / LLM`
-                    hint  = `a language model over HTTPS - set up the provider in the settings first, then chat or summarize`
-                    items = client->_bind( t_ai ) ).
+    render_package( page    = page
+                    title   = `10 - AI / LLM`
+                    hint    = `a language model over HTTPS - set up the provider in the settings first, then chat or summarize`
+                    branch  = `10-ai-llm`
+                    samples = t_ai
+                    items   = client->_bind( t_ai ) ).
 
     client->view_display( view->stringify( ) ).
 
@@ -462,6 +489,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     right->tag( `Button`
         )->a( n = `text`    v = `Regenerate Demo Data`
         )->a( n = `icon`    v = `sap-icon://refresh`
+        " it deletes before it creates - say so before the press, not after
+        )->a( n = `tooltip` v = `Deletes every travel of both RAP packages, drafts included, and creates the demo travels again`
         )->a( n = `type`    v = `Transparent`
         )->a( n = `visible` b = demo_data_installed
         )->a( n = `press`   v = client->_event( cs_backend_event-regenerate ) ).
@@ -667,6 +696,21 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     panel->tag( `Text`
         )->a( n = `text`  t = hint
         )->a( n = `class` v = `sapUiSmallMarginBottom` ).
+
+    " "not on this system" alone leaves the reader guessing what to install.
+    " A row is missing for one of two reasons, and the strip names both: the
+    " package never came in - each one has an abapGit branch of its own - or
+    " it came in and the release cannot activate it
+    IF line_exists( samples[ installed = abap_false ] ).
+      panel->tag( `MessageStrip`
+          )->a( n = `text`     t = |Not on this system? Pull the abapGit branch { branch } of { cs_url-stack } | &&
+                                   |- it carries this package alone, main carries all of them. Installed and | &&
+                                   |still listed here: this release cannot activate it - src/{ substring( val = branch len = 2 ) }/README.md | &&
+                                   |says what it needs.|
+          )->a( n = `type`     v = `Warning`
+          )->a( n = `showIcon` v = `true`
+          )->a( n = `class`    v = `sapUiSmallMarginBottom` ).
+    ENDIF.
 
     DATA(table) = panel->ele( `Table`
         )->a( n = `items` v = items ).

@@ -22,7 +22,10 @@ ABAP Platform >= 1909 or a BTP ABAP Environment. The draft enabled business obje
 and its two tables come with this package ([`src/04/01`](01)).
 
 Fill the table with `Z2UI5_CL_SMPS_DATA_TRD` (F9 in ADT) or press *Regenerate Demo
-Data* in the overview app `?app_start=z2ui5_cl_smps_app_000`.
+Data* in the overview app `?app_start=z2ui5_cl_smps_app_000` — or *Reset Demo
+Data* in `Z2UI5_CL_SMPS_APP_006` or `Z2UI5_CL_SMPS_APP_010`. All three discard every
+draft and delete every travel before they create the demo set, so a draft you
+left open goes with them.
 
 ## What changes with draft
 
@@ -45,6 +48,16 @@ first.
 | leave draft mode | `EXECUTE Activate` / `Discard` | [`009`](z2ui5_cl_smps_app_009.clas.abap) |
 
 Start at `06` — it carries the one trick the other three reuse.
+
+**Try it** with the four side by side, each opened from the overview in its own
+tab. In `Z2UI5_CL_SMPS_APP_007` press *Edit* on a travel: both description
+columns now show the same text. Refresh `Z2UI5_CL_SMPS_APP_006` and the travel is
+marked *Draft*. Refresh `Z2UI5_CL_SMPS_APP_008`, change the description and press
+*Save Draft* — refresh `Z2UI5_CL_SMPS_APP_007` and only its draft column has the
+new text. Refresh `Z2UI5_CL_SMPS_APP_009` and *Activate* to carry the change into
+the active instance, or *Discard* to drop it. Each tab reads its list when it
+starts and when you press its own buttons, so a change made in another tab shows
+up after the refresh button in the table toolbar.
 
 **The complete app** puts all four together in one screen with popups, message
 handling and a refresh — roughly three times the size, and close to what a real app

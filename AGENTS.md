@@ -116,9 +116,10 @@ npm run check        # abaplint + abap2UI5-linter + overview + keywords + abapdo
 
 Individually: `npm run lint` (abaplint), `npm run check:abap2ui5` (the app
 class and the view it builds, including a headless render of every view),
-`npm run check:overview` (the five consistency directions between the overview
+`npm run check:overview` (the six consistency directions between the overview
 app, the tree, `packages.json` and the two README tables — the package table
-and the *Which package do I need?* decision table).
+and the *Which package do I need?* decision table — plus the branch names the
+overview tells a reader to pull when a package is not on the system).
 
 `npm run fmt:chains` applies the house chain layout. It rewrites whitespace
 between chain segments only — but it needs the ABAP to be *balanced* to know

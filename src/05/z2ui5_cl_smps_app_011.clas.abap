@@ -33,6 +33,19 @@ CLASS z2ui5_cl_smps_app_011 DEFINITION PUBLIC CREATE PUBLIC.
     METHODS data_read.
     METHODS view_display.
 
+    "! what to say when the business object refused a create or an update:
+    "! its own message where it sent one - a lock held by a draft of another
+    "! user, say - rather than a bare "failed"
+    "! @parameter action | Create or Update, the start of the text
+    "! @parameter msg | the first message of REPORTED, unbound when it is empty
+    "! @parameter result | the text for the message box
+    METHODS failure_text
+      IMPORTING
+        action        TYPE string
+        msg           TYPE REF TO if_abap_behv_message
+      RETURNING
+        VALUE(result) TYPE string.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -82,16 +95,20 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
                         title    = ms_create-title
                         priority = ms_create-priority
                         status   = ms_create-status ) )
-      FAILED DATA(failed).
+      FAILED DATA(failed)
+      REPORTED DATA(reported).
 
     IF failed-ticket IS NOT INITIAL.
+      DATA(text) = failure_text( action = `Create`
+                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
       ROLLBACK ENTITIES.
-      client->message_toast_display( `Create failed` ).
+      client->message_box_display( text = text type = `error` ).
       RETURN.
     ENDIF.
 
     COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
-      FAILED DATA(commit_failed).
+      FAILED DATA(commit_failed)
+      REPORTED DATA(commit_reported).
 
     IF commit_failed IS INITIAL.
       client->message_toast_display( |Ticket '{ ms_create-title }' created - business event fired| ).
@@ -99,8 +116,10 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
       data_read( ).
       view_display( ).
     ELSE.
+      text = failure_text( action = `Create`
+                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
       ROLLBACK ENTITIES.
-      client->message_toast_display( `Save failed` ).
+      client->message_box_display( text = text type = `error` ).
     ENDIF.
   ENDMETHOD.
 
@@ -121,24 +140,30 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
         UPDATE FIELDS ( status )
         WITH VALUE #( ( ticketuuid = s_ticket-ticket_uuid
                         status     = s_ticket-status ) )
-      FAILED DATA(failed).
+      FAILED DATA(failed)
+      REPORTED DATA(reported).
 
     IF failed-ticket IS NOT INITIAL.
+      DATA(text) = failure_text( action = `Update`
+                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
       ROLLBACK ENTITIES.
-      client->message_toast_display( `Update failed` ).
+      client->message_box_display( text = text type = `error` ).
       RETURN.
     ENDIF.
 
     COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
-      FAILED DATA(commit_failed).
+      FAILED DATA(commit_failed)
+      REPORTED DATA(commit_reported).
 
     IF commit_failed IS INITIAL.
       client->message_toast_display( |Ticket '{ s_ticket-title }' set to { s_ticket-status } - business event fired| ).
       data_read( ).
       view_display( ).
     ELSE.
+      text = failure_text( action = `Update`
+                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
       ROLLBACK ENTITIES.
-      client->message_toast_display( `Save failed` ).
+      client->message_box_display( text = text type = `error` ).
     ENDIF.
   ENDMETHOD.
 
@@ -158,6 +183,18 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
           created_by  = s_result-created_by ) ).
   ENDMETHOD.
 
+  METHOD failure_text.
+
+    IF msg IS BOUND.
+      result = |{ action } refused by the business object: { msg->if_message~get_text( ) }|.
+    ELSE.
+      " FAILED without a message in REPORTED - say that much rather than
+      " leave the reader with a bare "failed"
+      result = |{ action } refused by the business object, which sent no message with it|.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD view_display.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
@@ -171,6 +208,15 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
             )->a( n = `title`          v = `RAP Events Demo - Tickets (abap2UI5)`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Create a ticket and the business object raises the notification event TicketCreated. ` &&
+                                 `Change a status in the table and press Update Status, and it raises the data event ` &&
+                                 `StatusChanged with the new values. What the handler made of both is in the event log ` &&
+                                 `app - open it in a second tab and press refresh there.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` v = `true`
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
 
     " --- create form ---
     page->ele( n = `SimpleForm` ns = `form`
@@ -195,7 +241,8 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
 
     " --- tickets table ---
     DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( mt_tickets ) ).
+        )->a( n = `items`      v = client->_bind( mt_tickets )
+        )->a( n = `noDataText` v = `No tickets yet - create one above` ).
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->tag( `Title`

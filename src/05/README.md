@@ -140,6 +140,16 @@ they are not part of the repository, so the first publish creates them fresh.
 parser errors this package reports are about the linter, not about the code: it
 activates fine in an ABAP system.
 
+**On ABAP Cloud, one open question.** The released-API check
+(`npm run check:released-api`) reports the two data elements
+`Z2UI5_E_SMPS_TCK_UUID` and `Z2UI5_E_SMPS_LOG_UUID`: they take the domain
+`SYSUUID_X16`, and the released-object list of ABAP Cloud carries the data element
+of that name, not the domain. Nobody has imported the package into a BTP ABAP
+Environment yet to see whether that matters. If the two do not activate there,
+that is the cause — and everything that types a key with them (both tables, the
+CDS entities, the handler) fails after them. Recreate the two data elements in
+your system with the predefined type `RAW` length 16, and the rest activates.
+
 ## Where to go next
 
 - [`07` AMC/APC](../07/README.md) — the other half of the story: pushing what
