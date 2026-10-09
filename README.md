@@ -177,8 +177,9 @@ repository you are in. Always name a sample by its class.
 You do not have to look a number up. `?app_start=z2ui5_cl_smps_app_000` lists
 **every sample of this repository**, one collapsible section per package, and
 starts each one in a new browser tab — so the overview stays where it is and
-several samples can run side by side. Its header button fills the demo data of
-both RAP packages.
+several samples can run side by side. Its header button, *Regenerate Demo Data*,
+deletes every travel of both RAP packages — yours included — and creates the demo
+set again.
 
 It is also the honest answer to *what does my system actually support*: the
 overview looks every sample up at runtime instead of referencing it statically, so

@@ -25,7 +25,8 @@ Fill the table with `Z2UI5_CL_SMPS_DATA_TRD` (F9 in ADT) or press *Regenerate De
 Data* in the overview app `?app_start=z2ui5_cl_smps_app_000` — or *Reset Demo
 Data* in `Z2UI5_CL_SMPS_APP_006` or `Z2UI5_CL_SMPS_APP_010`. All three discard every
 draft and delete every travel before they create the demo set, so a draft you
-left open goes with them.
+left open goes with them. If the business object refuses one of those, nothing is
+created and the message says what is left.
 
 ## What changes with draft
 

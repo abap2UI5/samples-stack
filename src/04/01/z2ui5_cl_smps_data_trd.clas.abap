@@ -14,6 +14,8 @@ CLASS z2ui5_cl_smps_data_trd DEFINITION PUBLIC FINAL CREATE PUBLIC.
     INTERFACES if_oo_adt_classrun.
 
     "! Deletes everything, then creates the demo set. This is what F9 runs.
+    "! When the business object refuses a discard or a delete, nothing is
+    "! created - the result says so instead.
     CLASS-METHODS data_reset
       RETURNING
         VALUE(result) TYPE string.
@@ -45,7 +47,24 @@ CLASS z2ui5_cl_smps_data_trd IMPLEMENTATION.
 
   METHOD data_reset.
 
-    result = |{ data_delete( ) } { data_generate( ) }|.
+    result = data_delete( ).
+
+    " a refused discard or delete leaves rows behind, and a reset that keeps
+    " old travels and drafts next to the new ones is no reset - stop here
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(left_over).
+
+    SELECT FROM z2ui5_d_smps_trd                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(drafts_left_over).
+
+    IF left_over > 0 OR drafts_left_over > 0.
+      result = |{ result } No demo data created, { left_over } travel(s) and { drafts_left_over } draft(s) are still there.|.
+      RETURN.
+    ENDIF.
+
+    result = |{ result } { data_generate( ) }|.
 
   ENDMETHOD.
 

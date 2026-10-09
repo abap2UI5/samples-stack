@@ -17,7 +17,8 @@ CLASS z2ui5_cl_smps_data_trv DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "!
     "! Deleting first is what makes the keys predictable: early numbering
     "! continues behind MAX( travel_id ), so on an empty table the demo
-    "! travels always come out as 1, 2, 3.
+    "! travels always come out as 1, 2, 3. When the business object refuses
+    "! the delete, nothing is created - the result says so instead.
     CLASS-METHODS data_reset
       RETURNING
         VALUE(result) TYPE string.
@@ -48,7 +49,20 @@ CLASS z2ui5_cl_smps_data_trv IMPLEMENTATION.
 
   METHOD data_reset.
 
-    result = |{ data_delete( ) } { data_generate( ) }|.
+    result = data_delete( ).
+
+    " a refused delete leaves travels behind, and the demo set would number
+    " on behind them - stop here rather than create travels 4, 5, 6
+    SELECT FROM z2ui5_r_smps_trv                        "#EC CI_NOWHERE
+      FIELDS COUNT( * )
+      INTO @DATA(left_over).
+
+    IF left_over > 0.
+      result = |{ result } No demo data created, { left_over } travel(s) are still there.|.
+      RETURN.
+    ENDIF.
+
+    result = |{ result } { data_generate( ) }|.
 
   ENDMETHOD.
 

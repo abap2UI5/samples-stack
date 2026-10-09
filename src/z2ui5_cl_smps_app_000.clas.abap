@@ -314,7 +314,15 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         " the one without draft, those of src/04 against the draft enabled
         " one, and an empty table is the most common reason a sample looks
         " broken. data_reset( ) deletes first, so the travel ids stay 1, 2, 3.
-        DATA(text) = condense( |{ data_reset( cs_class-data_trv ) } { data_reset( cs_class-data_trd ) }| ).
+        " Both answers read alike, so each one says which package it is from.
+        DATA(text) = data_reset( cs_class-data_trv ).
+        IF text IS NOT INITIAL.
+          text = |RAP: { text }|.
+        ENDIF.
+        DATA(text_draft) = data_reset( cs_class-data_trd ).
+        IF text_draft IS NOT INITIAL.
+          text = condense( |{ text } RAP with Draft: { text_draft }| ).
+        ENDIF.
         IF text IS INITIAL.
           text = `No demo data on this system - the two RAP packages are not installed`.
         ENDIF.

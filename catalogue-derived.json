@@ -100,7 +100,7 @@
     {"class":"Z2UI5_CL_SMPS_APP_484","minUi5":"1.71","needs":[],"controls":[1,22,37,5,7,10,17,38],"controlCount":13},
     {"class":"Z2UI5_CL_SMPS_APP_485","minUi5":"1.71","needs":[],"controls":[1,31,37,5,7,10,14,42,17],"controlCount":18},
     {"class":"Z2UI5_CL_SMPS_APP_486","minUi5":"1.71","needs":[],"controls":[1,31,37,7,10,14,42,17],"controlCount":11},
-    {"class":"Z2UI5_CL_SMPS_APP_487","minUi5":"1.71","needs":[],"controls":[1,22,5,7,12,14,17],"controlCount":8},
+    {"class":"Z2UI5_CL_SMPS_APP_487","minUi5":"1.71","needs":[],"controls":[1,22,5,7,10,12,14,17],"controlCount":9},
     {"class":"Z2UI5_CL_SMPS_APP_489","minUi5":"1.71","needs":[],"controls":[1,43,44,22,37,45,5,23,7,46,47,10,48,41,42,15,17,38,49],"controlCount":21},
     {"class":"Z2UI5_CL_SMPS_APP_490","minUi5":"1.71","needs":[],"controls":[1,31,22,5,7,10,13,14,17,38],"controlCount":14},
     {"class":"Z2UI5_CL_SMPS_APP_493","minUi5":"1.71","needs":[],"controls":[2,3,31,22,5,7,10,11,12,35,36,32,17],"controlCount":27}

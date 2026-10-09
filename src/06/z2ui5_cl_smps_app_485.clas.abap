@@ -128,12 +128,16 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
       WHEN `REFRESH`.
         update_lock_counter( ).
       WHEN `ROLLBACK`.
-        " counted before and after, so the toast says what the ROLLBACK
+        " read before and after, so the toast says what the ROLLBACK
         " released and not what the last Refresh happened to show
         DATA(locks_before) = lcl_locking=>get_lock_counter( ).
         ROLLBACK WORK.
         update_lock_counter( ).
-        client->message_toast_display( |ROLLBACK WORK done, { locks_before - lock_counter } lock(s) released| ).
+        client->message_toast_display( COND #( WHEN locks_before > 0 AND lock_counter = 0
+                                               THEN `ROLLBACK WORK done, the lock is released`
+                                               WHEN lock_counter > 0
+                                               THEN `ROLLBACK WORK done, the lock is still held`
+                                               ELSE `ROLLBACK WORK done, there was no lock to release` ) ).
     ENDCASE.
 
   ENDMETHOD.
@@ -194,8 +198,13 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD update_lock_counter.
 
+    " the counter belongs to the ONE lock entry of this sample: every Lock
+    " the session presses again on the key it already holds counts it up,
+    " SM12 still shows a single entry
     lock_counter = lcl_locking=>get_lock_counter( ).
-    lock_text = |There are { lock_counter } SM12 locks|.
+    lock_text = COND #( WHEN lock_counter = 0
+                        THEN |No lock on { lcl_locking=>lock_key } in SM12|
+                        ELSE |SM12 holds the lock on { lcl_locking=>lock_key } - requested { lock_counter } time(s)| ).
 
   ENDMETHOD.
 

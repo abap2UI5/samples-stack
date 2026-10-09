@@ -5,7 +5,7 @@ CLASS z2ui5_cl_smps_app_490 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA text TYPE string VALUE `call booking mask`.
+    DATA text TYPE string VALUE `Open the first lock view`.
     DATA varkey TYPE char120.
 
     METHODS initialize_view2
@@ -51,7 +51,9 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
                     )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
             DATA(page) = view->ele( `Shell`
                 )->ele( `Page`
-                    )->a( n = `title` v = `Startview` ).
+                    )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session with Navigation and Locks`
+                    )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+                    )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
             page->tag( `MessageStrip`
                 )->a( n = `text`     v = `Every lock view takes the next key of table Z2UI5_T_SMPS_01 and holds an ENQUEUE ` &&
                                          `lock on it while the session is stateful - keep SM12 open and watch them line up. ` &&
@@ -181,7 +183,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
     DATA(page) = view->ele( `Shell`
         )->ele( `Page`
-            )->a( n = `title`          v = `Stateful Application with lock`
+            )->a( n = `title`          v = `abap2UI5 - Sample: Lock View`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event( `BACK` ) ).
     DATA(vbox) = page->ele( `VBox` ).

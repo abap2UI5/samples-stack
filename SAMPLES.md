@@ -136,7 +136,7 @@ able to say they exist.
 | [`Z2UI5_CL_SMPS_DATA_TRD`](src/04/01/z2ui5_cl_smps_data_trd.clas.abap) | abap2UI5 EML sample - demo data (draft) |
 | [`Z2UI5_CL_SMPS_BP_TCK`](src/05/01/z2ui5_cl_smps_bp_tck.clas.abap) | RAP Events Demo - Ticket Behavior Pool |
 | [`Z2UI5_CL_SMPS_EVT_TCK`](src/05/01/z2ui5_cl_smps_evt_tck.clas.abap) | RAP Events Demo - Local Event Consumer (writes log) |
-| [`Z2UI5_CL_SMPS_APP_489_WS`](src/07/z2ui5_cl_smps_app_489_ws.clas.abap) | Generated APC WebSocket protocol impementation class |
+| [`Z2UI5_CL_SMPS_APP_489_WS`](src/07/z2ui5_cl_smps_app_489_ws.clas.abap) | Generated APC WebSocket protocol implementation class |
 | [`Z2UI5_CL_SMPS_LLM_CLAUDE`](src/10/z2ui5_cl_smps_llm_claude.clas.abap) | LLM - Anthropic Messages API |
 | [`Z2UI5_CL_SMPS_LLM_FACTORY`](src/10/z2ui5_cl_smps_llm_factory.clas.abap) | LLM - Configuration and Provider Factory |
 | [`Z2UI5_CL_SMPS_LLM_JSON`](src/10/z2ui5_cl_smps_llm_json.clas.abap) | LLM - JSON Written and Read by Hand |

@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_SMPS_APP_489_WS</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Generated APC WebSocket protocol impementation class</DESCRIPT>
+    <DESCRIPT>Generated APC WebSocket protocol implementation class</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

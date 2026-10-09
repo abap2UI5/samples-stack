@@ -53,10 +53,13 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
 
     " Note, these are demo sounds and are part of the abap2UI5 sample repo.
     " They are NOT meant to use in production.
-    DATA(vbox) = view->ele( `Page`
-        )->a( n = `title` v = `Play success and error sounds`
-        )->ele( `VBox`
-            )->a( n = `class` v = `sapUiSmallMargin` ).
+    DATA(vbox) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Sample: Play Success and Error Sounds`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
+            )->ele( `VBox`
+                )->a( n = `class` v = `sapUiSmallMargin` ).
 
     IF icfactive = abap_false.
       vbox->tag( `MessageStrip`
@@ -78,7 +81,7 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
         )->a( n = `submit`      v = client->_event( `enter` ) ).
     vbox->tag( `Button`
         )->a( n = `press` v = client->_event( `enter` )
-        )->a( n = `text`  v = `submit`
+        )->a( n = `text`  v = `Submit`
         )->a( n = `type`  v = `Accept` ).
 
     client->view_display( view->stringify( ) ).

@@ -43,8 +43,10 @@ Fill the tables before the first run: execute `Z2UI5_CL_SMPS_DATA_TRV` (and
 *Regenerate Demo Data* in the overview — *Reset Demo Data* in
 `Z2UI5_CL_SMPS_APP_005` does the same for this business object alone. Every one
 of them runs `data_reset( )`, which **deletes every travel first**, the ones you
-created yourself included, so the demo travels come out as 1, 2, 3 again. Both
-classes also offer `data_generate( )` and `data_delete( )` on their own.
+created yourself included, so the demo travels come out as 1, 2, 3 again. If the
+business object refuses a delete, it stops there and creates nothing — the message
+says how many travels are left. Both classes also offer `data_generate( )` and
+`data_delete( )` on their own.
 
 Demo data is created through the business object, not with an `INSERT` — otherwise
 the determinations would not run and the rows would be data the BO could never
