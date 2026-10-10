@@ -449,7 +449,7 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
           " binding in place, so IS ASSIGNED would read TRUE for a failure
           " and the PREVIOUS attribute would be mapped under this name
           UNASSIGN <comp>.
-          ASSIGN val->(lv_name) TO <comp>.
+          ASSIGN lx->(lv_name) TO <comp>.
           IF <comp> IS NOT ASSIGNED.
             CONTINUE.
           ENDIF.
