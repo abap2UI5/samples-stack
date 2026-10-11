@@ -52,6 +52,14 @@ CLASS z2ui5_cl_smps_app_489 DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! the three characters FormattedText reads as markup - escaped, so a
+    "! news item somebody else posted shows the text they typed
+    METHODS html_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -148,9 +156,12 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        " a FeedListItem renders its text as FormattedText, and this text
+        " was typed by whoever is on the channel - escaped, so a posted <a>
+        " or <strong> reaches the other sessions as the text it is
         INSERT VALUE ty_s_news(
-            text   = json_get_string( json = ws_message
-                                      name = `text` )
+            text   = html_escape( json_get_string( json = ws_message
+                                                   name = `text` ) )
             author = json_get_string( json = ws_message
                                       name = `author` ) ) INTO TABLE t_news.
 
@@ -190,6 +201,16 @@ CLASS z2ui5_cl_smps_app_489 IMPLEMENTATION.
     result = replace( val = result sub = |\r| with = `\r`  occ = 0 ).
     result = replace( val = result sub = |\t| with = `\t`  occ = 0 ).
     result = replace( val = result sub = `"`  with = `\"`  occ = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD html_escape.
+
+    " the ampersand FIRST, or the other two would be escaped twice
+    result = replace( val = val    sub = `&` with = `&amp;` occ = 0 ).
+    result = replace( val = result sub = `<` with = `&lt;`  occ = 0 ).
+    result = replace( val = result sub = `>` with = `&gt;`  occ = 0 ).
 
   ENDMETHOD.
 
