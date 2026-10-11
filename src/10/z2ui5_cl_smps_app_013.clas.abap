@@ -97,6 +97,11 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
     TRY.
         z2ui5_cl_smps_llm_factory=>config_save( config_from_form( ) ).
         model_init( ).
+        " the strip reported an earlier test or a failed save - neither is
+        " true of the configuration that was just saved
+        CLEAR result_text.
+        result_type    = `Information`.
+        result_visible = abap_false.
         client->message_toast_display( `Settings saved` ).
 
       CATCH z2ui5_cx_smps_llm INTO DATA(error).
