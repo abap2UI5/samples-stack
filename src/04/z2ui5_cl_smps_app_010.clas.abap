@@ -266,6 +266,18 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
   METHOD draft_update.
 
+    " the fee is free text in the popup and an amount in the business object:
+    " `20,00` or `abc` would end the roundtrip with CX_SY_CONVERSION_NO_NUMBER
+    " in the VALUE below - converted here first, it is a message instead
+    DATA booking_fee TYPE z2ui5_t_smps_trd-booking_fee.
+    TRY.
+        booking_fee = s_draft-booking_fee.
+      CATCH cx_sy_conversion_error.
+        client->message_box_display( text = |Booking fee '{ s_draft-booking_fee }' is not a number - write it like 20.00|
+                                     type = `error` ).
+        RETURN.
+    ENDTRY.
+
     MODIFY ENTITIES OF z2ui5_r_smps_trd
       ENTITY travel
         UPDATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
@@ -275,7 +287,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
                         customerid   = s_draft-customer_id
                         begindate    = s_draft-begin_date
                         enddate      = s_draft-end_date
-                        bookingfee   = s_draft-booking_fee
+                        bookingfee   = booking_fee
                         currencycode = s_draft-currency
                         description  = s_draft-description ) )
       FAILED DATA(s_failed)

@@ -145,6 +145,18 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
   METHOD on_event_create.
 
+    " the fee is free text in the popup and an amount in the business object:
+    " `20,00` or `abc` would end the roundtrip with CX_SY_CONVERSION_NO_NUMBER
+    " in the VALUE below - converted here first, it is a message instead
+    DATA booking_fee TYPE z2ui5_t_smps_trv-booking_fee.
+    TRY.
+        booking_fee = s_create-booking_fee.
+      CATCH cx_sy_conversion_error.
+        client->message_box_display( text = |Booking fee '{ s_create-booking_fee }' is not a number - write it like 20.00|
+                                     type = `error` ).
+        RETURN.
+    ENDTRY.
+
     MODIFY ENTITIES OF z2ui5_r_smps_trv
       ENTITY travel
         CREATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
@@ -153,7 +165,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
                         customerid   = s_create-customer_id
                         begindate    = s_create-begin_date
                         enddate      = s_create-end_date
-                        bookingfee   = s_create-booking_fee
+                        bookingfee   = booking_fee
                         currencycode = s_create-currency
                         description  = s_create-description ) )
       MAPPED DATA(s_mapped)

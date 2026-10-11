@@ -84,6 +84,18 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
 
   METHOD data_create.
 
+    " the fee is free text in the form and an amount in the business object:
+    " `20,00` or `abc` would end the roundtrip with CX_SY_CONVERSION_NO_NUMBER
+    " in the VALUE below - converted here first, it is a message instead
+    DATA booking_fee TYPE z2ui5_t_smps_trv-booking_fee.
+    TRY.
+        booking_fee = s_travel-booking_fee.
+      CATCH cx_sy_conversion_error.
+        client->message_box_display( text = |Booking fee '{ s_travel-booking_fee }' is not a number - write it like 20.00|
+                                     type = `error` ).
+        RETURN.
+    ENDTRY.
+
     " CREATE hands the new instance to the transactional buffer. The %cid is
     " a temporary id chosen by the caller: the business object does not know
     " the key yet, so MAPPED reports it back under that %cid.
@@ -95,7 +107,7 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
                         customerid   = s_travel-customer_id
                         begindate    = s_travel-begin_date
                         enddate      = s_travel-end_date
-                        bookingfee   = s_travel-booking_fee
+                        bookingfee   = booking_fee
                         currencycode = s_travel-currency
                         description  = s_travel-description ) )
       MAPPED DATA(s_mapped)
