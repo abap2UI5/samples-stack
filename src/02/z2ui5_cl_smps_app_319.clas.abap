@@ -267,6 +267,7 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     DATA option  TYPE c LENGTH 2.
     DATA low     TYPE string.
     DATA high    TYPE string.
+    DATA skipped TYPE i.
 
     t_selopt = VALUE #( ).
     lr_type  = VALUE #( ).
@@ -277,21 +278,37 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
       low    = s-value1.
       high   = s-value2.
 
-      CASE to_upper( s-operation ).
-        WHEN `EQ`.           option = `EQ`.
-        WHEN `NE`.           option = `NE`.
-        WHEN `CONTAINS`.     option = `CP`. low = |*{ s-value1 }*|.
-        WHEN `NOTCONTAINS`.  option = `CP`. low = |*{ s-value1 }*|. sign = `E`.
-        WHEN `STARTSWITH`.   option = `CP`. low = |{ s-value1 }*|.
-        WHEN `ENDSWITH`.     option = `CP`. low = |*{ s-value1 }|.
-        WHEN `BT`.           option = `BT`.
-        WHEN `NB`.           option = `NB`.
-        WHEN `GT`.           option = `GT`.
-        WHEN `GE`.           option = `GE`.
-        WHEN `LT`.           option = `LT`.
-        WHEN `LE`.           option = `LE`.
-        WHEN `EMPTY`.        option = `EQ`. low = ``.
-        WHEN OTHERS.         option = `EQ`.
+      " the Not* operations (NotEQ, NotBT, NotContains, NotEmpty, ...) are
+      " their positive twin with the sign turned round - read as EQ, they
+      " selected exactly the rows the user had asked to leave out
+      DATA(operation) = to_upper( s-operation ).
+      IF strlen( operation ) > 3 AND substring( val = operation len = 3 ) = `NOT`.
+        operation = substring( val = operation off = 3 ).
+        sign = COND #( WHEN sign = `I` THEN `E` ELSE `I` ).
+      ENDIF.
+
+      CASE operation.
+        WHEN `EQ` OR ``.   option = `EQ`.
+        WHEN `NE`.         option = `NE`.
+        WHEN `CONTAINS`.   option = `CP`. low = |*{ s-value1 }*|.
+        WHEN `STARTSWITH`. option = `CP`. low = |{ s-value1 }*|.
+        WHEN `ENDSWITH`.   option = `CP`. low = |*{ s-value1 }|.
+        WHEN `BT`.         option = `BT`.
+        WHEN `NB`.         option = `NB`.
+        WHEN `GT`.         option = `GT`.
+        WHEN `GE`.         option = `GE`.
+        WHEN `LT`.         option = `LT`.
+        WHEN `LE`.         option = `LE`.
+        WHEN `EMPTY` OR `INITIAL`.
+          option = `EQ`.
+          low    = ``.
+          high   = ``.
+        WHEN OTHERS.
+          " an operation this mapping does not know is left out rather than
+          " guessed - an EQ on its first value would filter on something the
+          " user never asked for
+          skipped = skipped + 1.
+          CONTINUE.
       ENDCASE.
 
       APPEND VALUE #( sign = sign option = option low = low high = high ) TO lr_type.
@@ -308,6 +325,9 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
         APPEND p TO t_result.
       ENDLOOP.
       hint = |{ lines( t_selopt ) } condition(s) -> { lines( t_result ) } of { lines( t_product ) } demo products match.|.
+    ENDIF.
+    IF skipped > 0.
+      hint = |{ hint } { skipped } condition(s) with an operation this sample does not map were left out.|.
     ENDIF.
 
   ENDMETHOD.
