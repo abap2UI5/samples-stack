@@ -1072,33 +1072,53 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD url_param_get_tab.
 
-    DATA(lv_search) = replace( val  = val
-                               sub  = `%3D`
-                               with = `=`
-                               occ  = 0 ).
+    " a full URL or a request URI carries a path before its query: cut at
+    " the FIRST `?` only. A later `?` is a legal, unencoded character of a
+    " value (`title=why?`) - cutting there dropped every parameter before it
+    " declared, not inline: DATA( ) from a generic CLIKE parameter is "fixed
+    " type STRING used for generic type CLIKE" in the extended check
+    DATA lv_search TYPE string.
+    lv_search = val.
+    IF lv_search CS `?`.
+      lv_search = substring_after( val = lv_search sub = `?` ).
+    ENDIF.
 
-    " RFC 3986 allows lowercase hex digits in percent-encodings, so decode
-    " %3d the same way as %3D (%26 contains no letters and needs no twin)
-    lv_search = replace( val  = lv_search
-                         sub  = `%3d`
-                         with = `=`
-                         occ  = 0 ).
-
-    lv_search = replace( val  = lv_search
-                         sub  = `%26`
-                         with = `&`
-                         occ  = 0 ).
-
-    lv_search = shift_left( val = lv_search sub = `?` ).
-
-    " prepend & before searching so sap-startup-params is also unwrapped
-    " when it is the first/only query parameter (typical FLP target mapping)
-    DATA(lv_search2) = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
-    lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-
-    lv_search2 = substring_after( val = lv_search sub = `?` ).
-    IF lv_search2 IS NOT INITIAL.
-      lv_search = lv_search2.
+    " The FLP packs the target's own parameters into ONE value,
+    " sap-startup-params, with its `=` and `&` percent-encoded. Prepend &
+    " before searching so it is also unwrapped when it is the first/only
+    " query parameter (typical FLP target mapping). Only THAT value is
+    " decoded: decoding the whole query first tore every legitimately encoded
+    " `&` or `=` in any other value apart (`a=x%26y` became a=x and y=), and
+    " what stands BEFORE the wrapper - sap-client, sap-language - is kept:
+    " it used to be dropped from every link built from this table
+    " (abap2UI5's z2ui5_cl_ui5_util_context carries the same fix)
+    DATA(lv_startup) = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
+    IF lv_startup IS NOT INITIAL.
+      " lv_before keeps the prepended `&`, so the empty first segment it
+      " produces below is skipped like a trailing one
+      DATA(lv_before) = substring_before( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
+      SPLIT lv_startup AT `&` INTO DATA(lv_packed) DATA(lv_rest).
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%3D`
+                           with = `=`
+                           occ  = 0 ).
+      " RFC 3986 allows lowercase hex digits in percent-encodings, so decode
+      " %3d the same way as %3D (%26 contains no letters and needs no twin)
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%3d`
+                           with = `=`
+                           occ  = 0 ).
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%26`
+                           with = `&`
+                           occ  = 0 ).
+      lv_search = lv_packed.
+      IF lv_rest IS NOT INITIAL.
+        lv_search = |{ lv_packed }&{ lv_rest }|.
+      ENDIF.
+      IF lv_before IS NOT INITIAL.
+        lv_search = |{ lv_before }&{ lv_search }|.
+      ENDIF.
     ENDIF.
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
