@@ -546,9 +546,8 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
             lt_tab = msg_get_internal( <comp> ).
             INSERT LINES OF lt_tab INTO TABLE result.
             RETURN.
-          ELSE.
-            ls_result = msg_map( name = ls_attri->name val = <comp> is_msg = ls_result ).
           ENDIF.
+          ls_result = msg_map( name = ls_attri->name val = <comp> is_msg = ls_result ).
 
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.

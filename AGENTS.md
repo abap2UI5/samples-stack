@@ -174,7 +174,7 @@ carries the `SMPS` token and is the only rule `check-app-rules` excludes from
 the comparison. It sits last in the file behind a marker that says so;
 everything above that marker must match the source.
 
-All 188 rules abaplint ships are named: 171 on, 17 off, each with its reason
+All 201 rules abaplint ships are named: 180 on, 21 off, each with its reason
 in a comment. **A rule is never left out of the file** — when an upgrade adds
 one, add the key to `app-rules.json` and copy the block into all three
 consumers: on if all three corpora pass, off with the reason if they do not.
@@ -204,6 +204,10 @@ everybody. Each pattern matches nothing under the other two `src/` trees:
   shape.
 - `check_syntax` / `superclass_final` exclude `Z2UI5_CL_SMPS_APP_489`: ABAP Push
   Channels are on-premise only and absent from the steampunk dependency.
+- `use_message_class` excludes `Z2UI5_CL_SMPS_APP_489_WS`, the push channel's
+  handler: it ends a failed request with `MESSAGE <exception> TYPE 'X'`, a
+  short dump naming the exception, because `RAISE SHORTDUMP` needs 7.53 and
+  this package runs from 7.50.
 - `cds_naming` takes the `Z2UI5_` namespace instead of SAP's per-category
   `ZI_` / `ZC_` / `ZR_` prefixes — the root view entities here are
   `Z2UI5_R_SMPS_<object>`.
