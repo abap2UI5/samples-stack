@@ -19,7 +19,7 @@ framework, so what decides here is whether you have a launchpad, not which ABAP
 release serves it.
 
 **Branch:** [`09-launchpad`](https://github.com/abap2UI5/samples-stack/tree/09-launchpad)
-— this package alone, without the other nine on your system.
+— this package alone, without the other thirteen on your system.
 
 A **Fiori Launchpad** with a tile pointing at abap2UI5 — an on-premise FLP
 (`/ui2/flp`), the launchpad sandbox (`test/flpSandbox`), or a launchpad site on BTP.
@@ -44,6 +44,7 @@ buttons instead.
 | [`482`](z2ui5_cl_smps_app_482.clas.abap) | set the shell title from the backend — `follow_up_action( cs_event-set_title_launchpad )` |
 | [`483`](z2ui5_cl_smps_app_483.clas.abap) | cross-app navigation, **sender** — hands two values over to another tile |
 | [`484`](z2ui5_cl_smps_app_484.clas.abap) | cross-app navigation, **receiver** — reads them back out of its startup parameters |
+| [`025`](z2ui5_cl_smps_app_025.clas.abap) | build the URL of a launchpad app from semantic object, action and parameters — `cl_lsapi_manager` where the system has it, an intent URL of its own where it does not. Runs standalone too |
 
 Start any of them with `?app_start=z2ui5_cl_smps_app_<no>` — from a tile, that is
 what the target mapping's URL carries. The overview app

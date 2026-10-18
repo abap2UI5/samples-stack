@@ -71,7 +71,7 @@ is a link to the class file, which is the qualification.
 
 ## 3. The generated one-package branches
 
-abapGit imports a whole repository; there is no sparse checkout. Ten packages
+abapGit imports a whole repository; there is no sparse checkout. Fourteen packages
 with different floors would mean a system that wants OData also takes APC and
 gets activation errors for technology it never asked for. So every package is
 force-pushed to its own branch by `create-package-branches.yaml`, and the
@@ -409,7 +409,7 @@ pass over the classes on `main` — `stats.types` and the `*-too-new` findings.
 - **The overview app stays out of the catalogue page** for the reason it was
   always out: `Z2UI5_CL_SMPS_APP_000` is this same catalogue inside a system,
   and as a card it contradicts a list built around what a sample needs — *needs
-  nothing beyond abap2UI5* — plus a technology chip that filters ten groups
+  nothing beyond abap2UI5* — plus a technology chip that filters fourteen groups
   down to itself. `SAMPLES.md` and both JSON files keep it; their reader is in
   the repository already.
 - **Thumbnails** were photographed on every deploy by

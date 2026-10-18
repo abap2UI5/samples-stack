@@ -12,9 +12,16 @@
     // ABAP: the class .clas.xml is not listed, so object_naming and
     // xml_consistency still cover the object. Drop this once abaplint parses
     // the RAP event syntax.
+    //
+    // z2ui5_cl_smps_perm_req is the same case for the EML statement GET
+    // PERMISSIONS, which abaplint does not parse at any language version. It
+    // holds that one statement and nothing else, so the sample app calling
+    // it, z2ui5_cl_smps_app_017, stays fully checked. Drop it once abaplint
+    // parses GET PERMISSIONS.
     "noIssues": [
       "z2ui5_cl_smps_evt_tck\\.clas\\.abap$",
-      "z2ui5_cl_smps_evt_tck\\.clas\\.locals_imp\\.abap$"
+      "z2ui5_cl_smps_evt_tck\\.clas\\.locals_imp\\.abap$",
+      "z2ui5_cl_smps_perm_req\\.clas\\.abap$"
     ]
   },
   "dependencies": [

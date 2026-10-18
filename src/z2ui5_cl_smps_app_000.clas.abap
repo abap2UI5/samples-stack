@@ -69,11 +69,15 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
     DATA t_mime      TYPE ty_t_sample.
     DATA t_launchpad TYPE ty_t_sample.
     DATA t_ai        TYPE ty_t_sample.
+    DATA t_upload    TYPE ty_t_sample.
+    DATA t_actions   TYPE ty_t_sample.
+    DATA t_office    TYPE ty_t_sample.
+    DATA t_forms     TYPE ty_t_sample.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    "! at least one of the two demo data classes is on the system, so the
+    "! at least one of the demo data classes is on the system, so the
     "! Regenerate Demo Data button has something to call
     DATA demo_data_installed TYPE abap_bool.
 
@@ -124,11 +128,12 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
       END OF cs_url.
 
     CONSTANTS:
-      "! the demo data of the two RAP packages - called by name for the same
+      "! the demo data of the RAP packages - called by name for the same
       "! reason the samples are, see the class documentation
       BEGIN OF cs_class,
         data_trv TYPE string VALUE `Z2UI5_CL_SMPS_DATA_TRV` ##NO_TEXT,
         data_trd TYPE string VALUE `Z2UI5_CL_SMPS_DATA_TRD` ##NO_TEXT,
+        data_req TYPE string VALUE `Z2UI5_CL_SMPS_DATA_REQ` ##NO_TEXT,
       END OF cs_class.
 
     METHODS on_event.
@@ -310,11 +315,12 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
       WHEN cs_backend_event-regenerate.
 
-        " both business objects at once - the samples of src/03 run against
-        " the one without draft, those of src/04 against the draft enabled
-        " one, and an empty table is the most common reason a sample looks
-        " broken. data_reset( ) deletes first, so the travel ids stay 1, 2, 3.
-        " Both answers read alike, so each one says which package it is from.
+        " every business object at once - the samples of src/03 run against
+        " the travel without draft, those of src/04 against the draft enabled
+        " one, those of src/12 against the request, and an empty table is the
+        " most common reason a sample looks broken. data_reset( ) deletes
+        " first, so the travel ids stay 1, 2, 3. The answers read alike, so
+        " each one says which package it is from.
         DATA(text) = data_reset( cs_class-data_trv ).
         IF text IS NOT INITIAL.
           text = |RAP: { text }|.
@@ -323,8 +329,12 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         IF text_draft IS NOT INITIAL.
           text = condense( |{ text } RAP with Draft: { text_draft }| ).
         ENDIF.
+        DATA(text_actions) = data_reset( cs_class-data_req ).
+        IF text_actions IS NOT INITIAL.
+          text = condense( |{ text } RAP Actions: { text_actions }| ).
+        ENDIF.
         IF text IS INITIAL.
-          text = `No demo data on this system - the two RAP packages are not installed`.
+          text = `No demo data on this system - none of the RAP packages is installed`.
         ENDIF.
         client->message_toast_display( text ).
 
@@ -456,6 +466,34 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                     samples = t_ai
                     items   = client->_bind( t_ai ) ).
 
+    render_package( page    = page
+                    title   = `11 - RAP File Upload`
+                    hint    = `a file into a business object through a deep action parameter - needs ABAP Platform 2025 or a current cloud release`
+                    branch  = `11-rap-file-upload`
+                    samples = t_upload
+                    items   = client->_bind( t_upload ) ).
+
+    render_package( page    = page
+                    title   = `12 - RAP Actions & Permissions`
+                    hint    = `feature control, parameters, factory actions, defaults, projections on Z2UI5_R_SMPS_REQ - the business object ships with the package`
+                    branch  = `12-rap-actions`
+                    samples = t_actions
+                    items   = client->_bind( t_actions ) ).
+
+    render_package( page    = page
+                    title   = `13 - Excel & E-Mail`
+                    hint    = `read and write .xlsx with the XCO library, send it by mail - the mail sample needs outbound mail configured`
+                    branch  = `13-excel-email`
+                    samples = t_office
+                    items   = client->_bind( t_office ) ).
+
+    render_package( page    = page
+                    title   = `14 - Adobe Forms`
+                    hint    = `on-premise - needs Adobe Document Services configured for the system`
+                    branch  = `14-adobe-forms`
+                    samples = t_forms
+                    items   = client->_bind( t_forms ) ).
+
     client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
@@ -498,7 +536,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         )->a( n = `text`    v = `Regenerate Demo Data`
         )->a( n = `icon`    v = `sap-icon://refresh`
         " it deletes before it creates - say so before the press, not after
-        )->a( n = `tooltip` v = `Deletes every travel of both RAP packages, drafts included, and creates the demo travels again`
+        )->a( n = `tooltip` v = `Deletes the demo data of the RAP packages, drafts included, and creates it again`
         )->a( n = `type`    v = `Transparent`
         )->a( n = `visible` b = demo_data_installed
         )->a( n = `press`   v = client->_event( cs_backend_event-regenerate ) ).
@@ -871,7 +909,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
   METHOD model_init.
 
     demo_data_installed = xsdbool( class_check_installed( cs_class-data_trv ) = abap_true
-                                OR class_check_installed( cs_class-data_trd ) = abap_true ).
+                                OR class_check_installed( cs_class-data_trd ) = abap_true
+                                OR class_check_installed( cs_class-data_req ) = abap_true ).
 
     t_odata = VALUE #(
       ( sample( no        = `315`
@@ -1013,7 +1052,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `484`
                 title     = `Cross-app navigation - receiver`
                 detail    = `reads them back out of its startup parameters`
-                classname = `Z2UI5_CL_SMPS_APP_484` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_484` ) )
+      ( sample( no        = `025`
+                title     = `Build the URL of a launchpad app`
+                detail    = `Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not`
+                classname = `Z2UI5_CL_SMPS_APP_025` ) ) ).
 
     t_ai = VALUE #(
       ( sample( no        = `013`
@@ -1028,6 +1071,50 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                 title     = `Summarize a table with AI`
                 detail    = `a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel`
                 classname = `Z2UI5_CL_SMPS_APP_015` ) ) ).
+
+    t_upload = VALUE #(
+      ( sample( no        = `016`
+                title     = `Upload a file through a RAP action`
+                detail    = `EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included`
+                classname = `Z2UI5_CL_SMPS_APP_016` ) ) ).
+
+    t_actions = VALUE #(
+      ( sample( no        = `017`
+                title     = `Feature control with GET PERMISSIONS`
+                detail    = `GET PERMISSIONS asks the business object what may happen to each request - the buttons follow its answer, and the business object refuses the rest anyway`
+                classname = `Z2UI5_CL_SMPS_APP_017` ) )
+      ( sample( no        = `018`
+                title     = `Parameters, factory actions, defaults`
+                detail    = `Actions with a parameter - a default function proposes a new request, a static factory action creates it, a factory action copies one, and reject asks for its reason in a popup`
+                classname = `Z2UI5_CL_SMPS_APP_018` ) )
+      ( sample( no        = `019`
+                title     = `Validate on change with a determine action`
+                detail    = `A determine action runs the validation of the business object while the user types - the quantity is checked on every change, and nothing is saved until Save`
+                classname = `Z2UI5_CL_SMPS_APP_019` ) )
+      ( sample( no        = `020`
+                title     = `One business object, two contracts`
+                detail    = `One business object, two contracts - approve through the projection Z2UI5_C_SMPS_REQ or on the business object itself, and the handler records which one it was`
+                classname = `Z2UI5_CL_SMPS_APP_020` ) ) ).
+
+    t_office = VALUE #(
+      ( sample( no        = `021`
+                title     = `Read an uploaded XLSX file`
+                detail    = `An .xlsx file from the FileUploader read with the XCO XLSX library - the first worksheet becomes an ABAP table and is shown as it arrived`
+                classname = `Z2UI5_CL_SMPS_APP_021` ) )
+      ( sample( no        = `022`
+                title     = `Export a table as XLSX file`
+                detail    = `The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line`
+                classname = `Z2UI5_CL_SMPS_APP_022` ) )
+      ( sample( no        = `023`
+                title     = `Send a table as XLSX attachment`
+                detail    = `A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library`
+                classname = `Z2UI5_CL_SMPS_APP_023` ) ) ).
+
+    t_forms = VALUE #(
+      ( sample( no        = `024`
+                title     = `Render Adobe Forms to PDF, one file or a ZIP`
+                detail    = `Renders Adobe Forms of the system to PDF with FP_JOB_OPEN and the generated function module - one form as a PDF download, several at once as one ZIP file`
+                classname = `Z2UI5_CL_SMPS_APP_024` ) ) ).
 
   ENDMETHOD.
 

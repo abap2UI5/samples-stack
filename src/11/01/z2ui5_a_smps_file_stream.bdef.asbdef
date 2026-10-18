@@ -1,0 +1,10 @@
+// The second level of the deep action parameter - see
+// z2ui5_a_smps_file_upload. It needs a behavior definition of its own even
+// though there is nothing to declare.
+abstract;
+strict ( 2 );
+with hierarchy;
+
+define behavior for z2ui5_a_smps_file_stream alias StreamProperties
+{
+}
