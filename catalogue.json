@@ -136,6 +136,18 @@
       "note": "The HTTP transport comes once per stack, and each half activates on its own stack only: src/10/01 (cl_http_client on an SM59 destination) on Standard, src/10/02 (cl_web_http_client_manager on a BTP destination) on ABAP Cloud, src/10/03 only where SAP's ABAP AI SDK is installed. An activation error for the half your system does not have is expected - the samples create the transport by name and use the one that is there. That is also why this branch is linted at 7.51 although the package runs from 7.40 SP08: everything but src/10/02 parses at 7.40 SP08, and src/10/02 is ABAP Cloud code whose released enums need 7.51 syntax.",
       "branch": "10-ai-llm",
       "readme": "src/10/README.md"
+    },
+    {
+      "package": "src/11",
+      "technology": "RAP File Upload",
+      "topic": "a file into a business object, as a deep action parameter",
+      "needs": "ABAP Platform >= 2025; the BO ships with this repo",
+      "runsOn": "Cloud + Standard ≥ 8.16 (2025)",
+      "cloud": true,
+      "release": "8.16 (2025)",
+      "note": "A deep action parameter whose abstract entity carries @Semantics.largeObject is younger than EML: the ABAP parses at 7.57, the feature itself arrived with ABAP Platform 2025 (and the matching BTP ABAP Environment and S/4HANA Cloud releases). If the static action uploadFile does not activate on your system, this package is out of reach.",
+      "branch": "11-rap-file-upload",
+      "readme": "src/11/README.md"
     }
   ],
   "samples": [
@@ -902,6 +914,33 @@
       "needs": "an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK",
       "branch": "10-ai-llm",
       "setup": "src/10/README.md"
+    },
+    {
+      "class": "Z2UI5_CL_SMPS_APP_016",
+      "path": "src/11/z2ui5_cl_smps_app_016.clas.abap",
+      "package": "src/11",
+      "technology": "RAP File Upload",
+      "title": "Deep Action Parameter",
+      "summary": "EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included",
+      "keywords": [
+        "file",
+        "upload",
+        "attachment",
+        "rap",
+        "action",
+        "deep",
+        "parameter",
+        "largeobject",
+        "stream",
+        "eml",
+        "fileuploader",
+        "download"
+      ],
+      "runsOn": "Cloud + Standard ≥ 8.16 (2025)",
+      "cloud": true,
+      "needs": "ABAP Platform >= 2025; the BO ships with this repo",
+      "branch": "11-rap-file-upload",
+      "setup": "src/11/README.md"
     }
   ]
 }

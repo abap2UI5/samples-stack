@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 35 of them — with what it shows and a
+Every app in this repository — 36 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -116,11 +116,17 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | Chat with a Language Model<br>a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration<br><sub>ai llm chat chatbot feedinput feedlistitem anthropic openai</sub> | [`Z2UI5_CL_SMPS_APP_014`](src/10/z2ui5_cl_smps_app_014.clas.abap) |
 | Summarize a Table with AI<br>a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel<br><sub>ai llm chat summarize table prompt hygiene anthropic</sub> | [`Z2UI5_CL_SMPS_APP_015`](src/10/z2ui5_cl_smps_app_015.clas.abap) |
 
+### RAP File Upload — `src/11`
+
+| Sample | Class |
+|---|---|
+| Deep Action Parameter<br>EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included<br><sub>file upload attachment rap action deep parameter largeobject stream eml fileuploader download</sub> | [`Z2UI5_CL_SMPS_APP_016`](src/11/z2ui5_cl_smps_app_016.clas.abap) |
+
 ---
 
 ## Not samples
 
-16 classes here are not apps and carry no tile: behavior pools,
+17 classes here are not apps and carry no tile: behavior pools,
 demo data, an event consumer, the generated APC protocol class and the
 language-model layer the AI samples call. They are
 reached **by** a sample rather than looked up, which is why they are exempt from
@@ -145,3 +151,4 @@ able to say they exist.
 | [`Z2UI5_CL_SMPS_LLM_SM59`](src/10/01/z2ui5_cl_smps_llm_sm59.clas.abap) | LLM - HTTP Transport over an SM59 Destination |
 | [`Z2UI5_CL_SMPS_LLM_CLOUD`](src/10/02/z2ui5_cl_smps_llm_cloud.clas.abap) | LLM - HTTP Transport for ABAP Cloud |
 | [`Z2UI5_CL_SMPS_LLM_ISLM`](src/10/03/z2ui5_cl_smps_llm_islm.clas.abap) | LLM - SAP ABAP AI SDK (ISLM) |
+| [`Z2UI5_CL_SMPS_BP_FIL`](src/11/01/z2ui5_cl_smps_bp_fil.clas.abap) | abap2UI5 RAP sample - file behavior pool |

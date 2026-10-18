@@ -61,15 +61,16 @@
     "sap.m.CheckBox",
     "sap.m.Select",
     "sap.ui.core.Item",
-    "sap.m.ObjectNumber"
+    "sap.m.ObjectNumber",
+    "z2ui5.cc.FileUploader"
   ],
   "counts": {
-    "samples": 35,
-    "controls": 54,
+    "samples": 36,
+    "controls": 55,
     "noChain": 0
   },
   "samples": [
-    {"class":"Z2UI5_CL_SMPS_APP_000","minUi5":"1.71","needs":[],"controls":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],"controlCount":248},
+    {"class":"Z2UI5_CL_SMPS_APP_000","minUi5":"1.71","needs":[],"controls":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],"controlCount":271},
     {"class":"Z2UI5_CL_SMPS_APP_001","minUi5":"1.71","needs":[],"controls":[1,22,37,7,10,17,38],"controlCount":21},
     {"class":"Z2UI5_CL_SMPS_APP_002","minUi5":"1.71","needs":[],"controls":[1,39,22,37,7,10,17,38],"controlCount":22},
     {"class":"Z2UI5_CL_SMPS_APP_003","minUi5":"1.71","needs":[],"controls":[1,2,3,22,7,10,11,12,13,18,17],"controlCount":19},
@@ -85,6 +86,7 @@
     {"class":"Z2UI5_CL_SMPS_APP_013","minUi5":"1.71","needs":[],"controls":[1,50,22,37,5,23,7,51,10,41,52,17,38],"controlCount":28},
     {"class":"Z2UI5_CL_SMPS_APP_014","minUi5":"1.71","needs":[],"controls":[1,43,44,22,45,5,7,10,14,17],"controlCount":11},
     {"class":"Z2UI5_CL_SMPS_APP_015","minUi5":"1.71","needs":[],"controls":[1,2,3,22,37,5,53,7,8,10,11,12,14,17],"controlCount":38},
+    {"class":"Z2UI5_CL_SMPS_APP_016","minUi5":"1.71","needs":[],"controls":[1,2,3,31,22,37,5,7,10,11,12,13,18,41,17,38,54],"controlCount":35},
     {"class":"Z2UI5_CL_SMPS_APP_313","minUi5":"1.71","needs":[],"controls":[7,10,19,20,21,17],"controlCount":6},
     {"class":"Z2UI5_CL_SMPS_APP_314","minUi5":"1.71","needs":[],"controls":[2,3,22,7,10,11,12,13,18,17],"controlCount":31},
     {"class":"Z2UI5_CL_SMPS_APP_315","minUi5":"1.71","needs":[],"controls":[2,3,7,10,11,12,13,18,17],"controlCount":35},

@@ -69,6 +69,7 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
     DATA t_mime      TYPE ty_t_sample.
     DATA t_launchpad TYPE ty_t_sample.
     DATA t_ai        TYPE ty_t_sample.
+    DATA t_upload    TYPE ty_t_sample.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -455,6 +456,13 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                     branch  = `10-ai-llm`
                     samples = t_ai
                     items   = client->_bind( t_ai ) ).
+
+    render_package( page    = page
+                    title   = `11 - RAP File Upload`
+                    hint    = `a file into a business object through a deep action parameter - needs ABAP Platform 2025 or a current cloud release`
+                    branch  = `11-rap-file-upload`
+                    samples = t_upload
+                    items   = client->_bind( t_upload ) ).
 
     client->view_display( view->stringify( ) ).
 
@@ -1028,6 +1036,12 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                 title     = `Summarize a table with AI`
                 detail    = `a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel`
                 classname = `Z2UI5_CL_SMPS_APP_015` ) ) ).
+
+    t_upload = VALUE #(
+      ( sample( no        = `016`
+                title     = `Upload a file through a RAP action`
+                detail    = `EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included`
+                classname = `Z2UI5_CL_SMPS_APP_016` ) ) ).
 
   ENDMETHOD.
 
