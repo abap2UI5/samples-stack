@@ -89,5 +89,32 @@
     "syntax": "v757",
     "note": "A deep action parameter whose abstract entity carries @Semantics.largeObject is younger than EML: the ABAP parses at 7.57, the feature itself arrived with ABAP Platform 2025 (and the matching BTP ABAP Environment and S/4HANA Cloud releases). If the static action uploadFile does not activate on your system, this package is out of reach.",
     "shared": ["00"]
+  },
+  {
+    "dir": "12",
+    "branch": "12-rap-actions",
+    "title": "RAP Actions & Permissions",
+    "runsOn": "Cloud + Standard ≥ 8.16 (2025)",
+    "syntax": "v757",
+    "note": "The package is set to the release that carries all of its features. Instance feature control, actions with parameters and factory actions are older; the default function GetDefaultsForCreate and cl_abap_behv_aux are the young ones. GET PERMISSIONS sits in z2ui5_cl_smps_perm_req, which abaplint cannot parse and therefore does not check.",
+    "shared": ["00"]
+  },
+  {
+    "dir": "13",
+    "branch": "13-excel-email",
+    "title": "Excel & E-Mail",
+    "runsOn": "Cloud + Standard ≥ 7.58 (2023)",
+    "syntax": "v757",
+    "note": "The XCO XLSX library and cl_bcs_mail_message are released ABAP Cloud APIs; on-premise the package needs a release that carries both. The mail sample also needs outbound mail configured.",
+    "shared": []
+  },
+  {
+    "dir": "14",
+    "branch": "14-adobe-forms",
+    "title": "Adobe Forms",
+    "runsOn": "Standard only, ≥ 7.50",
+    "syntax": "v750",
+    "note": "Renders through the classic Adobe Forms runtime (FP_JOB_OPEN, the generated function module, FP_JOB_CLOSE), which is not released for ABAP Cloud. Needs Adobe Document Services configured.",
+    "shared": []
   }
 ]

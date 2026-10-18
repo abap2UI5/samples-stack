@@ -25,7 +25,7 @@ action `uploadFile` does not activate on your system, this package is out of
 reach, and nothing else in this repository is affected.
 
 **Branch:** [`11-rap-file-upload`](https://github.com/abap2UI5/samples-stack/tree/11-rap-file-upload)
-— this package alone, without the other ten on your system.
+— this package alone, without the other thirteen on your system.
 
 The business object and its table come with this package ([`src/11/01`](01)).
 There is no demo data: the first file you upload is the first row.

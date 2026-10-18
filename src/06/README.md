@@ -18,7 +18,7 @@ function modules nor a stateful ICF session is a released cloud API — this pac
 is on-premise by design, not by omission.
 
 **Branch:** [`06-stateful-locks`](https://github.com/abap2UI5/samples-stack/tree/06-stateful-locks)
-— this package alone, without the other ten on your system.
+— this package alone, without the other thirteen on your system.
 
 ABAP Standard (on-premise). The locks go through the function modules
 `ENQUEUE_E_TABLE`, `DEQUEUE_E_TABLE` and `ENQUEUE_READ`, which are available

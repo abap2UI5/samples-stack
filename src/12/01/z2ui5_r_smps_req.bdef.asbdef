@@ -1,0 +1,62 @@
+// Managed business object of package 12. A request is created New (N) and
+// ends Approved (A) or Rejected (R). Everything the samples
+// z2ui5_cl_smps_app_017 to z2ui5_cl_smps_app_020 call is declared here:
+//
+// - instance feature control: update, approve and reject are only enabled
+//   while a request is New, and an Approved request cannot be deleted -
+//   asked with GET PERMISSIONS
+// - an action with a parameter (reject), an instance factory action with a
+//   parameter (copyRequest) and a static factory action (createRequest)
+// - a default function that proposes the values of a new request
+// - a determine action that runs a validation on demand, before the save
+managed implementation in class z2ui5_cl_smps_bp_req unique;
+strict ( 2 );
+
+define behavior for z2ui5_r_smps_req alias Request
+persistent table z2ui5_t_smps_req
+lock master
+authorization master ( global )
+etag master LastChangedAt
+{
+  create { default function GetDefaultsForCreate; }
+  update ( features : instance );
+  delete ( features : instance );
+
+  field ( numbering : managed, readonly ) RequestUuid;
+
+  // set by the determination and the actions, never by the caller
+  field ( readonly ) Status, Note, ApprovedVia;
+
+  // filled by the managed runtime from the @Semantics annotations of the CDS
+  field ( readonly ) CreatedBy, CreatedAt, LastChangedAt;
+
+  field ( mandatory ) Title;
+
+  determination setInitialStatus on modify { create; }
+
+  validation validateQuantity on save { create; update; field Quantity; }
+
+  // runs the validation NOW, without saving - the caller gets its messages
+  // in REPORTED while the user is still typing
+  determine action checkRequest { validation validateQuantity; }
+
+  action ( features : instance ) approve result [1] $self;
+  action ( features : instance ) reject parameter z2ui5_a_smps_req_reject result [1] $self;
+
+  factory action copyRequest parameter z2ui5_a_smps_req_copy [1];
+  static factory action createRequest parameter z2ui5_a_smps_req_create [1];
+
+  mapping for z2ui5_t_smps_req
+    {
+      RequestUuid   = request_uuid;
+      Title         = title;
+      Quantity      = quantity;
+      Priority      = priority;
+      Status        = status;
+      Note          = note;
+      ApprovedVia   = approved_via;
+      CreatedBy     = created_by;
+      CreatedAt     = created_at;
+      LastChangedAt = last_changed_at;
+    }
+}

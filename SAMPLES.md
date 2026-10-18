@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 36 of them — with what it shows and a
+Every app in this repository — 45 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -103,6 +103,7 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 
 | Sample | Class |
 |---|---|
+| Build the URL of a Launchpad App<br>Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not<br><sub>launchpad fiori flp url intent semantic object action link cl_lsapi_manager open_new_tab</sub> | [`Z2UI5_CL_SMPS_APP_025`](src/09/z2ui5_cl_smps_app_025.clas.abap) |
 | Read Startup Parameters<br>what the tile passed in - client->get( )-t_comp_params<br><sub>launchpad fiori flp startup parameters intent</sub> | [`Z2UI5_CL_SMPS_APP_481`](src/09/z2ui5_cl_smps_app_481.clas.abap) |
 | Set Shell Title<br>follow_up_action( cs_event-set_title_launchpad )<br><sub>launchpad fiori flp shell title follow_up_action</sub> | [`Z2UI5_CL_SMPS_APP_482`](src/09/z2ui5_cl_smps_app_482.clas.abap) |
 | Cross-App Navigation Sender<br>hands two values over to another tile<br><sub>launchpad fiori flp cross app navigation sender intent</sub> | [`Z2UI5_CL_SMPS_APP_483`](src/09/z2ui5_cl_smps_app_483.clas.abap) |
@@ -122,11 +123,34 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 |---|---|
 | Deep Action Parameter<br>EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included<br><sub>file upload attachment rap action deep parameter largeobject stream eml fileuploader download</sub> | [`Z2UI5_CL_SMPS_APP_016`](src/11/z2ui5_cl_smps_app_016.clas.abap) |
 
+### RAP Actions and Permissions — `src/12`
+
+| Sample | Class |
+|---|---|
+| **RAP Actions** — Feature Control with GET PERMISSIONS<br>GET PERMISSIONS asks the business object what may happen to each request - the buttons follow its answer, and the business object refuses the rest anyway<br><sub>rap eml feature control instance features get permissions enabled disabled buttons</sub> | [`Z2UI5_CL_SMPS_APP_017`](src/12/z2ui5_cl_smps_app_017.clas.abap) |
+| **RAP Actions** — Parameters, Factory Actions, Defaults<br>Actions with a parameter - a default function proposes a new request, a static factory action creates it, a factory action copies one, and reject asks for its reason in a popup<br><sub>rap eml action parameter abstract entity factory action default function popup create copy reject</sub> | [`Z2UI5_CL_SMPS_APP_018`](src/12/z2ui5_cl_smps_app_018.clas.abap) |
+| **RAP Actions** — Validate on Change with a Determine Action<br>A determine action runs the validation of the business object while the user types - the quantity is checked on every change, and nothing is saved until Save<br><sub>rap eml determine action validation check on change valuestate messages without saving</sub> | [`Z2UI5_CL_SMPS_APP_019`](src/12/z2ui5_cl_smps_app_019.clas.abap) |
+| **RAP Actions** — One Business Object, Two Contracts<br>One business object, two contracts - approve through the projection Z2UI5_C_SMPS_REQ or on the business object itself, and the handler records which one it was<br><sub>rap eml projection behavior definition contract cl_abap_behv_aux interface consumer approve</sub> | [`Z2UI5_CL_SMPS_APP_020`](src/12/z2ui5_cl_smps_app_020.clas.abap) |
+
+### Excel and E-Mail — `src/13`
+
+| Sample | Class |
+|---|---|
+| **Excel** — Read an Uploaded XLSX File with XCO<br>An .xlsx file from the FileUploader read with the XCO XLSX library - the first worksheet becomes an ABAP table and is shown as it arrived<br><sub>excel xlsx upload import read spreadsheet xco fileuploader table</sub> | [`Z2UI5_CL_SMPS_APP_021`](src/13/z2ui5_cl_smps_app_021.clas.abap) |
+| **Excel** — Export a Table as XLSX File with XCO<br>The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line<br><sub>excel xlsx export download write spreadsheet xco table download_b64_file</sub> | [`Z2UI5_CL_SMPS_APP_022`](src/13/z2ui5_cl_smps_app_022.clas.abap) |
+| **E-Mail** — Send a Table as XLSX Attachment<br>A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library<br><sub>email mail send attachment xlsx excel cl_bcs_mail_message smtp</sub> | [`Z2UI5_CL_SMPS_APP_023`](src/13/z2ui5_cl_smps_app_023.clas.abap) |
+
+### Adobe Forms — `src/14`
+
+| Sample | Class |
+|---|---|
+| Render to PDF, Download One or a ZIP<br>Renders Adobe Forms of the system to PDF with FP_JOB_OPEN and the generated function module - one form as a PDF download, several at once as one ZIP file<br><sub>adobe forms pdf ads fp_job_open print form output zip download cl_abap_zip</sub> | [`Z2UI5_CL_SMPS_APP_024`](src/14/z2ui5_cl_smps_app_024.clas.abap) |
+
 ---
 
 ## Not samples
 
-17 classes here are not apps and carry no tile: behavior pools,
+21 classes here are not apps and carry no tile: behavior pools,
 demo data, an event consumer, the generated APC protocol class and the
 language-model layer the AI samples call. They are
 reached **by** a sample rather than looked up, which is why they are exempt from
@@ -152,3 +176,7 @@ able to say they exist.
 | [`Z2UI5_CL_SMPS_LLM_CLOUD`](src/10/02/z2ui5_cl_smps_llm_cloud.clas.abap) | LLM - HTTP Transport for ABAP Cloud |
 | [`Z2UI5_CL_SMPS_LLM_ISLM`](src/10/03/z2ui5_cl_smps_llm_islm.clas.abap) | LLM - SAP ABAP AI SDK (ISLM) |
 | [`Z2UI5_CL_SMPS_BP_FIL`](src/11/01/z2ui5_cl_smps_bp_fil.clas.abap) | abap2UI5 RAP sample - file behavior pool |
+| [`Z2UI5_CL_SMPS_BP_REQ`](src/12/01/z2ui5_cl_smps_bp_req.clas.abap) | abap2UI5 RAP sample - request behavior pool |
+| [`Z2UI5_CL_SMPS_DATA_REQ`](src/12/01/z2ui5_cl_smps_data_req.clas.abap) | abap2UI5 RAP sample - request demo data |
+| [`Z2UI5_CL_SMPS_PERM_REQ`](src/12/01/z2ui5_cl_smps_perm_req.clas.abap) | abap2UI5 RAP sample - request permissions |
+| [`Z2UI5_CL_SMPS_XLSX`](src/13/z2ui5_cl_smps_xlsx.clas.abap) | abap2UI5 sample - Excel read and write with XCO |

@@ -27,7 +27,7 @@ with the settings sample.
 **Release:** Cloud + Standard ≥ 7.40 SP08.
 
 **Branch:** [`10-ai-llm`](https://github.com/abap2UI5/samples-stack/tree/10-ai-llm)
-— this package alone, without the other ten on your system.
+— this package alone, without the other thirteen on your system.
 
 **An endpoint the system can reach over HTTPS**, and that is the one step this
 package cannot take for you. The two stacks release different HTTP clients, so

@@ -64,7 +64,7 @@ The Claude Code plugin is two commands:
 
 ## Which package do I need?
 
-Most readers need exactly one. The eleven areas are unrelated technologies, none
+Most readers need exactly one. The fourteen areas are unrelated technologies, none
 depends on another — so find the row that says what you came to do, take that
 package, and skip the rest:
 
@@ -81,6 +81,9 @@ package, and skip the rest:
 | Expose your app in the Fiori Launchpad — tile, startup parameters, cross-app navigation | [`src/09`](src/09/README.md) — Launchpad | a launchpad with a tile pointing at abap2UI5 |
 | Call a large language model from your app — a chat, or a table summarized by AI | [`src/10`](src/10/README.md) — AI / LLM | an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK |
 | Upload a file into a RAP business object through an action with a deep parameter | [`src/11`](src/11/README.md) — RAP File Upload | ≥ 2025, the release that carries deep action parameters with `@Semantics.largeObject`; the business object ships with the package |
+| Ask a business object what is allowed, call actions with parameters, factory actions and default values, validate while the user types | [`src/12`](src/12/README.md) — RAP Actions & Permissions | ≥ 2025; the business object ships with the package |
+| Read an uploaded Excel file, export a table as Excel, send it as a mail attachment | [`src/13`](src/13/README.md) — Excel & E-Mail | ≥ 2023 or ABAP Cloud; outbound mail configured for the mail sample |
+| Render Adobe Forms to PDF and download one or several as a ZIP | [`src/14`](src/14/README.md) — Adobe Forms | on-premise; Adobe Document Services configured |
 
 Each package README opens with a **What you need** section that turns the last
 column into concrete steps; the table below adds the exact release floors.
@@ -100,6 +103,9 @@ column into concrete steps; the table below adds the exact release floors.
 | [`src/09`](src/09) | **[Launchpad](src/09/README.md)** — startup parameters, shell title, cross-app navigation | a Fiori Launchpad with a tile pointing at abap2UI5 | Cloud + Standard ≥ 7.40 SP08 |
 | [`src/10`](src/10) | **[AI / LLM](src/10/README.md)** — chat with a language model, summarize a table with AI | an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK | Cloud + Standard ≥ 7.40 SP08 |
 | [`src/11`](src/11) | **[RAP File Upload](src/11/README.md)** — a file into a business object, as a deep action parameter | ABAP Platform >= 2025; the BO ships with this repo | Cloud + Standard ≥ 8.16 (2025) |
+| [`src/12`](src/12) | **[RAP Actions & Permissions](src/12/README.md)** — feature control, parameters, factory actions, defaults, projections | ABAP Platform >= 2025; the BO ships with this repo | Cloud + Standard ≥ 8.16 (2025) |
+| [`src/13`](src/13) | **[Excel & E-Mail](src/13/README.md)** — read and write .xlsx with XCO, send it by mail | the XCO XLSX library; outbound mail for the mail sample | Cloud + Standard ≥ 7.58 (2023) |
+| [`src/14`](src/14) | **[Adobe Forms](src/14/README.md)** — render forms to PDF, one file or a ZIP | Adobe Document Services (ADS) | Standard only, ≥ 7.50 |
 
 The numbering is a reading order, not a dependency chain: `01` starts where
 most systems already are — an activated OData service — and each package from
@@ -124,8 +130,9 @@ earlier:
 development tenant. Three packages cannot go there, and it is the technology, not
 the sample, that keeps them out: `06` locks through the function modules
 `ENQUEUE_E_TABLE` / `ENQUEUE_READ` and holds a stateful ICF session, `07` needs
-on-premise APC/AMC, `08` reads the MIME repository over an ICF path. None of those
-is a released ABAP Cloud API.
+on-premise APC/AMC, `08` reads the MIME repository over an ICF path, `14` renders
+Adobe Forms through the classic `FP_JOB_OPEN` runtime. None of those is a released
+ABAP Cloud API.
 
 **Standard** is the on-premise release, given as the `SAP_BASIS` version with the
 ABAP Platform name where there is one — `7.54` is 1909, `7.56` is 2021. The number
@@ -138,9 +145,10 @@ is the higher of two floors:
   at.
 - *the technology the package plays with.* EML lifts `03` and `04` to 1909, RAP
   business events lift `05` to 2021, a deep action parameter carrying a file
-  lifts `11` to 2025. If `RAISE ENTITY EVENT` or the action `uploadFile` does not
-  activate on your system, that package is out of reach and nothing else in this
-  repository is affected.
+  lifts `11` to 2025, default functions and the RAP context class lift `12` to
+  2025, the XCO XLSX library and the ABAP Cloud mail API lift `13` to 2023. If one
+  of them does not activate on your system, that package is out of reach and
+  nothing else in this repository is affected.
 - *the HTTP client of the stack.* `10` calls a language model over HTTPS, and
   the two stacks release different clients for that — `cl_http_client` on an
   SM59 destination on Standard, `cl_web_http_client_manager` on ABAP Cloud. So
@@ -154,7 +162,7 @@ of them.
 ## Setup
 
 1. Install [abap2UI5](https://github.com/abap2UI5/abap2UI5).
-2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all eleven
+2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all fourteen
    packages, or the branch of the single package you came for (see
    [One package at a time](#one-package-at-a-time)). `main` as a whole runs on
    ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for,
@@ -188,7 +196,7 @@ It is also the honest answer to *what does my system actually support*: the
 overview looks every sample up at runtime instead of referencing it statically, so
 a package your release cannot activate — or one you never installed — is listed
 with its Open button disabled and a Status saying so, rather than taking the whole
-overview down. Start it first, and the list tells you which of the eleven packages
+overview down. Start it first, and the list tells you which of the fourteen packages
 this system can run.
 
 ## One package at a time
@@ -289,7 +297,7 @@ in CI. The node checks carry no dependencies, so they take seconds.
 | `check-framework-pin` | the abaplint config pins abap2UI5 to a release tag, never to whatever is on `main` |
 | `check-released-api` | every package whose *Runs on* says Cloud, linted at Cloud against the released objects — an API ABAP Cloud does not release is an error |
 | `check-catalogue` | [`catalogue.json`](catalogue.json) and `catalogue-derived.json` still are what the generators would write — the same catalogue as data, committed for tooling that fetches one file instead of scanning the tree — and with them every package has a README row that parses, every app sits in a package, and none is missing its `@summary` or `@keywords` |
-| `create-package-branches` | rebuilds the eleven per-package branches, each verified with abaplint at its own release before it is pushed |
+| `create-package-branches` | rebuilds the fourteen per-package branches, each verified with abaplint at its own release before it is pushed |
 
 `check-overview` exists because the overview app names its samples as strings and
 resolves them at runtime — that is what lets it survive a package the system cannot
