@@ -1,7 +1,0 @@
-{
-  "BASEINFO": {
-    "FROM": [
-      "Z2UI5_T_SMPS_TCK"
-    ]
-  }
-}
