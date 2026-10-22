@@ -49,7 +49,14 @@ CLASS z2ui5_cl_smps_app_489_ws IMPLEMENTATION.
     " in a short dump that names the exception's text, but RAISE SHORTDUMP
     " only exists from 7.53 on, and this package runs from 7.50
     TRY.
-        send( i_message->get_text( ) ).
+        DATA(text) = i_message->get_text( ).
+        " the two markers are the handler's own words (on_start, on_close) -
+        " a client that typed one would count as a joined or left connection
+        " on every other screen, so a message in that shape is dropped
+        IF text CP `__*__`.
+          RETURN.
+        ENDIF.
+        send( text ).
       CATCH cx_root INTO DATA(error).
         MESSAGE error TYPE 'X'.
     ENDTRY.
