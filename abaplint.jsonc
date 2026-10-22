@@ -38,8 +38,9 @@
     }
   ],
   "syntax": {
-    // EML (READ/MODIFY/COMMIT ENTITIES) requires ABAP Platform >= 1909,
-    // therefore this sample is not downported like the other repositories
+    // GENERATED - the branch "12-rap-actions" carries src/12 alone, so it is
+    // checked at the release that package needs, not at the v757 of the
+    // full tree on main. See .github/packages.json.
     "version": "v757",
     // the RAP business object /DMO/I_TRAVEL_M of the SAP flight reference
     // scenario is not part of the dependencies, only Z2UI5* objects are
