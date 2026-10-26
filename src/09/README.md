@@ -31,7 +31,7 @@ The target mapping's URL is the abap2UI5 ICF node plus the app to start:
 
 The framework detects the launchpad from that context (`scenario=LAUNCHPAD` in the
 query, or `/ui2/flp` / `test/flpSandbox` in the path) and sets
-`check_launchpad_active`. `481` to `483` and `026` check the flag and tell you with a message
+`check_launchpad_active`. `481` to `483`, `026` and `027` check the flag and tell you with a message
 box when they were started standalone — where they then have no shell to talk to;
 `484`, the receiver, shows the flag in its form and hides its two navigation
 buttons instead.
@@ -46,6 +46,7 @@ buttons instead.
 | [`484`](z2ui5_cl_smps_app_484.clas.abap) | cross-app navigation, **receiver** — reads them back out of its startup parameters |
 | [`025`](z2ui5_cl_smps_app_025.clas.abap) | build the URL of a launchpad app from semantic object, action and parameters — `cl_lsapi_manager` where the system has it, an intent URL of its own where it does not. Runs standalone too |
 | [`026`](z2ui5_cl_smps_app_026.clas.abap) | a **smart link popover** — asks the launchpad which apps the user may open for a product and lists them next to the pressed link — `follow_up_action( cs_event-cross_app_nav_get_links )` |
+| [`027`](z2ui5_cl_smps_app_027.clas.abap) | the launchpad's **full width** instead of the letterbox — `follow_up_action( cs_event-set_app_full_width )` with `X`, and without an argument back to the letterbox. Needs abap2UI5 newer than 1.148.0 |
 
 Start any of them with `?app_start=z2ui5_cl_smps_app_<no>` — from a tile, that is
 what the target mapping's URL carries. The overview app
