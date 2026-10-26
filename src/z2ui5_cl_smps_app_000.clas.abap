@@ -1056,7 +1056,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `025`
                 title     = `Build the URL of a launchpad app`
                 detail    = `Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not`
-                classname = `Z2UI5_CL_SMPS_APP_025` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_025` ) )
+      ( sample( no        = `026`
+                title     = `Smart link popover with getLinks`
+                detail    = `a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover`
+                classname = `Z2UI5_CL_SMPS_APP_026` ) ) ).
 
     t_ai = VALUE #(
       ( sample( no        = `013`
