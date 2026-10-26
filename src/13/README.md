@@ -1,6 +1,6 @@
 # 13 — Excel & E-Mail
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 Spreadsheets in, spreadsheets out, and one by mail. The **XCO XLSX library**
 reads and writes `.xlsx` files in plain ABAP, and **`cl_bcs_mail_message`**
@@ -57,7 +57,7 @@ thousands separator, the way a spreadsheet reads them back.
 
 ## Where to go next
 
-- [`11` RAP File Upload](../11/README.md) — a file stored in a business object.
-- [`14` Adobe Forms](../14/README.md) — PDF output, one file or a ZIP.
+- [`11` RAP File Upload](https://github.com/abap2UI5/samples-stack/blob/main/src/11/README.md) — a file stored in a business object.
+- [`14` Adobe Forms](https://github.com/abap2UI5/samples-stack/blob/main/src/14/README.md) — PDF output, one file or a ZIP.
 - The ZIP and CSV download without anything from the system:
   `Z2UI5_CL_SMP_APP_542` in [abap2UI5/samples](https://github.com/abap2UI5/samples).
