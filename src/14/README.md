@@ -1,6 +1,6 @@
 # 14 — Adobe Forms
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 The print forms a system already has, rendered to PDF from an abap2UI5 app. An
 Adobe Form is rendered by the function module it generates: between
@@ -51,6 +51,6 @@ the session fail.
 
 ## Where to go next
 
-- [`13` Excel & E-Mail](../13/README.md) — a file as mail attachment.
+- [`13` Excel & E-Mail](https://github.com/abap2UI5/samples-stack/blob/main/src/13/README.md) — a file as mail attachment.
 - Showing a PDF inside the page: the PDFViewer sample `Z2UI5_CL_SMP_APP_449` in
   [abap2UI5/samples](https://github.com/abap2UI5/samples).
