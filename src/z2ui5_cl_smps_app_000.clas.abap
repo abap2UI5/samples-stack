@@ -1060,7 +1060,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `026`
                 title     = `Smart link popover with getLinks`
                 detail    = `a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover`
-                classname = `Z2UI5_CL_SMPS_APP_026` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_026` ) )
+      ( sample( no        = `027`
+                title     = `Full width`
+                detail    = `follow_up_action( cs_event-set_app_full_width ) - the app takes the launchpad's whole width instead of the shell's letterbox`
+                classname = `Z2UI5_CL_SMPS_APP_027` ) ) ).
 
     t_ai = VALUE #(
       ( sample( no        = `013`

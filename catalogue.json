@@ -847,6 +847,32 @@
       "setup": "src/09/README.md"
     },
     {
+      "class": "Z2UI5_CL_SMPS_APP_027",
+      "path": "src/09/z2ui5_cl_smps_app_027.clas.abap",
+      "package": "src/09",
+      "technology": "Launchpad",
+      "title": "Full Width",
+      "summary": "follow_up_action( cs_event-set_app_full_width ) - the app takes the launchpad's whole width instead of the shell's letterbox",
+      "keywords": [
+        "launchpad",
+        "fiori",
+        "flp",
+        "full",
+        "width",
+        "letterbox",
+        "screen",
+        "width",
+        "fullwidth",
+        "set_app_full_width",
+        "follow_up_action"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "needs": "a Fiori Launchpad with a tile pointing at abap2UI5",
+      "branch": "09-launchpad",
+      "setup": "src/09/README.md"
+    },
+    {
       "class": "Z2UI5_CL_SMPS_APP_481",
       "path": "src/09/z2ui5_cl_smps_app_481.clas.abap",
       "package": "src/09",
