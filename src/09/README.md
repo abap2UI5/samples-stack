@@ -10,7 +10,7 @@ reaches the other tiles of the launchpad — your own and SAP's alike.
 Nothing about the app changes for that. It stays the same class with the same
 `main( )`; the framework recognises the launchpad on its own and tells the app
 through `client->get( )-check_launchpad_active`. So one app runs in both worlds, and
-the four samples here show what the launchpad adds when it is the one you are in.
+the samples here show what the launchpad adds when it is the one you are in.
 
 ## What you need
 
@@ -31,7 +31,7 @@ The target mapping's URL is the abap2UI5 ICF node plus the app to start:
 
 The framework detects the launchpad from that context (`scenario=LAUNCHPAD` in the
 query, or `/ui2/flp` / `test/flpSandbox` in the path) and sets
-`check_launchpad_active`. `481` to `483` check the flag and tell you with a message
+`check_launchpad_active`. `481` to `483` and `026` check the flag and tell you with a message
 box when they were started standalone — where they then have no shell to talk to;
 `484`, the receiver, shows the flag in its form and hides its two navigation
 buttons instead.
@@ -45,6 +45,7 @@ buttons instead.
 | [`483`](z2ui5_cl_smps_app_483.clas.abap) | cross-app navigation, **sender** — hands two values over to another tile |
 | [`484`](z2ui5_cl_smps_app_484.clas.abap) | cross-app navigation, **receiver** — reads them back out of its startup parameters |
 | [`025`](z2ui5_cl_smps_app_025.clas.abap) | build the URL of a launchpad app from semantic object, action and parameters — `cl_lsapi_manager` where the system has it, an intent URL of its own where it does not. Runs standalone too |
+| [`026`](z2ui5_cl_smps_app_026.clas.abap) | a **smart link popover** — asks the launchpad which apps the user may open for a product and lists them next to the pressed link — `follow_up_action( cs_event-cross_app_nav_get_links )` |
 
 Start any of them with `?app_start=z2ui5_cl_smps_app_<no>` — from a tile, that is
 what the target mapping's URL carries. The overview app
@@ -82,6 +83,33 @@ decides which app answers to it. Configure two target mappings for the pair:
 Both literals sit in the classes, so use these two names or change them there. The
 *back to the previous app* button in either sample needs no configuration at all —
 `cs_event-cross_app_nav_to_prev_app` goes back through the shell's own history.
+
+## Asking the launchpad which apps there are
+
+`483` names its target. A Fiori elements list does not: its smart links ask the
+launchpad which apps the user may open for the object — the answer depends on the
+user's roles and catalogs, so only the frontend has it. `026` asks the same
+question with the frontend action `cs_event-cross_app_nav_get_links` (target,
+intent parameters, the event that receives the answer):
+
+```abap
+client->follow_up_action(
+    val   = client->cs_event-cross_app_nav_get_links
+    t_arg = VALUE #( ( `{"semanticObject":"Z2UI5_CL_LP_SAMPLE_04"}` )
+                     ( `{"PRODUCT":"102343333","QUANTITY":"500"}` )
+                     ( `LINKS_READ` ) ) ).
+```
+
+`LINKS_READ` then arrives with a JSON array, one object per intent — `intent`
+(the hash), `text`, `subTitle` — which the sample lists in a popover next to the
+pressed link. A press on an entry navigates there with `cross_app_nav_to_ext` and
+`{"shellHash":"<intent>"}` as target.
+
+It needs no configuration of its own: its default semantic object is the one of
+the receiver `484`, so with the target mapping of the pair above the popover lists
+the receiver, and the receiver shows the product and quantity of the pressed row.
+Type another semantic object to see what the launchpad offers for it; one without
+target mapping gives an empty list. Needs abap2UI5 newer than 1.148.0.
 
 ## Where to go next
 

@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 45 of them — with what it shows and a
+Every app in this repository — 46 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -104,6 +104,7 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | Sample | Class |
 |---|---|
 | Build the URL of a Launchpad App<br>Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not<br><sub>launchpad fiori flp url intent semantic object action link cl_lsapi_manager open_new_tab</sub> | [`Z2UI5_CL_SMPS_APP_025`](src/09/z2ui5_cl_smps_app_025.clas.abap) |
+| Smart Link Popover with getLinks<br>a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover<br><sub>launchpad fiori flp smart link popover getlinks intent semantic object cross_app_nav_get_links</sub> | [`Z2UI5_CL_SMPS_APP_026`](src/09/z2ui5_cl_smps_app_026.clas.abap) |
 | Read Startup Parameters<br>what the tile passed in - client->get( )-t_comp_params<br><sub>launchpad fiori flp startup parameters intent</sub> | [`Z2UI5_CL_SMPS_APP_481`](src/09/z2ui5_cl_smps_app_481.clas.abap) |
 | Set Shell Title<br>follow_up_action( cs_event-set_title_launchpad )<br><sub>launchpad fiori flp shell title follow_up_action</sub> | [`Z2UI5_CL_SMPS_APP_482`](src/09/z2ui5_cl_smps_app_482.clas.abap) |
 | Cross-App Navigation Sender<br>hands two values over to another tile<br><sub>launchpad fiori flp cross app navigation sender intent</sub> | [`Z2UI5_CL_SMPS_APP_483`](src/09/z2ui5_cl_smps_app_483.clas.abap) |

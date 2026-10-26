@@ -821,6 +821,32 @@
       "setup": "src/09/README.md"
     },
     {
+      "class": "Z2UI5_CL_SMPS_APP_026",
+      "path": "src/09/z2ui5_cl_smps_app_026.clas.abap",
+      "package": "src/09",
+      "technology": "Launchpad",
+      "title": "Smart Link Popover with getLinks",
+      "summary": "a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover",
+      "keywords": [
+        "launchpad",
+        "fiori",
+        "flp",
+        "smart",
+        "link",
+        "popover",
+        "getlinks",
+        "intent",
+        "semantic",
+        "object",
+        "cross_app_nav_get_links"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.40 SP08",
+      "cloud": true,
+      "needs": "a Fiori Launchpad with a tile pointing at abap2UI5",
+      "branch": "09-launchpad",
+      "setup": "src/09/README.md"
+    },
+    {
       "class": "Z2UI5_CL_SMPS_APP_481",
       "path": "src/09/z2ui5_cl_smps_app_481.clas.abap",
       "package": "src/09",
