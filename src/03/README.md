@@ -85,8 +85,8 @@ rest of the samples read themselves:
 
 ## Find the snippet
 
-Five samples: four single statements, then one complete app. The numbers are the
-reading order.
+Four single statements, then one complete app, then three everyday jobs. The
+numbers are the reading order.
 
 | You want to | Statement | Sample |
 |---|---|---|
@@ -104,6 +104,16 @@ made sense:
 | | | |
 |---|---|---|
 | call a BO action, save and catch what failed | `MODIFY … EXECUTE`, `COMMIT ENTITIES RESPONSE OF` | [`005` manage travels](z2ui5_cl_smps_app_005.clas.abap) |
+
+**Everyday jobs** — three apps that each do one thing a real project needs, on the
+same business object. Each one is the worked example of a guide in the
+[documentation](https://abap2ui5.github.io/docs/everyday/):
+
+| | | |
+|---|---|---|
+| change many travels at once, preview first, every refusal on its row | `MODIFY … UPDATE` for all rows, answers by key | [`029` mass change](z2ui5_cl_smps_app_029.clas.abap) |
+| a worklist of open travels, accept or reject several at once | `MODIFY … EXECUTE … RESULT` | [`030` approval worklist](z2ui5_cl_smps_app_030.clas.abap) |
+| edit without a lock while typing, refuse a save over someone else's | `LastChangedAt` checked after the `UPDATE` took the lock | [`032` edit with conflict check](z2ui5_cl_smps_app_032.clas.abap) |
 
 ## The snippets
 

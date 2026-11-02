@@ -22,8 +22,8 @@ The mail sample also needs **outbound mail** configured: on ABAP Cloud a
 communication arrangement for the scenario `SAP_COM_0548`, on-premise SMTP in
 transaction `SCOT`. Without it the send fails, and the sample shows the reason.
 
-The import sample creates travels in the business object `Z2UI5_R_SMPS_TRV` of
-[`03` RAP](../03/README.md). The branch carries `src/03` along for it, so
+The import and the report sample work on the travels of the business object
+`Z2UI5_R_SMPS_TRV` of [`03` RAP](../03/README.md). The branch carries `src/03` along for it, so
 nothing has to be installed separately.
 
 ## The samples
@@ -34,6 +34,7 @@ nothing has to be installed separately.
 | export a table as an `.xlsx` download | [`022`](z2ui5_cl_smps_app_022.clas.abap) |
 | send a table as an `.xlsx` mail attachment | [`023`](z2ui5_cl_smps_app_023.clas.abap) |
 | import the rows of an `.xlsx` file into a RAP business object | [`028`](z2ui5_cl_smps_app_028.clas.abap) |
+| a report with a selection, a total and an `.xlsx` export | [`031`](z2ui5_cl_smps_app_031.clas.abap) |
 
 The XCO calls sit in [`Z2UI5_CL_SMPS_XLSX`](z2ui5_cl_smps_xlsx.clas.abap), which
 the three samples share: an `.xlsx` in, a table of strings out, and the way

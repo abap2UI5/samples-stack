@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 48 of them — with what it shows and a
+Every app in this repository — 52 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -61,6 +61,9 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | Update a Travel<br>changes single fields of one instance - UPDATE FIELDS names what may be touched<br><sub>eml rap update travel modify commit table</sub> | [`Z2UI5_CL_SMPS_APP_003`](src/03/z2ui5_cl_smps_app_003.clas.abap) |
 | Delete a Travel<br>deletes one instance - MODIFY ... DELETE FROM<br><sub>eml rap delete travel remove commit table</sub> | [`Z2UI5_CL_SMPS_APP_004`](src/03/z2ui5_cl_smps_app_004.clas.abap) |
 | Manage Travels, the Complete App<br>01-04 plus EXECUTE and COMMIT ENTITIES RESPONSE OF<br><sub>eml rap crud travel manage popup objectstatus</sub> | [`Z2UI5_CL_SMPS_APP_005`](src/03/z2ui5_cl_smps_app_005.clas.abap) |
+| Mass Change with Preview<br>Several travels changed in one go - the new values are previewed next to the old ones, one MODIFY ENTITIES ... UPDATE saves them, and a refusal is shown on its row<br><sub>mass change bulk update preview rap eml travel multiselect</sub> | [`Z2UI5_CL_SMPS_APP_029`](src/03/z2ui5_cl_smps_app_029.clas.abap) |
+| Approval Worklist<br>An approval worklist - the open travels, several selected and accepted or rejected with one EXECUTE, the list shrinking as they are decided<br><sub>approval approve reject inbox worklist action execute rap eml travel multiselect</sub> | [`Z2UI5_CL_SMPS_APP_030`](src/03/z2ui5_cl_smps_app_030.clas.abap) |
+| Edit with Conflict Check<br>Edit a travel without a stateful session - the app remembers LastChangedAt when it reads, and Save refuses the change if someone else saved the travel in between<br><sub>edit lock conflict concurrency etag optimistic locking lastchangedat rap eml travel</sub> | [`Z2UI5_CL_SMPS_APP_032`](src/03/z2ui5_cl_smps_app_032.clas.abap) |
 
 ### RAP with Draft — `src/04`
 
@@ -142,6 +145,7 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | **Excel** — Export a Table as XLSX File with XCO<br>The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line<br><sub>excel xlsx export download write spreadsheet xco table download_b64_file</sub> | [`Z2UI5_CL_SMPS_APP_022`](src/13/z2ui5_cl_smps_app_022.clas.abap) |
 | **E-Mail** — Send a Table as XLSX Attachment<br>A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library<br><sub>email mail send attachment xlsx excel cl_bcs_mail_message smtp</sub> | [`Z2UI5_CL_SMPS_APP_023`](src/13/z2ui5_cl_smps_app_023.clas.abap) |
 | **Excel** — Import Travels into a RAP Business Object<br>An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to<br><sub>excel xlsx import upload mass create rap eml business object travel fileuploader</sub> | [`Z2UI5_CL_SMPS_APP_028`](src/13/z2ui5_cl_smps_app_028.clas.abap) |
+| **Excel** — Report with Selection and Export<br>A report as it is written every day - a selection with ranges, the result in a table with a total, and the same rows exported as .xlsx with XCO<br><sub>report selection screen filter range export excel xlsx download travel sql</sub> | [`Z2UI5_CL_SMPS_APP_031`](src/13/z2ui5_cl_smps_app_031.clas.abap) |
 
 ### Adobe Forms — `src/14`
 
