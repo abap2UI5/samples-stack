@@ -976,7 +976,19 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `005`
                 title     = `Manage travels - the complete app`
                 detail    = `01-04 plus EXECUTE and COMMIT ENTITIES RESPONSE OF`
-                classname = `Z2UI5_CL_SMPS_APP_005` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_005` ) )
+      ( sample( no        = `029`
+                title     = `Mass change with preview`
+                detail    = `Several travels changed in one go - the new values are previewed next to the old ones, one MODIFY ENTITIES ... UPDATE saves them, and a refusal is shown on its row`
+                classname = `Z2UI5_CL_SMPS_APP_029` ) )
+      ( sample( no        = `030`
+                title     = `Approval worklist`
+                detail    = `An approval worklist - the open travels, several selected and accepted or rejected with one EXECUTE, the list shrinking as they are decided`
+                classname = `Z2UI5_CL_SMPS_APP_030` ) )
+      ( sample( no        = `032`
+                title     = `Edit with conflict check`
+                detail    = `Edit a travel without a stateful session - the app remembers LastChangedAt when it reads, and Save refuses the change if someone else saved the travel in between`
+                classname = `Z2UI5_CL_SMPS_APP_032` ) ) ).
 
     t_draft = VALUE #(
       ( sample( no        = `006`
@@ -1116,7 +1128,15 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `023`
                 title     = `Send a table as XLSX attachment`
                 detail    = `A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library`
-                classname = `Z2UI5_CL_SMPS_APP_023` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_023` ) )
+      ( sample( no        = `028`
+                title     = `Import an XLSX file into a RAP business object`
+                detail    = `An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to`
+                classname = `Z2UI5_CL_SMPS_APP_028` ) )
+      ( sample( no        = `031`
+                title     = `Report with selection and export`
+                detail    = `A report as it is written every day - a selection with ranges, the result in a table with a total, and the same rows exported as .xlsx with XCO`
+                classname = `Z2UI5_CL_SMPS_APP_031` ) ) ).
 
     t_forms = VALUE #(
       ( sample( no        = `024`
