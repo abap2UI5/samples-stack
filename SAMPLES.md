@@ -3,7 +3,7 @@
 
 # The sample catalogue
 
-Every app in this repository — 47 of them — with what it shows and a
+Every app in this repository — 48 of them — with what it shows and a
 link to its source. This is the [overview app](src/z2ui5_cl_smps_app_000.clas.abap)
 as a page you can read here, before installing anything.
 
@@ -141,6 +141,7 @@ type who does not know it exists. `Ctrl+F` on this page uses them.
 | **Excel** — Read an Uploaded XLSX File with XCO<br>An .xlsx file from the FileUploader read with the XCO XLSX library - the first worksheet becomes an ABAP table and is shown as it arrived<br><sub>excel xlsx upload import read spreadsheet xco fileuploader table</sub> | [`Z2UI5_CL_SMPS_APP_021`](src/13/z2ui5_cl_smps_app_021.clas.abap) |
 | **Excel** — Export a Table as XLSX File with XCO<br>The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line<br><sub>excel xlsx export download write spreadsheet xco table download_b64_file</sub> | [`Z2UI5_CL_SMPS_APP_022`](src/13/z2ui5_cl_smps_app_022.clas.abap) |
 | **E-Mail** — Send a Table as XLSX Attachment<br>A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library<br><sub>email mail send attachment xlsx excel cl_bcs_mail_message smtp</sub> | [`Z2UI5_CL_SMPS_APP_023`](src/13/z2ui5_cl_smps_app_023.clas.abap) |
+| **Excel** — Import Travels into a RAP Business Object<br>An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to<br><sub>excel xlsx import upload mass create rap eml business object travel fileuploader</sub> | [`Z2UI5_CL_SMPS_APP_028`](src/13/z2ui5_cl_smps_app_028.clas.abap) |
 
 ### Adobe Forms — `src/14`
 

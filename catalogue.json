@@ -169,7 +169,7 @@
       "runsOn": "Cloud + Standard ≥ 7.58 (2023)",
       "cloud": true,
       "release": "7.58 (2023)",
-      "note": "The XCO XLSX library and cl_bcs_mail_message are released ABAP Cloud APIs; on-premise the package needs a release that carries both. The mail sample also needs outbound mail configured.",
+      "note": "The XCO XLSX library and cl_bcs_mail_message are released ABAP Cloud APIs; on-premise the package needs a release that carries both. The mail sample also needs outbound mail configured. The import sample creates travels in the business object of package 03, so the branch carries src/03 along.",
       "branch": "13-excel-email",
       "readme": "src/13/README.md"
     },
@@ -1227,6 +1227,33 @@
         "excel",
         "cl_bcs_mail_message",
         "smtp"
+      ],
+      "runsOn": "Cloud + Standard ≥ 7.58 (2023)",
+      "cloud": true,
+      "needs": "the XCO XLSX library; outbound mail for the mail sample",
+      "branch": "13-excel-email",
+      "setup": "src/13/README.md"
+    },
+    {
+      "class": "Z2UI5_CL_SMPS_APP_028",
+      "path": "src/13/z2ui5_cl_smps_app_028.clas.abap",
+      "package": "src/13",
+      "technology": "Excel & E-Mail",
+      "title": "Excel — Import Travels into a RAP Business Object",
+      "summary": "An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to",
+      "keywords": [
+        "excel",
+        "xlsx",
+        "import",
+        "upload",
+        "mass",
+        "create",
+        "rap",
+        "eml",
+        "business",
+        "object",
+        "travel",
+        "fileuploader"
       ],
       "runsOn": "Cloud + Standard ≥ 7.58 (2023)",
       "cloud": true,

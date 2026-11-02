@@ -1116,7 +1116,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ( sample( no        = `023`
                 title     = `Send a table as XLSX attachment`
                 detail    = `A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library`
-                classname = `Z2UI5_CL_SMPS_APP_023` ) ) ).
+                classname = `Z2UI5_CL_SMPS_APP_023` ) )
+      ( sample( no        = `028`
+                title     = `Import an XLSX file into a RAP business object`
+                detail    = `An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to`
+                classname = `Z2UI5_CL_SMPS_APP_028` ) ) ).
 
     t_forms = VALUE #(
       ( sample( no        = `024`

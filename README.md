@@ -82,7 +82,7 @@ package, and skip the rest:
 | Call a large language model from your app — a chat, or a table summarized by AI | [`src/10`](src/10/README.md) — AI / LLM | an HTTPS destination to an LLM endpoint (SM59 or BTP), or SAP's ABAP AI SDK |
 | Upload a file into a RAP business object through an action with a deep parameter | [`src/11`](src/11/README.md) — RAP File Upload | ≥ 2025, the release that carries deep action parameters with `@Semantics.largeObject`; the business object ships with the package |
 | Ask a business object what is allowed, call actions with parameters, factory actions and default values, validate while the user types | [`src/12`](src/12/README.md) — RAP Actions & Permissions | ≥ 2025; the business object ships with the package |
-| Read an uploaded Excel file, export a table as Excel, send it as a mail attachment | [`src/13`](src/13/README.md) — Excel & E-Mail | ≥ 2023 or ABAP Cloud; outbound mail configured for the mail sample |
+| Read an uploaded Excel file, import it into a RAP business object, export a table as Excel, send it as a mail attachment | [`src/13`](src/13/README.md) — Excel & E-Mail | ≥ 2023 or ABAP Cloud; outbound mail configured for the mail sample |
 | Render Adobe Forms to PDF and download one or several as a ZIP | [`src/14`](src/14/README.md) — Adobe Forms | on-premise; Adobe Document Services configured |
 
 Each package README opens with a **What you need** section that turns the last

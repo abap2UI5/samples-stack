@@ -105,8 +105,8 @@
     "title": "Excel & E-Mail",
     "runsOn": "Cloud + Standard ≥ 7.58 (2023)",
     "syntax": "v757",
-    "note": "The XCO XLSX library and cl_bcs_mail_message are released ABAP Cloud APIs; on-premise the package needs a release that carries both. The mail sample also needs outbound mail configured.",
-    "shared": []
+    "note": "The XCO XLSX library and cl_bcs_mail_message are released ABAP Cloud APIs; on-premise the package needs a release that carries both. The mail sample also needs outbound mail configured. The import sample creates travels in the business object of package 03, so the branch carries src/03 along.",
+    "shared": ["00", "03"]
   },
   {
     "dir": "14",

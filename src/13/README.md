@@ -22,6 +22,10 @@ The mail sample also needs **outbound mail** configured: on ABAP Cloud a
 communication arrangement for the scenario `SAP_COM_0548`, on-premise SMTP in
 transaction `SCOT`. Without it the send fails, and the sample shows the reason.
 
+The import sample creates travels in the business object `Z2UI5_R_SMPS_TRV` of
+[`03` RAP](../03/README.md). The branch carries `src/03` along for it, so
+nothing has to be installed separately.
+
 ## The samples
 
 | You want to | Sample |
@@ -29,6 +33,7 @@ transaction `SCOT`. Without it the send fails, and the sample shows the reason.
 | read an uploaded `.xlsx` file into an ABAP table | [`021`](z2ui5_cl_smps_app_021.clas.abap) |
 | export a table as an `.xlsx` download | [`022`](z2ui5_cl_smps_app_022.clas.abap) |
 | send a table as an `.xlsx` mail attachment | [`023`](z2ui5_cl_smps_app_023.clas.abap) |
+| import the rows of an `.xlsx` file into a RAP business object | [`028`](z2ui5_cl_smps_app_028.clas.abap) |
 
 The XCO calls sit in [`Z2UI5_CL_SMPS_XLSX`](z2ui5_cl_smps_xlsx.clas.abap), which
 the three samples share: an `.xlsx` in, a table of strings out, and the way
@@ -54,6 +59,29 @@ DATA(xlsx) = document->get_file_content( ).
 Every cell travels as a string, so one table type fits every sheet; the app
 converts what it needs. Numbers are written with a decimal point and no
 thousands separator, the way a spreadsheet reads them back.
+
+## Import into a business object
+
+`Z2UI5_CL_SMPS_APP_028` goes one step further than reading: the rows become
+travels. Upload converts every cell into the type of its field and shows the
+result, so a wrong date is seen before anything is created. Import sends all
+rows in one `MODIFY ENTITIES ... CREATE`, with the Excel row number as `%cid`:
+
+```abap
+MODIFY ENTITIES OF z2ui5_r_smps_trv
+  ENTITY travel
+    CREATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
+    WITH VALUE #( FOR t IN t_travel ( %cid = |ROW_{ t-row }| agencyid = t-agency_id ... ) )
+  MAPPED DATA(s_mapped)
+  FAILED DATA(s_failed)
+  REPORTED DATA(s_reported).
+```
+
+The `%cid` is what brings each answer back to its row. A refusal of the CREATE
+carries it directly. The validations run at `COMMIT ENTITIES`, and their
+answers carry the key instead, which `MAPPED` translates back to the `%cid`.
+A COMMIT saves everything or nothing; with *Skip refused rows* on, the app
+rolls back and creates the remaining rows in a second attempt.
 
 ## Where to go next
 

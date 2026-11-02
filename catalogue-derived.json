@@ -71,7 +71,7 @@
     "sap.m.TextArea"
   ],
   "counts": {
-    "samples": 47,
+    "samples": 48,
     "controls": 61,
     "noChain": 0
   },
@@ -104,6 +104,7 @@
     {"class":"Z2UI5_CL_SMPS_APP_025","minUi5":"1.71","needs":[],"controls":[1,2,3,22,37,5,23,7,10,11,12,13,18,41,17,38],"controlCount":31},
     {"class":"Z2UI5_CL_SMPS_APP_026","minUi5":"1.71","needs":[],"controls":[2,3,22,37,4,45,5,7,9,10,50,11,12,13,18,15,17,38],"controlCount":24},
     {"class":"Z2UI5_CL_SMPS_APP_027","minUi5":"1.71","needs":[],"controls":[2,3,37,5,7,10,51,11,12,18,17],"controlCount":12},
+    {"class":"Z2UI5_CL_SMPS_APP_028","minUi5":"1.71","needs":[],"controls":[1,52,2,3,31,5,6,7,10,11,12,13,18,41,17,56],"controlCount":38},
     {"class":"Z2UI5_CL_SMPS_APP_313","minUi5":"1.71","needs":[],"controls":[7,10,19,20,21,17],"controlCount":6},
     {"class":"Z2UI5_CL_SMPS_APP_314","minUi5":"1.71","needs":[],"controls":[2,3,22,7,10,11,12,13,18,17],"controlCount":31},
     {"class":"Z2UI5_CL_SMPS_APP_315","minUi5":"1.71","needs":[],"controls":[2,3,7,10,11,12,13,18,17],"controlCount":35},
