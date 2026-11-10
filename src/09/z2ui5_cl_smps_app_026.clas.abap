@@ -120,9 +120,8 @@ CLASS z2ui5_cl_smps_app_026 IMPLEMENTATION.
     CASE client->get_event( ).
       WHEN `LINKS`.
         on_event_links( ).
+      " abap2ui5lint-disable-next-line handler-without-event -- raised by the frontend once getLinks has answered: the event is named in the third t_arg of cs_event-cross_app_nav_get_links in on_event_links( ), which the rule does not read as a wire
       WHEN `LINKS_READ`.
-        " raised by the frontend once getLinks has answered - named in the
-        " third argument of cross_app_nav_get_links in on_event_links( )
         on_event_links_read( ).
       WHEN `NAVIGATE`.
         on_event_navigate( ).
