@@ -175,7 +175,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
       RETURN.
 
     ENDIF.
@@ -220,7 +220,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
       RETURN.
 
     ENDIF.
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
       RETURN.
 
     ENDIF.
@@ -276,7 +276,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
       RETURN.
 
     ENDIF.
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
     IF s_failed-travel IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
       RETURN.
 
     ENDIF.
@@ -357,7 +357,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     ELSE.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-travel ).
+      client->message_box_display( text = s_reported-travel type = `error` ).
     ENDIF.
 
   ENDMETHOD.

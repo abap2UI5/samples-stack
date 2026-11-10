@@ -109,7 +109,7 @@ CLASS z2ui5_cl_smps_app_020 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+      client->message_box_display( text = s_reported-request type = `error` ).
       RETURN.
     ENDIF.
 
@@ -130,7 +130,7 @@ CLASS z2ui5_cl_smps_app_020 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+      client->message_box_display( text = s_reported-request type = `error` ).
       RETURN.
     ENDIF.
 
@@ -154,7 +154,7 @@ CLASS z2ui5_cl_smps_app_020 IMPLEMENTATION.
       data_read( ).
     ELSE.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+      client->message_box_display( text = s_reported-request type = `error` ).
     ENDIF.
 
   ENDMETHOD.
