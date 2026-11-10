@@ -133,7 +133,7 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
     IF s_failed-file IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-file ).
+      client->message_box_display( text = s_reported-file type = `error` ).
       RETURN.
 
     ENDIF.
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
       " them, or abap2UI5's own COMMIT WORK at the end of the roundtrip runs
       " into them
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-file ).
+      client->message_box_display( text = s_reported_commit-file type = `error` ).
       RETURN.
 
     ENDIF.
@@ -204,7 +204,7 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
     IF s_failed-file IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-file ).
+      client->message_box_display( text = s_reported-file type = `error` ).
       RETURN.
 
     ENDIF.
@@ -216,7 +216,7 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
     IF s_failed_commit IS NOT INITIAL.
 
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-file ).
+      client->message_box_display( text = s_reported_commit-file type = `error` ).
       RETURN.
 
     ENDIF.

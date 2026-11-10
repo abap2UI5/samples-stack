@@ -94,7 +94,7 @@ numbers are the reading order.
 | create one | `MODIFY … CREATE` → `MAPPED` | [`002`](z2ui5_cl_smps_app_002.clas.abap) |
 | change fields | `MODIFY … UPDATE FIELDS` | [`003`](z2ui5_cl_smps_app_003.clas.abap) |
 | delete one | `MODIFY … DELETE FROM` | [`004`](z2ui5_cl_smps_app_004.clas.abap) |
-| show BO messages in the UI | `msg_display( )` | [`context`](../00/00/z2ui5_cl_smps_context.clas.abap) |
+| show BO messages in the UI | `message_box_display( )` | [`005`](z2ui5_cl_smps_app_005.clas.abap) |
 
 **The complete app** shows the next step: everything the single statements teach,
 now in one screen with popups, message handling and a refresh — roughly three times
@@ -163,15 +163,16 @@ COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
   REPORTED DATA(s_reported).
 ```
 
-**Messages** — don't loop over `%msg` yourself. The shared context class of this
-package group ships the reader: it recognises a RAP structure by `%MSG`/`%FAIL`,
-takes a whole `REPORTED` response or a single entity table, and pulls out the
-failure cause, element, action, `%cid` and `%tky` — and shows the result in a
-message box.
+**Messages** — don't loop over `%msg` yourself. Hand the response to the
+framework's message box: it recognises a RAP structure by `%MSG`/`%FAIL`, takes a
+whole `REPORTED` or `FAILED` response or a single entity table, turns a failure
+cause into a text, and types the box by the most severe message. With
+`type = 'error'` an error that came back without any text still opens a box, with
+a standard text, instead of none.
 
 ```abap
-z2ui5_cl_smps_context=>msg_display( client = client
-                                    val    = s_reported-travel ).
+client->message_box_display( text = s_reported-travel
+                             type = `error` ).
 ```
 
 Every sample in this package that changes data calls it, which is why none of them

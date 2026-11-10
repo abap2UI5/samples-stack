@@ -179,14 +179,14 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_failed ).
+      client->message_box_display( text = s_failed type = `error` ).
       RETURN.
     ENDIF.
 
     IF data_save( ).
       client->message_toast_display( `Request approved` ).
     ENDIF.
-    z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+    client->message_box_display( text = s_reported-request type = `error` ).
 
   ENDMETHOD.
 
@@ -206,14 +206,14 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_failed ).
+      client->message_box_display( text = s_failed type = `error` ).
       RETURN.
     ENDIF.
 
     IF data_save( ).
       client->message_toast_display( `Request rejected` ).
     ENDIF.
-    z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+    client->message_box_display( text = s_reported-request type = `error` ).
 
   ENDMETHOD.
 
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_failed ).
+      client->message_box_display( text = s_failed type = `error` ).
       RETURN.
     ENDIF.
 
@@ -250,7 +250,7 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
       result = abap_true.
     ELSE.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+      client->message_box_display( text = s_reported-request type = `error` ).
     ENDIF.
 
     " the list shows what was saved - and the permissions that follow from it

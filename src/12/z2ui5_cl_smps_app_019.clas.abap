@@ -157,7 +157,7 @@ CLASS z2ui5_cl_smps_app_019 IMPLEMENTATION.
 
     IF s_failed-request IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported-request ).
+      client->message_box_display( text = s_reported-request type = `error` ).
       RETURN.
     ENDIF.
 
@@ -169,7 +169,7 @@ CLASS z2ui5_cl_smps_app_019 IMPLEMENTATION.
 
     IF s_failed_commit IS NOT INITIAL.
       ROLLBACK ENTITIES.
-      z2ui5_cl_smps_context=>msg_display( client = client val = s_reported_commit-request ).
+      client->message_box_display( text = s_reported_commit-request type = `error` ).
       RETURN.
     ENDIF.
 
