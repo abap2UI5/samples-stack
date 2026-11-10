@@ -118,8 +118,6 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
         popup_create_display( ).
       WHEN `POPUP_CREATE_CONFIRM`.
         on_event_create( ).
-      WHEN `POPUP_CREATE_CANCEL`.
-        client->popup_destroy( ).
       WHEN `SAVE`.
         on_event_save( ).
       WHEN `ACCEPT`.
@@ -529,7 +527,7 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
             )->a( n = `type`  v = `Emphasized` ).
     dialog->ele( `endButton`
         )->tag( `Button`
-            )->a( n = `press` v = client->_event( `POPUP_CREATE_CANCEL` )
+            )->a( n = `press` v = client->follow_up_action( val = client->cs_event-popup_close )
             )->a( n = `text`  v = `Cancel` ).
 
     client->popup_display( popup->stringify( ) ).
