@@ -91,10 +91,10 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
 
     DATA(table) = page->ele( `Table`
         )->a( n = `items`      v = client->_bind( t_travels )
-        )->a( n = `mode`       v = |\{= ${ client->_bind( filter ) } === 'OPEN' ? 'MultiSelect' : 'None' \}|
-        )->a( n = `noDataText` v = |\{= ${ client->_bind( filter ) } === 'OPEN' | &&
-                                   `? 'Nothing waits for a decision - press Reset Demo Data for open travels' ` &&
-                                   `: 'No travel decided yet' }` ).
+        )->a( n = `mode`       v = COND #( WHEN filter = `OPEN` THEN `MultiSelect` ELSE `None` )
+        )->a( n = `noDataText` v = COND #( WHEN filter = `OPEN`
+                                           THEN `Nothing waits for a decision - press Reset Demo Data for open travels`
+                                           ELSE `No travel decided yet` ) ).
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
             )->ele( `SegmentedButton`
@@ -115,13 +115,13 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
                 )->a( n = `text`    v = `Accept`
                 )->a( n = `icon`    v = `sap-icon://accept`
                 )->a( n = `type`    v = `Accept`
-                )->a( n = `visible` v = |\{= ${ client->_bind( filter ) } === 'OPEN' \}|
+                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `REJECT` )
                 )->a( n = `text`    v = `Reject`
                 )->a( n = `icon`    v = `sap-icon://decline`
                 )->a( n = `type`    v = `Reject`
-                )->a( n = `visible` v = |\{= ${ client->_bind( filter ) } === 'OPEN' \}|
+                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `GENERATE` )
                 )->a( n = `text`    v = `Reset Demo Data`
@@ -187,6 +187,12 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
         client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
         data_read( ).
     ENDCASE.
+
+    " rebuilt on purpose: the table mode, its no-data text and the two
+    " decision buttons are written from the filter when the view is built.
+    " Bound, they would need four expression bindings for what COND says
+    " in plain ABAP here
+    view_display( ).
 
   ENDMETHOD.
 
