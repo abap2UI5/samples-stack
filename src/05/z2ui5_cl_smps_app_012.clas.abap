@@ -34,16 +34,7 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `REFRESH` ).
       data_read( ).
-      view_display( ).
     ENDIF.
-  ENDMETHOD.
-
-  METHOD data_read.
-    SELECT FROM z2ui5_t_smps_log                        "#EC CI_NOWHERE
-      FIELDS event_name, log_text, created_by
-      ORDER BY created_at DESCENDING
-      INTO CORRESPONDING FIELDS OF TABLE @mt_log
-      UP TO 100 ROWS.
   ENDMETHOD.
 
   METHOD view_display.
@@ -96,6 +87,14 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
                     )->a( n = `text` v = `{CREATED_BY}` ).
 
     client->view_display( view->stringify( ) ).
+  ENDMETHOD.
+
+  METHOD data_read.
+    SELECT FROM z2ui5_t_smps_log                        "#EC CI_NOWHERE
+      FIELDS event_name, log_text, created_by
+      ORDER BY created_at DESCENDING
+      INTO CORRESPONDING FIELDS OF TABLE @mt_log
+      UP TO 100 ROWS.
   ENDMETHOD.
 
 ENDCLASS.

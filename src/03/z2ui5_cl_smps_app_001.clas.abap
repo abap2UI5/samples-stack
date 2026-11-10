@@ -58,53 +58,6 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD key_prefill.
-
-    " Prefilled with a key that really exists, so Read answers on the first
-    " press instead of with "Travel does not exist". Read off the table
-    " rather than hard coded: the demo data only starts at 1 on an empty
-    " table, and after a few creates and deletes the lowest key is a
-    " different one.
-    SELECT SINGLE FROM z2ui5_r_smps_trv                 "#EC CI_NOWHERE
-      FIELDS MIN( TravelId ) INTO @DATA(first_id).
-
-    travel_id = COND #( WHEN first_id IS NOT INITIAL THEN |{ first_id ALPHA = OUT }| ).
-
-  ENDMETHOD.
-
-
-  METHOD data_read.
-
-    READ ENTITIES OF z2ui5_r_smps_trv
-      ENTITY travel
-        ALL FIELDS WITH VALUE #( ( travelid = travel_id ) )
-      RESULT DATA(t_result)
-      FAILED DATA(s_failed).
-
-    " FAILED names a key RAP could not read; an empty RESULT is checked as
-    " well, so the read of the first row below can never dump
-    IF s_failed-travel IS NOT INITIAL OR t_result IS INITIAL.
-
-      s_travel = VALUE #( ).
-      client->message_box_display( text = |Travel { travel_id } does not exist| type = `error` ).
-
-    ELSE.
-
-      DATA(s_result) = t_result[ 1 ].
-      s_travel = VALUE #(
-        agency_id      = |{ s_result-agencyid ALPHA = OUT }|
-        customer_id    = |{ s_result-customerid ALPHA = OUT }|
-        begin_date     = |{ s_result-begindate DATE = ISO }|
-        end_date       = |{ s_result-enddate DATE = ISO }|
-        total_price    = |{ s_result-totalprice } { s_result-currencycode }|
-        overall_status = z2ui5_cl_smps_context=>status_get_text( s_result-overallstatus )
-        description    = |{ s_result-description }| ).
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -168,6 +121,53 @@ CLASS z2ui5_cl_smps_app_001 IMPLEMENTATION.
                         )->a( n = `enabled` b = abap_false
                         )->a( n = `value`   v = client->_bind( s_travel-description ) ).
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD key_prefill.
+
+    " Prefilled with a key that really exists, so Read answers on the first
+    " press instead of with "Travel does not exist". Read off the table
+    " rather than hard coded: the demo data only starts at 1 on an empty
+    " table, and after a few creates and deletes the lowest key is a
+    " different one.
+    SELECT SINGLE FROM z2ui5_r_smps_trv                 "#EC CI_NOWHERE
+      FIELDS MIN( TravelId ) INTO @DATA(first_id).
+
+    travel_id = COND #( WHEN first_id IS NOT INITIAL THEN |{ first_id ALPHA = OUT }| ).
+
+  ENDMETHOD.
+
+
+  METHOD data_read.
+
+    READ ENTITIES OF z2ui5_r_smps_trv
+      ENTITY travel
+        ALL FIELDS WITH VALUE #( ( travelid = travel_id ) )
+      RESULT DATA(t_result)
+      FAILED DATA(s_failed).
+
+    " FAILED names a key RAP could not read; an empty RESULT is checked as
+    " well, so the read of the first row below can never dump
+    IF s_failed-travel IS NOT INITIAL OR t_result IS INITIAL.
+
+      s_travel = VALUE #( ).
+      client->message_box_display( text = |Travel { travel_id } does not exist| type = `error` ).
+
+    ELSE.
+
+      DATA(s_result) = t_result[ 1 ].
+      s_travel = VALUE #(
+        agency_id      = |{ s_result-agencyid ALPHA = OUT }|
+        customer_id    = |{ s_result-customerid ALPHA = OUT }|
+        begin_date     = |{ s_result-begindate DATE = ISO }|
+        end_date       = |{ s_result-enddate DATE = ISO }|
+        total_price    = |{ s_result-totalprice } { s_result-currencycode }|
+        overall_status = z2ui5_cl_smps_context=>status_get_text( s_result-overallstatus )
+        description    = |{ s_result-description }| ).
+
+    ENDIF.
 
   ENDMETHOD.
 

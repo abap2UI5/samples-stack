@@ -32,6 +32,8 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
+    " not the canonical chain, on purpose: init and the return from another
+    " app each set the stateful session before they build the view
     TRY.
 
         IF client->check_on_init( ).
@@ -49,6 +51,23 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
       CATCH cx_root INTO DATA(lx).
         client->message_box_display( lx->get_text( ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+      WHEN `BACK`.
+        set_session_stateful( client = client stateful = abap_false ).
+        client->nav_app_leave( ).
+      WHEN `INCREMENT`.
+        instance_counter = lcl_static_container=>increment( ).
+      WHEN `END_SESSION`.
+        set_session_stateful( client = client stateful = abap_false ).
+      WHEN `START_SESSION`.
+        set_session_stateful( client = client stateful = abap_true ).
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -93,23 +112,6 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
         )->a( n = `text`  v = `Start session again` ).
 
     client->view_display( view->stringify( ) ).
-
-  ENDMETHOD.
-
-
-  METHOD on_event.
-
-    CASE client->get_event( ).
-      WHEN `BACK`.
-        set_session_stateful( client = client stateful = abap_false ).
-        client->nav_app_leave( ).
-      WHEN `INCREMENT`.
-        instance_counter = lcl_static_container=>increment( ).
-      WHEN `END_SESSION`.
-        set_session_stateful( client = client stateful = abap_false ).
-      WHEN `START_SESSION`.
-        set_session_stateful( client = client stateful = abap_true ).
-    ENDCASE.
 
   ENDMETHOD.
 

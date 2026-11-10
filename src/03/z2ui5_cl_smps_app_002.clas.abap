@@ -82,74 +82,6 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD data_create.
-
-    " the fee is free text in the form and an amount in the business object:
-    " `20,00` or `abc` would end the roundtrip with CX_SY_CONVERSION_NO_NUMBER
-    " in the VALUE below - converted here first, it is a message instead
-    DATA booking_fee TYPE z2ui5_t_smps_trv-booking_fee.
-    TRY.
-        booking_fee = s_travel-booking_fee.
-      CATCH cx_sy_conversion_error.
-        client->message_box_display( text = |Booking fee '{ s_travel-booking_fee }' is not a number - write it like 20.00|
-                                     type = `error` ).
-        RETURN.
-    ENDTRY.
-
-    " CREATE hands the new instance to the transactional buffer. The %cid is
-    " a temporary id chosen by the caller: the business object does not know
-    " the key yet, so MAPPED reports it back under that %cid.
-    MODIFY ENTITIES OF z2ui5_r_smps_trv
-      ENTITY travel
-        CREATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
-        WITH VALUE #( ( %cid         = `CREATE_1`
-                        agencyid     = s_travel-agency_id
-                        customerid   = s_travel-customer_id
-                        begindate    = s_travel-begin_date
-                        enddate      = s_travel-end_date
-                        bookingfee   = booking_fee
-                        currencycode = s_travel-currency
-                        description  = s_travel-description ) )
-      MAPPED DATA(s_mapped)
-      FAILED DATA(s_failed)
-      REPORTED DATA(s_reported).
-
-    IF s_failed-travel IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported-travel type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    " nothing is persisted before the COMMIT - and the validations of the
-    " business object only run now, so this is where they can still fail
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
-      FAILED DATA(s_failed_commit)
-      REPORTED DATA(s_reported_commit).
-
-    IF s_failed_commit IS NOT INITIAL.
-
-      " a failed save keeps the changes in the transactional buffer - discard
-      " them, or the next EML statement and abap2UI5's own COMMIT WORK at the
-      " end of the roundtrip run into them
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported_commit-travel type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    " thanks to early numbering the key assigned by the business object is
-    " available in MAPPED, addressed by the %cid sent above. OPTIONAL: the
-    " travel is saved by now, and a MAPPED without the row must cost the id
-    " in the toast, not a CX_SY_ITAB_LINE_NOT_FOUND dump after the save
-    DATA(s_new) = VALUE #( s_mapped-travel[ %cid = `CREATE_1` ] OPTIONAL ).
-    created_id = |{ s_new-travelid ALPHA = OUT }|.
-    client->message_toast_display( |Travel { created_id } created| ).
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -214,6 +146,74 @@ CLASS z2ui5_cl_smps_app_002 IMPLEMENTATION.
                         )->a( n = `value`   v = client->_bind( created_id ) ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD data_create.
+
+    " the fee is free text in the form and an amount in the business object:
+    " `20,00` or `abc` would end the roundtrip with CX_SY_CONVERSION_NO_NUMBER
+    " in the VALUE below - converted here first, it is a message instead
+    DATA booking_fee TYPE z2ui5_t_smps_trv-booking_fee.
+    TRY.
+        booking_fee = s_travel-booking_fee.
+      CATCH cx_sy_conversion_error.
+        client->message_box_display( text = |Booking fee '{ s_travel-booking_fee }' is not a number - write it like 20.00|
+                                     type = `error` ).
+        RETURN.
+    ENDTRY.
+
+    " CREATE hands the new instance to the transactional buffer. The %cid is
+    " a temporary id chosen by the caller: the business object does not know
+    " the key yet, so MAPPED reports it back under that %cid.
+    MODIFY ENTITIES OF z2ui5_r_smps_trv
+      ENTITY travel
+        CREATE FIELDS ( agencyid customerid begindate enddate bookingfee currencycode description )
+        WITH VALUE #( ( %cid         = `CREATE_1`
+                        agencyid     = s_travel-agency_id
+                        customerid   = s_travel-customer_id
+                        begindate    = s_travel-begin_date
+                        enddate      = s_travel-end_date
+                        bookingfee   = booking_fee
+                        currencycode = s_travel-currency
+                        description  = s_travel-description ) )
+      MAPPED DATA(s_mapped)
+      FAILED DATA(s_failed)
+      REPORTED DATA(s_reported).
+
+    IF s_failed-travel IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported-travel type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    " nothing is persisted before the COMMIT - and the validations of the
+    " business object only run now, so this is where they can still fail
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
+      FAILED DATA(s_failed_commit)
+      REPORTED DATA(s_reported_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+
+      " a failed save keeps the changes in the transactional buffer - discard
+      " them, or the next EML statement and abap2UI5's own COMMIT WORK at the
+      " end of the roundtrip run into them
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported_commit-travel type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    " thanks to early numbering the key assigned by the business object is
+    " available in MAPPED, addressed by the %cid sent above. OPTIONAL: the
+    " travel is saved by now, and a MAPPED without the row must cost the id
+    " in the toast, not a CX_SY_ITAB_LINE_NOT_FOUND dump after the save
+    DATA(s_new) = VALUE #( s_mapped-travel[ %cid = `CREATE_1` ] OPTIONAL ).
+    created_id = |{ s_new-travelid ALPHA = OUT }|.
+    client->message_toast_display( |Travel { created_id } created| ).
 
   ENDMETHOD.
 

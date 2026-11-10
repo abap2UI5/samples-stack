@@ -57,8 +57,8 @@ CLASS z2ui5_cl_smps_app_014 DEFINITION PUBLIC.
     "! grows with every turn, and so does what each turn costs
     CONSTANTS max_history TYPE i VALUE 20.
 
-    METHODS on_event.
     METHODS view_display.
+    METHODS on_event.
     METHODS model_init.
     METHODS config_check.
 
@@ -99,6 +99,80 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    " every display reads the configuration again - which is what makes the
+    " way back from the settings show what was saved there
+    config_check( ).
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - AI / LLM - Chat`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->ele( `headerContent`
+        )->tag( `Button`
+            )->a( n = `text`    v = `Clear Chat`
+            )->a( n = `icon`    v = `sap-icon://delete`
+            )->a( n = `enabled` v = |\{= !${ client->_bind( busy ) } \}|
+            )->a( n = `press`   v = client->_event( `CLEAR` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Settings`
+            )->a( n = `icon`  v = `sap-icon://action-settings`
+            )->a( n = `press` v = client->_event( `SETTINGS` ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = client->_bind( status_text )
+        )->a( n = `type`     v = client->_bind( status_type )
+        )->a( n = `visible`  v = client->_bind( status_visible )
+        )->a( n = `showIcon` v = `true`
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    DATA(content) = page->ele( `VBox`
+        )->a( n = `class` v = `sapUiSmallMarginBeginEnd` ).
+
+    content->tag( `Input`
+        )->a( n = `value`       v = client->_bind( system_prompt )
+        )->a( n = `placeholder` v = `Optional system prompt - how the assistant should behave`
+        )->a( n = `class`       v = `sapUiSmallMarginBottom` ).
+
+    " the typed text leaves the browser as the event argument - the
+    " FeedInput clears itself after post, so its value is not bound
+    content->tag( `FeedInput`
+        )->a( n = `placeholder` v = `Ask the language model something...`
+        )->a( n = `icon`        v = `sap-icon://customer`
+        )->a( n = `enabled`     v = |\{= ${ client->_bind( configured ) } && !${ client->_bind( busy ) } \}|
+        )->a( n = `post`        v = client->_event( val = `POST`
+                                                    arg = `${$parameters>/value}` ) ).
+
+    content->ele( `List`
+        )->a( n = `items`              v = client->_bind( t_feed )
+        )->a( n = `busy`               v = client->_bind( busy )
+        )->a( n = `busyIndicatorDelay` v = `0`
+        )->a( n = `showSeparators`     v = `Inner`
+        )->a( n = `noDataText`         v = `No messages yet.`
+        )->ele( `items`
+            )->tag( `FeedListItem`
+                )->a( n = `sender`       v = `{SENDER}`
+                )->a( n = `text`         v = `{TEXT}`
+                )->a( n = `icon`         v = `{ICON}`
+                )->a( n = `info`         v = `{INFO}`
+                )->a( n = `senderActive` b = abap_false
+                )->a( n = `iconActive`   b = abap_false ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -218,80 +292,6 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
       status_type    = `Warning`.
       status_visible = abap_true.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    " every display reads the configuration again - which is what makes the
-    " way back from the settings show what was saved there
-    config_check( ).
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - AI / LLM - Chat`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->ele( `headerContent`
-        )->tag( `Button`
-            )->a( n = `text`    v = `Clear Chat`
-            )->a( n = `icon`    v = `sap-icon://delete`
-            )->a( n = `enabled` v = |\{= !${ client->_bind( busy ) } \}|
-            )->a( n = `press`   v = client->_event( `CLEAR` )
-        )->tag( `Button`
-            )->a( n = `text`  v = `Settings`
-            )->a( n = `icon`  v = `sap-icon://action-settings`
-            )->a( n = `press` v = client->_event( `SETTINGS` ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = client->_bind( status_text )
-        )->a( n = `type`     v = client->_bind( status_type )
-        )->a( n = `visible`  v = client->_bind( status_visible )
-        )->a( n = `showIcon` v = `true`
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    DATA(content) = page->ele( `VBox`
-        )->a( n = `class` v = `sapUiSmallMarginBeginEnd` ).
-
-    content->tag( `Input`
-        )->a( n = `value`       v = client->_bind( system_prompt )
-        )->a( n = `placeholder` v = `Optional system prompt - how the assistant should behave`
-        )->a( n = `class`       v = `sapUiSmallMarginBottom` ).
-
-    " the typed text leaves the browser as the event argument - the
-    " FeedInput clears itself after post, so its value is not bound
-    content->tag( `FeedInput`
-        )->a( n = `placeholder` v = `Ask the language model something...`
-        )->a( n = `icon`        v = `sap-icon://customer`
-        )->a( n = `enabled`     v = |\{= ${ client->_bind( configured ) } && !${ client->_bind( busy ) } \}|
-        )->a( n = `post`        v = client->_event( val = `POST`
-                                                    arg = `${$parameters>/value}` ) ).
-
-    content->ele( `List`
-        )->a( n = `items`              v = client->_bind( t_feed )
-        )->a( n = `busy`               v = client->_bind( busy )
-        )->a( n = `busyIndicatorDelay` v = `0`
-        )->a( n = `showSeparators`     v = `Inner`
-        )->a( n = `noDataText`         v = `No messages yet.`
-        )->ele( `items`
-            )->tag( `FeedListItem`
-                )->a( n = `sender`       v = `{SENDER}`
-                )->a( n = `text`         v = `{TEXT}`
-                )->a( n = `icon`         v = `{ICON}`
-                )->a( n = `info`         v = `{INFO}`
-                )->a( n = `senderActive` b = abap_false
-                )->a( n = `iconActive`   b = abap_false ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

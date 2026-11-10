@@ -41,7 +41,7 @@ CLASS z2ui5_cl_smps_app_025 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
 
     "! cl_lsapi_manager=>create_flp_url( ), called by name - empty when the
     "! class or the method is not on this system or does not answer
@@ -54,7 +54,7 @@ CLASS z2ui5_cl_smps_app_025 DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -75,6 +75,103 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Launchpad - Build the URL of a Launchpad App`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Semantic object, action and parameters make the intent of a launchpad app. Build URL ` &&
+                                 `asks cl_lsapi_manager where the system has it and builds the intent URL itself where ` &&
+                                 `it does not - Open opens the result in a new tab.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `The intent`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Semantic Object`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( semantic_object )
+            )->tag( `Label`
+                )->a( n = `text` v = `Action`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( action ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items` v = client->_bind( t_params ) ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Parameters`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `ADD` )
+                )->a( n = `icon`    v = `sap-icon://add`
+                )->a( n = `tooltip` v = `Add Parameter`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REMOVE` )
+                )->a( n = `icon`    v = `sap-icon://less`
+                )->a( n = `tooltip` v = `Remove Last Parameter` ).
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Name`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Value` ).
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Input`
+                    )->a( n = `value` v = `{NAME}`
+                )->tag( `Input`
+                    )->a( n = `value` v = `{VALUE}` ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `The URL`
+        )->a( n = `editable` b = abap_false
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `URL`
+            )->tag( `Text`
+                )->a( n = `text` v = client->_bind( url )
+            )->tag( `Label`
+                )->a( n = `text` v = `Built by`
+            )->tag( `Text`
+                )->a( n = `text` v = client->_bind( builder ) ).
+
+    page->ele( `footer`
+        )->ele( `OverflowToolbar`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `BUILD` )
+                )->a( n = `text`  v = `Build URL`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `OPEN` )
+                )->a( n = `text`  v = `Open`
+                )->a( n = `icon`  v = `sap-icon://action`
+                )->a( n = `type`  v = `Emphasized` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -228,103 +325,6 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
     IF query IS NOT INITIAL.
       result = |{ result }?{ query }|.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Launchpad - Build the URL of a Launchpad App`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Semantic object, action and parameters make the intent of a launchpad app. Build URL ` &&
-                                 `asks cl_lsapi_manager where the system has it and builds the intent URL itself where ` &&
-                                 `it does not - Open opens the result in a new tab.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `The intent`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Semantic Object`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( semantic_object )
-            )->tag( `Label`
-                )->a( n = `text` v = `Action`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( action ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_params ) ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Parameters`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `ADD` )
-                )->a( n = `icon`    v = `sap-icon://add`
-                )->a( n = `tooltip` v = `Add Parameter`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REMOVE` )
-                )->a( n = `icon`    v = `sap-icon://less`
-                )->a( n = `tooltip` v = `Remove Last Parameter` ).
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Name`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Value` ).
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Input`
-                    )->a( n = `value` v = `{NAME}`
-                )->tag( `Input`
-                    )->a( n = `value` v = `{VALUE}` ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `The URL`
-        )->a( n = `editable` b = abap_false
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `URL`
-            )->tag( `Text`
-                )->a( n = `text` v = client->_bind( url )
-            )->tag( `Label`
-                )->a( n = `text` v = `Built by`
-            )->tag( `Text`
-                )->a( n = `text` v = client->_bind( builder ) ).
-
-    page->ele( `footer`
-        )->ele( `OverflowToolbar`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `BUILD` )
-                )->a( n = `text`  v = `Build URL`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `OPEN` )
-                )->a( n = `text`  v = `Open`
-                )->a( n = `icon`  v = `sap-icon://action`
-                )->a( n = `type`  v = `Emphasized` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

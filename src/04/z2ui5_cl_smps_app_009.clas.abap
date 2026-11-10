@@ -67,6 +67,74 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 09 Leave Draft Mode`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text` v = `Two ways out of a draft: Activate keeps the changes, Discard throws them away. Both leave the travel itself alive.`
+        )->a( n = `type` v = `Information` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_drafts )
+        )->a( n = `noDataText` v = `No drafts yet - press Edit in the Enter Draft Mode app, then press refresh here` ).
+
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `EXECUTE Activate  /  EXECUTE Discard`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `ID`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description (draft)`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{DESCRIPTION}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press` v = client->_event( val = `ACTIVATE`
+                                                arg = `${TRAVEL_UUID}` )
+                        )->a( n = `text`  v = `Activate`
+                        )->a( n = `type`  v = `Emphasized`
+                    )->tag( `Button`
+                        )->a( n = `press` v = client->_event( val = `DISCARD`
+                                                arg = `${TRAVEL_UUID}` )
+                        )->a( n = `text`  v = `Discard` ).
+
+    client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD draft_activate.
 
     DATA(uuid) = client->get_event_arg( ).
@@ -166,74 +234,6 @@ CLASS z2ui5_cl_smps_app_009 IMPLEMENTATION.
         ( travel_uuid = |{ s_result-traveluuid }|
           travel_id   = |{ s_result-travelid ALPHA = OUT }|
           description = |{ s_result-description }| ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 09 Leave Draft Mode`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text` v = `Two ways out of a draft: Activate keeps the changes, Discard throws them away. Both leave the travel itself alive.`
-        )->a( n = `type` v = `Information` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_drafts )
-        )->a( n = `noDataText` v = `No drafts yet - press Edit in the Enter Draft Mode app, then press refresh here` ).
-
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `EXECUTE Activate  /  EXECUTE Discard`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `ID`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description (draft)`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{DESCRIPTION}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press` v = client->_event( val = `ACTIVATE`
-                                                arg = `${TRAVEL_UUID}` )
-                        )->a( n = `text`  v = `Activate`
-                        )->a( n = `type`  v = `Emphasized`
-                    )->tag( `Button`
-                        )->a( n = `press` v = client->_event( val = `DISCARD`
-                                                arg = `${TRAVEL_UUID}` )
-                        )->a( n = `text`  v = `Discard` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

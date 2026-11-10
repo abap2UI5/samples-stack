@@ -30,10 +30,10 @@ CLASS z2ui5_cl_smps_app_021 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS file_read.
     METHODS example_download.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -49,56 +49,6 @@ CLASS z2ui5_cl_smps_app_021 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD on_event.
-
-    CASE client->get_event( ).
-      WHEN `UPLOAD`.
-        file_read( ).
-      WHEN `EXAMPLE`.
-        example_download( ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD file_read.
-
-    " data:<mime>;base64,<payload> - only the payload is the file
-    DATA(base64) = substring_after( val = file sub = `,` ).
-
-    TRY.
-        t_rows = z2ui5_cl_smps_xlsx=>read( cl_web_http_utility=>decode_x_base64( base64 ) ).
-        client->message_toast_display( |{ file_name } - { lines( t_rows ) } rows read| ).
-
-      CATCH cx_root INTO DATA(error).
-        " not an .xlsx at all, or a damaged one - XCO says why
-        CLEAR t_rows.
-        client->message_box_display( text = |{ file_name }: { error->get_text( ) }| type = `error` ).
-    ENDTRY.
-
-    CLEAR file.
-    view_display( ).
-
-  ENDMETHOD.
-
-
-  METHOD example_download.
-
-    " the same library the other way round - see z2ui5_cl_smps_app_022
-    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( VALUE #(
-        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` )
-        ( a = `Notebook` b = `2` c = `899.00` d = `EUR` )
-        ( a = `Docking station` b = `2` c = `189.50` d = `EUR` )
-        ( a = `Headset` b = `5` c = `79.90` d = `EUR` ) ) ).
-
-    client->follow_up_action(
-        val   = client->cs_event-download_b64_file
-        t_arg = VALUE #( ( |data:{ z2ui5_cl_smps_xlsx=>mime_type };base64,{ cl_web_http_utility=>encode_x_base64( xlsx ) }| )
-                         ( `example.xlsx` ) ) ).
 
   ENDMETHOD.
 
@@ -186,6 +136,58 @@ CLASS z2ui5_cl_smps_app_021 IMPLEMENTATION.
                     )->a( n = `text` v = `{F}` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+      WHEN `UPLOAD`.
+        file_read( ).
+      WHEN `EXAMPLE`.
+        example_download( ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD file_read.
+
+    " data:<mime>;base64,<payload> - only the payload is the file
+    DATA(base64) = substring_after( val = file sub = `,` ).
+
+    TRY.
+        t_rows = z2ui5_cl_smps_xlsx=>read( cl_web_http_utility=>decode_x_base64( base64 ) ).
+        client->message_toast_display( |{ file_name } - { lines( t_rows ) } rows read| ).
+
+      CATCH cx_root INTO DATA(error).
+        " not an .xlsx at all, or a damaged one - XCO says why
+        CLEAR t_rows.
+        client->message_box_display( text = |{ file_name }: { error->get_text( ) }| type = `error` ).
+    ENDTRY.
+
+    CLEAR file.
+    " a rebuild, not only the model push: it also replaces the FileUploader,
+    " whose picked file is control state and not part of the model
+    view_display( ).
+
+  ENDMETHOD.
+
+
+  METHOD example_download.
+
+    " the same library the other way round - see z2ui5_cl_smps_app_022
+    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( VALUE #(
+        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` )
+        ( a = `Notebook` b = `2` c = `899.00` d = `EUR` )
+        ( a = `Docking station` b = `2` c = `189.50` d = `EUR` )
+        ( a = `Headset` b = `5` c = `79.90` d = `EUR` ) ) ).
+
+    client->follow_up_action(
+        val   = client->cs_event-download_b64_file
+        t_arg = VALUE #( ( |data:{ z2ui5_cl_smps_xlsx=>mime_type };base64,{ cl_web_http_utility=>encode_x_base64( xlsx ) }| )
+                         ( `example.xlsx` ) ) ).
 
   ENDMETHOD.
 

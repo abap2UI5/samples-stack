@@ -26,12 +26,11 @@ CLASS z2ui5_cl_smps_app_011 DEFINITION PUBLIC CREATE PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_init.
-    METHODS on_event.
+    METHODS view_display.
     METHODS on_event_create.
     METHODS on_event_update.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
 
     "! what to say when the business object refused a create or an update:
     "! its own message where it sent one - a lock held by a draft of another
@@ -56,143 +55,13 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     me->client = client.
     IF client->check_on_init( ).
       ms_create = VALUE #( priority = `M` status = `NEW` ).
-      on_init( ).
+      data_read( ).
+      view_display( ).
     ELSEIF client->check_on_navigated( ).
       view_display( ).
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
-  ENDMETHOD.
-
-  METHOD on_init.
-    data_read( ).
-    view_display( ).
-  ENDMETHOD.
-
-  METHOD on_event.
-    CASE client->get_event( ).
-      WHEN `CREATE`.
-        on_event_create( ).
-      WHEN `UPDATE`.
-        on_event_update( ).
-      WHEN `REFRESH`.
-        data_read( ).
-        view_display( ).
-    ENDCASE.
-  ENDMETHOD.
-
-  METHOD on_event_create.
-    IF ms_create-title IS INITIAL.
-      client->message_toast_display( `Please enter a title` ).
-      RETURN.
-    ENDIF.
-
-    " Create a ticket via the RAP business object -> raises the RAP business event
-    MODIFY ENTITIES OF z2ui5_r_smps_tck
-      ENTITY Ticket
-        CREATE FIELDS ( title priority status )
-        WITH VALUE #( ( %cid     = `CID_TICKET`
-                        title    = ms_create-title
-                        priority = ms_create-priority
-                        status   = ms_create-status ) )
-      FAILED DATA(failed)
-      REPORTED DATA(reported).
-
-    IF failed-ticket IS NOT INITIAL.
-      DATA(text) = failure_text( action = `Create`
-                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = text type = `error` ).
-      RETURN.
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
-      FAILED DATA(commit_failed)
-      REPORTED DATA(commit_reported).
-
-    IF commit_failed IS INITIAL.
-      client->message_toast_display( |Ticket '{ ms_create-title }' created - business event fired| ).
-      ms_create = VALUE #( priority = `M` status = `NEW` ).
-      data_read( ).
-      view_display( ).
-    ELSE.
-      text = failure_text( action = `Create`
-                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = text type = `error` ).
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD on_event_update.
-    " OPTIONAL: the uuid comes from the client, and the row it names may be
-    " gone by now - deleted in another session, or out of the top 50
-    DATA(uuid) = client->get_event_arg( ).
-    DATA(s_ticket) = VALUE #( mt_tickets[ ticket_uuid = uuid ] OPTIONAL ).
-    IF s_ticket IS INITIAL.
-      client->message_toast_display( `Ticket not found - press refresh` ).
-      RETURN.
-    ENDIF.
-
-    " Update the status via the RAP business object -> the additional save
-    " sees the update and raises the data event StatusChanged with its payload
-    MODIFY ENTITIES OF z2ui5_r_smps_tck
-      ENTITY Ticket
-        UPDATE FIELDS ( status )
-        WITH VALUE #( ( ticketuuid = s_ticket-ticket_uuid
-                        status     = s_ticket-status ) )
-      FAILED DATA(failed)
-      REPORTED DATA(reported).
-
-    IF failed-ticket IS NOT INITIAL.
-      DATA(text) = failure_text( action = `Update`
-                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = text type = `error` ).
-      RETURN.
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
-      FAILED DATA(commit_failed)
-      REPORTED DATA(commit_reported).
-
-    IF commit_failed IS INITIAL.
-      client->message_toast_display( |Ticket '{ s_ticket-title }' set to { s_ticket-status } - business event fired| ).
-      data_read( ).
-      view_display( ).
-    ELSE.
-      text = failure_text( action = `Update`
-                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = text type = `error` ).
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD data_read.
-    SELECT FROM z2ui5_t_smps_tck                        "#EC CI_NOWHERE
-      FIELDS ticket_uuid, title, priority, status, created_by
-      ORDER BY created_at DESCENDING
-      INTO TABLE @DATA(t_result)
-      UP TO 50 ROWS.
-
-    " the key travels to the browser as text - a RAW16 has no JSON form
-    mt_tickets = VALUE #( FOR s_result IN t_result
-        ( ticket_uuid = |{ s_result-ticket_uuid }|
-          title       = s_result-title
-          priority    = s_result-priority
-          status      = s_result-status
-          created_by  = s_result-created_by ) ).
-  ENDMETHOD.
-
-  METHOD failure_text.
-
-    IF msg IS BOUND.
-      result = |{ action } refused by the business object: { msg->if_message~get_text( ) }|.
-    ELSE.
-      " FAILED without a message in REPORTED - say that much rather than
-      " leave the reader with a bare "failed"
-      result = |{ action } refused by the business object, which sent no message with it|.
-    ENDIF.
-
   ENDMETHOD.
 
   METHOD view_display.
@@ -291,6 +160,129 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
                     )->a( n = `text`  v = `Update Status` ).
 
     client->view_display( view->stringify( ) ).
+  ENDMETHOD.
+
+  METHOD on_event.
+    CASE client->get_event( ).
+      WHEN `CREATE`.
+        on_event_create( ).
+      WHEN `UPDATE`.
+        on_event_update( ).
+      WHEN `REFRESH`.
+        data_read( ).
+    ENDCASE.
+  ENDMETHOD.
+
+  METHOD on_event_create.
+    IF ms_create-title IS INITIAL.
+      client->message_toast_display( `Please enter a title` ).
+      RETURN.
+    ENDIF.
+
+    " Create a ticket via the RAP business object -> raises the RAP business event
+    MODIFY ENTITIES OF z2ui5_r_smps_tck
+      ENTITY Ticket
+        CREATE FIELDS ( title priority status )
+        WITH VALUE #( ( %cid     = `CID_TICKET`
+                        title    = ms_create-title
+                        priority = ms_create-priority
+                        status   = ms_create-status ) )
+      FAILED DATA(failed)
+      REPORTED DATA(reported).
+
+    IF failed-ticket IS NOT INITIAL.
+      DATA(text) = failure_text( action = `Create`
+                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = text type = `error` ).
+      RETURN.
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
+      FAILED DATA(commit_failed)
+      REPORTED DATA(commit_reported).
+
+    IF commit_failed IS INITIAL.
+      client->message_toast_display( |Ticket '{ ms_create-title }' created - business event fired| ).
+      ms_create = VALUE #( priority = `M` status = `NEW` ).
+      data_read( ).
+    ELSE.
+      text = failure_text( action = `Create`
+                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = text type = `error` ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD on_event_update.
+    " OPTIONAL: the uuid comes from the client, and the row it names may be
+    " gone by now - deleted in another session, or out of the top 50
+    DATA(uuid) = client->get_event_arg( ).
+    DATA(s_ticket) = VALUE #( mt_tickets[ ticket_uuid = uuid ] OPTIONAL ).
+    IF s_ticket IS INITIAL.
+      client->message_toast_display( `Ticket not found - press refresh` ).
+      RETURN.
+    ENDIF.
+
+    " Update the status via the RAP business object -> the additional save
+    " sees the update and raises the data event StatusChanged with its payload
+    MODIFY ENTITIES OF z2ui5_r_smps_tck
+      ENTITY Ticket
+        UPDATE FIELDS ( status )
+        WITH VALUE #( ( ticketuuid = s_ticket-ticket_uuid
+                        status     = s_ticket-status ) )
+      FAILED DATA(failed)
+      REPORTED DATA(reported).
+
+    IF failed-ticket IS NOT INITIAL.
+      DATA(text) = failure_text( action = `Update`
+                                 msg    = VALUE #( reported-ticket[ 1 ]-%msg OPTIONAL ) ).
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = text type = `error` ).
+      RETURN.
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_tck
+      FAILED DATA(commit_failed)
+      REPORTED DATA(commit_reported).
+
+    IF commit_failed IS INITIAL.
+      client->message_toast_display( |Ticket '{ s_ticket-title }' set to { s_ticket-status } - business event fired| ).
+      data_read( ).
+    ELSE.
+      text = failure_text( action = `Update`
+                           msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = text type = `error` ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD data_read.
+    SELECT FROM z2ui5_t_smps_tck                        "#EC CI_NOWHERE
+      FIELDS ticket_uuid, title, priority, status, created_by
+      ORDER BY created_at DESCENDING
+      INTO TABLE @DATA(t_result)
+      UP TO 50 ROWS.
+
+    " the key travels to the browser as text - a RAW16 has no JSON form
+    mt_tickets = VALUE #( FOR s_result IN t_result
+        ( ticket_uuid = |{ s_result-ticket_uuid }|
+          title       = s_result-title
+          priority    = s_result-priority
+          status      = s_result-status
+          created_by  = s_result-created_by ) ).
+  ENDMETHOD.
+
+  METHOD failure_text.
+
+    IF msg IS BOUND.
+      result = |{ action } refused by the business object: { msg->if_message~get_text( ) }|.
+    ELSE.
+      " FAILED without a message in REPORTED - say that much rather than
+      " leave the reader with a bare "failed"
+      result = |{ action } refused by the business object, which sent no message with it|.
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.

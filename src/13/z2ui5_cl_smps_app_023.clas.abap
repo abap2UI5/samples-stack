@@ -55,45 +55,6 @@ CLASS z2ui5_cl_smps_app_023 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD mail_send.
-
-    IF sender IS INITIAL OR recipient IS INITIAL.
-      client->message_box_display( text = `Sender and recipient are both needed` type = `error` ).
-      RETURN.
-    ENDIF.
-
-    " the attachment - written exactly as z2ui5_cl_smps_app_022 writes it
-    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( VALUE #(
-        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` )
-        ( a = `Notebook` b = `2` c = `899.00` d = `EUR` )
-        ( a = `Docking station` b = `2` c = `189.50` d = `EUR` )
-        ( a = `Headset` b = `5` c = `79.90` d = `EUR` ) ) ).
-
-    TRY.
-        DATA(mail) = cl_bcs_mail_message=>create_instance( ).
-        mail->set_sender( CONV #( sender ) ).
-        mail->add_recipient( CONV #( recipient ) ).
-        mail->set_subject( CONV #( subject ) ).
-        mail->set_main( cl_bcs_mail_textpart=>create_text_plain( text ) ).
-        mail->add_attachment( cl_bcs_mail_binarypart=>create_instance(
-                                  iv_content      = xlsx
-                                  iv_content_type = CONV #( z2ui5_cl_smps_xlsx=>mime_type )
-                                  iv_filename     = `products.xlsx` ) ).
-
-        " the send hands the mail to the outbound queue - the status says
-        " whether it left already or is still waiting there
-        mail->send( IMPORTING ev_mail_status = DATA(status) ).
-
-        client->message_box_display( text = |Mail handed over to the mail system, status { status }| type = `success` ).
-
-      CATCH cx_bcs_mail INTO DATA(error).
-        " an invalid address, or no outbound mail configured on this system
-        client->message_box_display( text = error->get_text( ) type = `error` ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -156,6 +117,45 @@ CLASS z2ui5_cl_smps_app_023 IMPLEMENTATION.
                 )->a( n = `type`  v = `Emphasized` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD mail_send.
+
+    IF sender IS INITIAL OR recipient IS INITIAL.
+      client->message_box_display( text = `Sender and recipient are both needed` type = `error` ).
+      RETURN.
+    ENDIF.
+
+    " the attachment - written exactly as z2ui5_cl_smps_app_022 writes it
+    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( VALUE #(
+        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` )
+        ( a = `Notebook` b = `2` c = `899.00` d = `EUR` )
+        ( a = `Docking station` b = `2` c = `189.50` d = `EUR` )
+        ( a = `Headset` b = `5` c = `79.90` d = `EUR` ) ) ).
+
+    TRY.
+        DATA(mail) = cl_bcs_mail_message=>create_instance( ).
+        mail->set_sender( CONV #( sender ) ).
+        mail->add_recipient( CONV #( recipient ) ).
+        mail->set_subject( CONV #( subject ) ).
+        mail->set_main( cl_bcs_mail_textpart=>create_text_plain( text ) ).
+        mail->add_attachment( cl_bcs_mail_binarypart=>create_instance(
+                                  iv_content      = xlsx
+                                  iv_content_type = CONV #( z2ui5_cl_smps_xlsx=>mime_type )
+                                  iv_filename     = `products.xlsx` ) ).
+
+        " the send hands the mail to the outbound queue - the status says
+        " whether it left already or is still waiting there
+        mail->send( IMPORTING ev_mail_status = DATA(status) ).
+
+        client->message_box_display( text = |Mail handed over to the mail system, status { status }| type = `success` ).
+
+      CATCH cx_bcs_mail INTO DATA(error).
+        " an invalid address, or no outbound mail configured on this system
+        client->message_box_display( text = error->get_text( ) type = `error` ).
+    ENDTRY.
 
   ENDMETHOD.
 

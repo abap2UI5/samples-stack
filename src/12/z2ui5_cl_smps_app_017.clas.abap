@@ -53,7 +53,7 @@ CLASS z2ui5_cl_smps_app_017 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS data_read.
     METHODS permissions_read.
     METHODS request_approve.
@@ -62,7 +62,7 @@ CLASS z2ui5_cl_smps_app_017 DEFINITION PUBLIC.
     METHODS data_save
       RETURNING
         VALUE(result) TYPE abap_bool.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -81,6 +81,109 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 17 Feature Control with GET PERMISSIONS`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `The buttons of each row follow GET PERMISSIONS: a New request may be approved, rejected and ` &&
+                                 `deleted, a decided one may not, and an approved one stays for good. Switch on Ignore ` &&
+                                 `permissions and try anyway - the business object refuses it on its own.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    " the expression binding decides per row: the permission, or - with the
+    " switch on - always true
+    DATA(enabled) = COND string( WHEN ignore_permissions = abap_true THEN `true` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_requests )
+        )->a( n = `noDataText` v = `No requests yet - press Reset Demo Data` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Requests (Z2UI5_R_SMPS_REQ)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Label`
+                )->a( n = `text` v = `Ignore permissions`
+            )->tag( `Switch`
+                )->a( n = `state`  v = client->_bind( ignore_permissions )
+                )->a( n = `change` v = client->_event( `IGNORE` )
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Title`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Quantity`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Note`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Actions` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TITLE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{QUANTITY}`
+                )->tag( `ObjectStatus`
+                    )->a( n = `text`  v = `{STATUS}`
+                    )->a( n = `state` v = `{= ${STATUS_STATE} || 'None' }`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{NOTE}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `APPROVE` arg = `${REQUEST_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://accept`
+                        )->a( n = `tooltip` v = `Approve`
+                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{APPROVE_ENABLED}` ELSE enabled )
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${REQUEST_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://decline`
+                        )->a( n = `tooltip` v = `Reject`
+                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{REJECT_ENABLED}` ELSE enabled )
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${REQUEST_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://delete`
+                        )->a( n = `tooltip` v = `Delete`
+                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{DELETE_ENABLED}` ELSE enabled ) ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -255,109 +358,6 @@ CLASS z2ui5_cl_smps_app_017 IMPLEMENTATION.
 
     " the list shows what was saved - and the permissions that follow from it
     data_read( ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 17 Feature Control with GET PERMISSIONS`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `The buttons of each row follow GET PERMISSIONS: a New request may be approved, rejected and ` &&
-                                 `deleted, a decided one may not, and an approved one stays for good. Switch on Ignore ` &&
-                                 `permissions and try anyway - the business object refuses it on its own.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    " the expression binding decides per row: the permission, or - with the
-    " switch on - always true
-    DATA(enabled) = COND string( WHEN ignore_permissions = abap_true THEN `true` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_requests )
-        )->a( n = `noDataText` v = `No requests yet - press Reset Demo Data` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Requests (Z2UI5_R_SMPS_REQ)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Label`
-                )->a( n = `text` v = `Ignore permissions`
-            )->tag( `Switch`
-                )->a( n = `state`  v = client->_bind( ignore_permissions )
-                )->a( n = `change` v = client->_event( `IGNORE` )
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Title`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Quantity`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Note`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Actions` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TITLE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{QUANTITY}`
-                )->tag( `ObjectStatus`
-                    )->a( n = `text`  v = `{STATUS}`
-                    )->a( n = `state` v = `{= ${STATUS_STATE} || 'None' }`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{NOTE}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `APPROVE` arg = `${REQUEST_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://accept`
-                        )->a( n = `tooltip` v = `Approve`
-                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{APPROVE_ENABLED}` ELSE enabled )
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${REQUEST_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://decline`
-                        )->a( n = `tooltip` v = `Reject`
-                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{REJECT_ENABLED}` ELSE enabled )
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${REQUEST_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://delete`
-                        )->a( n = `tooltip` v = `Delete`
-                        )->a( n = `enabled` v = COND #( WHEN enabled IS INITIAL THEN `{DELETE_ENABLED}` ELSE enabled ) ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

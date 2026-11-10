@@ -86,17 +86,6 @@ CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD width_apply.
-
-    " X asks for the full width; without an argument the launchpad's
-    " letterbox comes back (an empty argument is never sent at all)
-    client->follow_up_action(
-        val   = z2ui5_if_client=>cs_event-set_app_full_width
-        t_arg = COND #( WHEN full_width = abap_true THEN VALUE #( ( `X` ) ) ) ).
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -139,6 +128,17 @@ CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
     ENDDO.
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD width_apply.
+
+    " X asks for the full width; without an argument the launchpad's
+    " letterbox comes back (an empty argument is never sent at all)
+    client->follow_up_action(
+        val   = z2ui5_if_client=>cs_event-set_app_full_width
+        t_arg = COND #( WHEN full_width = abap_true THEN VALUE #( ( `X` ) ) ) ).
 
   ENDMETHOD.
 

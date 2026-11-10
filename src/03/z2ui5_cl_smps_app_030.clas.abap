@@ -44,9 +44,9 @@ CLASS z2ui5_cl_smps_app_030 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
-    METHODS data_read.
     METHODS view_display.
+    METHODS data_read.
+    METHODS on_event.
 
     "! accepts or rejects every selected travel with one EXECUTE
     METHODS travels_decide
@@ -71,107 +71,6 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD on_event.
-
-    CASE client->get_event( ).
-      WHEN `ACCEPT`.
-        travels_decide( abap_true ).
-      WHEN `REJECT`.
-        travels_decide( abap_false ).
-      WHEN `FILTER` OR `REFRESH`.
-        data_read( ).
-      WHEN `GENERATE`.
-        client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
-        data_read( ).
-    ENDCASE.
-    view_display( ).
-
-  ENDMETHOD.
-
-
-  METHOD data_read.
-
-    " the worklist is what still waits for a decision - the filter is part
-    " of the SELECT, so a decided travel leaves the list on the next read
-    TYPES ty_r_status TYPE RANGE OF z2ui5_t_smps_trv-overall_status.
-    DATA(t_status) = VALUE ty_r_status( ( sign   = `I`
-                                          option = COND #( WHEN filter = `OPEN` THEN `EQ` ELSE `NE` )
-                                          low    = z2ui5_cl_smps_context=>cs_status-open ) ).
-
-    SELECT FROM z2ui5_r_smps_trv
-      FIELDS TravelId, CustomerId, BeginDate, EndDate, TotalPrice, CurrencyCode, Description, OverallStatus
-      WHERE OverallStatus IN @t_status
-      ORDER BY BeginDate, TravelId
-      INTO TABLE @DATA(t_result) UP TO 100 ROWS.
-
-    t_travels = VALUE #( FOR r IN t_result
-        ( travel_id    = |{ r-travelid ALPHA = OUT }|
-          customer_id  = |{ r-customerid ALPHA = OUT }|
-          begin_date   = |{ r-begindate DATE = ISO }|
-          end_date     = |{ r-enddate DATE = ISO }|
-          total_price  = |{ r-totalprice } { r-currencycode }|
-          description  = |{ r-description }|
-          status_text  = z2ui5_cl_smps_context=>status_get_text( r-overallstatus )
-          status_state = z2ui5_cl_smps_context=>status_get_state( r-overallstatus ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD travels_decide.
-
-    DATA(t_keys) = VALUE string_table( FOR t IN t_travels WHERE ( selkz = abap_true ) ( t-travel_id ) ).
-    IF t_keys IS INITIAL.
-      client->message_box_display( `Select the travels to decide first` ).
-      RETURN.
-    ENDIF.
-
-    " an action is called like any other operation - by key, many at once.
-    " Two statements rather than a dynamic action name: the action is part
-    " of the statement, which is what lets the compiler check it
-    IF accept = abap_true.
-      MODIFY ENTITIES OF z2ui5_r_smps_trv
-        ENTITY travel
-          EXECUTE acceptTravel FROM VALUE #( FOR k IN t_keys ( travelid = k ) )
-        RESULT DATA(t_result)
-        FAILED DATA(s_failed)
-        REPORTED DATA(s_reported).
-    ELSE.
-      MODIFY ENTITIES OF z2ui5_r_smps_trv
-        ENTITY travel
-          EXECUTE rejectTravel FROM VALUE #( FOR k IN t_keys ( travelid = k ) )
-        RESULT DATA(t_result_reject)
-        FAILED s_failed
-        REPORTED s_reported.
-      t_result = CORRESPONDING #( t_result_reject ).
-    ENDIF.
-
-    IF s_failed-travel IS NOT INITIAL.
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported-travel type = `error` ).
-      RETURN.
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
-      FAILED DATA(s_failed_commit)
-      REPORTED DATA(s_reported_commit).
-
-    IF s_failed_commit IS NOT INITIAL.
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported_commit-travel type = `error` ).
-      RETURN.
-    ENDIF.
-
-    " RESULT carries the changed instances - the new status comes from the
-    " business object, not from what the app expected it to be
-    DATA(ids) = concat_lines_of( sep   = `, `
-                                 table = VALUE string_table( FOR r IN t_result ( |{ r-travelid ALPHA = OUT }| ) ) ).
-    DATA(status) = z2ui5_cl_smps_context=>status_get_text( VALUE #( t_result[ 1 ]-%param-overallstatus OPTIONAL ) ).
-    client->message_toast_display( |{ status }: { ids }| ).
-    data_read( ).
 
   ENDMETHOD.
 
@@ -271,6 +170,112 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
                     )->a( n = `state` v = `{STATUS_STATE}` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+      WHEN `ACCEPT`.
+        travels_decide( abap_true ).
+      WHEN `REJECT`.
+        travels_decide( abap_false ).
+      WHEN `FILTER` OR `REFRESH`.
+        data_read( ).
+      WHEN `GENERATE`.
+        client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
+        data_read( ).
+    ENDCASE.
+
+    " rebuilt on purpose: the table mode, its no-data text and the two
+    " decision buttons are written from the filter when the view is built.
+    " Bound, they would need four expression bindings for what COND says
+    " in plain ABAP here
+    view_display( ).
+
+  ENDMETHOD.
+
+
+  METHOD data_read.
+
+    " the worklist is what still waits for a decision - the filter is part
+    " of the SELECT, so a decided travel leaves the list on the next read
+    TYPES ty_r_status TYPE RANGE OF z2ui5_t_smps_trv-overall_status.
+    DATA(t_status) = VALUE ty_r_status( ( sign   = `I`
+                                          option = COND #( WHEN filter = `OPEN` THEN `EQ` ELSE `NE` )
+                                          low    = z2ui5_cl_smps_context=>cs_status-open ) ).
+
+    SELECT FROM z2ui5_r_smps_trv
+      FIELDS TravelId, CustomerId, BeginDate, EndDate, TotalPrice, CurrencyCode, Description, OverallStatus
+      WHERE OverallStatus IN @t_status
+      ORDER BY BeginDate, TravelId
+      INTO TABLE @DATA(t_result) UP TO 100 ROWS.
+
+    t_travels = VALUE #( FOR r IN t_result
+        ( travel_id    = |{ r-travelid ALPHA = OUT }|
+          customer_id  = |{ r-customerid ALPHA = OUT }|
+          begin_date   = |{ r-begindate DATE = ISO }|
+          end_date     = |{ r-enddate DATE = ISO }|
+          total_price  = |{ r-totalprice } { r-currencycode }|
+          description  = |{ r-description }|
+          status_text  = z2ui5_cl_smps_context=>status_get_text( r-overallstatus )
+          status_state = z2ui5_cl_smps_context=>status_get_state( r-overallstatus ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD travels_decide.
+
+    DATA(t_keys) = VALUE string_table( FOR t IN t_travels WHERE ( selkz = abap_true ) ( t-travel_id ) ).
+    IF t_keys IS INITIAL.
+      client->message_box_display( `Select the travels to decide first` ).
+      RETURN.
+    ENDIF.
+
+    " an action is called like any other operation - by key, many at once.
+    " Two statements rather than a dynamic action name: the action is part
+    " of the statement, which is what lets the compiler check it
+    IF accept = abap_true.
+      MODIFY ENTITIES OF z2ui5_r_smps_trv
+        ENTITY travel
+          EXECUTE acceptTravel FROM VALUE #( FOR k IN t_keys ( travelid = k ) )
+        RESULT DATA(t_result)
+        FAILED DATA(s_failed)
+        REPORTED DATA(s_reported).
+    ELSE.
+      MODIFY ENTITIES OF z2ui5_r_smps_trv
+        ENTITY travel
+          EXECUTE rejectTravel FROM VALUE #( FOR k IN t_keys ( travelid = k ) )
+        RESULT DATA(t_result_reject)
+        FAILED s_failed
+        REPORTED s_reported.
+      t_result = CORRESPONDING #( t_result_reject ).
+    ENDIF.
+
+    IF s_failed-travel IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported-travel type = `error` ).
+      RETURN.
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
+      FAILED DATA(s_failed_commit)
+      REPORTED DATA(s_reported_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported_commit-travel type = `error` ).
+      RETURN.
+    ENDIF.
+
+    " RESULT carries the changed instances - the new status comes from the
+    " business object, not from what the app expected it to be
+    DATA(ids) = concat_lines_of( sep   = `, `
+                                 table = VALUE string_table( FOR r IN t_result ( |{ r-travelid ALPHA = OUT }| ) ) ).
+    DATA(status) = z2ui5_cl_smps_context=>status_get_text( VALUE #( t_result[ 1 ]-%param-overallstatus OPTIONAL ) ).
+    client->message_toast_display( |{ status }: { ids }| ).
+    data_read( ).
 
   ENDMETHOD.
 

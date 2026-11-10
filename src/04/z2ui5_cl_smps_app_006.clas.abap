@@ -65,44 +65,6 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD data_read.
-
-    " the CDS view returns the active instances - a draft is not in there
-    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
-      FIELDS TravelUuid,
-             TravelId,
-             CustomerId,
-             Description,
-             OverallStatus
-      ORDER BY TravelId
-      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
-
-    " A draft shares the key of its active instance - only %is_draft tells
-    " the two apart. So reading the keys with %is_draft = on answers the
-    " question "which travels have a draft?": every key that comes back in
-    " RESULT has one, everything else lands in FAILED. That is the whole
-    " trick, and every other draft sample of this repository relies on it.
-    READ ENTITIES OF z2ui5_r_smps_trd
-      ENTITY travel
-        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_result
-                                          ( %tky = VALUE #( traveluuid = s_row-traveluuid
-                                                            %is_draft  = if_abap_behv=>mk-on ) ) )
-      RESULT DATA(t_drafts).
-
-    t_travels = VALUE #( FOR s_result IN t_result
-        ( travel_uuid = |{ s_result-traveluuid }|
-          travel_id   = |{ s_result-travelid ALPHA = OUT }|
-          customer_id = |{ s_result-customerid ALPHA = OUT }|
-          description = |{ s_result-description }|
-          status      = z2ui5_cl_smps_context=>status_get_text( s_result-overallstatus )
-          draft_text  = COND #( WHEN line_exists( t_drafts[ KEY entity traveluuid = s_result-traveluuid ] )
-                                THEN `Draft` ELSE `-` )
-          draft_state = COND #( WHEN line_exists( t_drafts[ KEY entity traveluuid = s_result-traveluuid ] )
-                                THEN `Warning` ELSE `None` ) ) ).
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -171,6 +133,44 @@ CLASS z2ui5_cl_smps_app_006 IMPLEMENTATION.
                     )->a( n = `text`  v = `{DRAFT_TEXT}` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD data_read.
+
+    " the CDS view returns the active instances - a draft is not in there
+    SELECT FROM z2ui5_r_smps_trd                        "#EC CI_NOWHERE
+      FIELDS TravelUuid,
+             TravelId,
+             CustomerId,
+             Description,
+             OverallStatus
+      ORDER BY TravelId
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
+
+    " A draft shares the key of its active instance - only %is_draft tells
+    " the two apart. So reading the keys with %is_draft = on answers the
+    " question "which travels have a draft?": every key that comes back in
+    " RESULT has one, everything else lands in FAILED. That is the whole
+    " trick, and every other draft sample of this repository relies on it.
+    READ ENTITIES OF z2ui5_r_smps_trd
+      ENTITY travel
+        FIELDS ( travelid ) WITH VALUE #( FOR s_row IN t_result
+                                          ( %tky = VALUE #( traveluuid = s_row-traveluuid
+                                                            %is_draft  = if_abap_behv=>mk-on ) ) )
+      RESULT DATA(t_drafts).
+
+    t_travels = VALUE #( FOR s_result IN t_result
+        ( travel_uuid = |{ s_result-traveluuid }|
+          travel_id   = |{ s_result-travelid ALPHA = OUT }|
+          customer_id = |{ s_result-customerid ALPHA = OUT }|
+          description = |{ s_result-description }|
+          status      = z2ui5_cl_smps_context=>status_get_text( s_result-overallstatus )
+          draft_text  = COND #( WHEN line_exists( t_drafts[ KEY entity traveluuid = s_result-traveluuid ] )
+                                THEN `Draft` ELSE `-` )
+          draft_state = COND #( WHEN line_exists( t_drafts[ KEY entity traveluuid = s_result-traveluuid ] )
+                                THEN `Warning` ELSE `None` ) ) ).
 
   ENDMETHOD.
 

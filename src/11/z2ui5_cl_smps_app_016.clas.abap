@@ -53,12 +53,12 @@ CLASS z2ui5_cl_smps_app_016 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS file_upload.
     METHODS file_download.
     METHODS file_delete.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -77,178 +77,6 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD on_event.
-
-    CASE client->get_event( ).
-
-      WHEN `UPLOAD`.
-        file_upload( ).
-
-      WHEN `DOWNLOAD`.
-        file_download( ).
-
-      WHEN `DELETE`.
-        file_delete( ).
-
-      WHEN `REFRESH`.
-        " the table is bound - changing it is enough, the framework sends the
-        " changed model back on its own
-        data_read( ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD file_upload.
-
-    " the FileUploader delivers a data URL - data:<mime>;base64,<payload>.
-    " The MIME type is the browser's guess from the file extension and may be
-    " missing altogether, so it falls back to the generic binary type.
-    SPLIT file AT `,` INTO DATA(header) DATA(base64).
-    DATA(mime_type) = substring_before( val = substring_after( val = header sub = `data:` ) sub = `;` ).
-    IF mime_type IS INITIAL.
-      mime_type = `application/octet-stream`.
-    ENDIF.
-    DATA(content) = cl_web_http_utility=>decode_x_base64( base64 ).
-
-    " a static action needs no key - the %cid is the caller's own id for it.
-    " The parameter is deep: description on the first level, the file one
-    " level below under the association _streamproperties.
-    MODIFY ENTITIES OF z2ui5_r_smps_fil
-      ENTITY file
-        EXECUTE uploadfile
-        FROM VALUE #( ( %cid   = `UPLOAD_1`
-                        %param = VALUE #( description       = description
-                                          _streamproperties = VALUE #( filecontent = content
-                                                                       mimetype    = mime_type
-                                                                       filename    = file_name ) ) ) )
-      FAILED DATA(s_failed)
-      REPORTED DATA(s_reported).
-
-    IF s_failed-file IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported-file type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_fil
-      FAILED DATA(s_failed_commit)
-      REPORTED DATA(s_reported_commit).
-
-    IF s_failed_commit IS NOT INITIAL.
-
-      " a failed save keeps the changes in the transactional buffer - discard
-      " them, or abap2UI5's own COMMIT WORK at the end of the roundtrip runs
-      " into them
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported_commit-file type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    client->message_toast_display( |{ file_name } - { xstrlen( content ) } bytes stored in the business object| ).
-
-    file        = VALUE #( ).
-    file_name   = VALUE #( ).
-    description = VALUE #( ).
-    data_read( ).
-    view_display( ).
-
-  ENDMETHOD.
-
-
-  METHOD file_download.
-
-    DATA(file_uuid) = CONV z2ui5_t_smps_fil-file_uuid( client->get_event_arg( ) ).
-
-    READ ENTITIES OF z2ui5_r_smps_fil
-      ENTITY file
-        FIELDS ( filename mimetype content )
-        WITH VALUE #( ( fileuuid = file_uuid ) )
-      RESULT DATA(t_result).
-
-    " a file deleted in another tab is not an exception - RESULT is just empty
-    IF t_result IS INITIAL.
-      client->message_box_display( text = `The file is no longer there - press Refresh` type = `error` ).
-      RETURN.
-    ENDIF.
-
-    " the same road back: the content becomes a data URL again, and the
-    " download_b64_file frontend action saves it under its name
-    DATA(s_file) = t_result[ 1 ].
-    client->follow_up_action(
-        val   = client->cs_event-download_b64_file
-        t_arg = VALUE #( ( |data:{ s_file-mimetype };base64,{ cl_web_http_utility=>encode_x_base64( s_file-content ) }| )
-                         ( |{ s_file-filename }| ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD file_delete.
-
-    DATA(file_uuid) = CONV z2ui5_t_smps_fil-file_uuid( client->get_event_arg( ) ).
-
-    MODIFY ENTITIES OF z2ui5_r_smps_fil
-      ENTITY file
-        DELETE FROM VALUE #( ( fileuuid = file_uuid ) )
-      FAILED DATA(s_failed)
-      REPORTED DATA(s_reported).
-
-    IF s_failed-file IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported-file type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_fil
-      FAILED DATA(s_failed_commit)
-      REPORTED DATA(s_reported_commit).
-
-    IF s_failed_commit IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported_commit-file type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    client->message_toast_display( `File deleted` ).
-    data_read( ).
-
-  ENDMETHOD.
-
-
-  METHOD data_read.
-
-    " EML reads by key - a list of every file is a SELECT on the CDS view.
-    " The content stays in the database: the list needs its size, not its
-    " bytes, and every row would otherwise travel to the browser.
-    SELECT FROM z2ui5_r_smps_fil                        "#EC CI_NOWHERE
-      FIELDS FileUuid,
-             FileName,
-             MimeType,
-             FileSize,
-             Description,
-             CreatedAt
-      ORDER BY CreatedAt DESCENDING
-      INTO TABLE @DATA(t_result) UP TO 50 ROWS.
-
-    t_files = VALUE #( FOR s_result IN t_result
-        ( file_uuid   = |{ s_result-fileuuid }|
-          file_name   = |{ s_result-filename }|
-          mime_type   = |{ s_result-mimetype }|
-          file_size   = |{ s_result-filesize } bytes|
-          description = |{ s_result-description }|
-          created_at  = |{ s_result-createdat TIMESTAMP = ISO }| ) ).
 
   ENDMETHOD.
 
@@ -357,6 +185,180 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
                         )->a( n = `tooltip` v = `Delete File` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+
+      WHEN `UPLOAD`.
+        file_upload( ).
+
+      WHEN `DOWNLOAD`.
+        file_download( ).
+
+      WHEN `DELETE`.
+        file_delete( ).
+
+      WHEN `REFRESH`.
+        " the table is bound - changing it is enough, the framework sends the
+        " changed model back on its own
+        data_read( ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD file_upload.
+
+    " the FileUploader delivers a data URL - data:<mime>;base64,<payload>.
+    " The MIME type is the browser's guess from the file extension and may be
+    " missing altogether, so it falls back to the generic binary type.
+    SPLIT file AT `,` INTO DATA(header) DATA(base64).
+    DATA(mime_type) = substring_before( val = substring_after( val = header sub = `data:` ) sub = `;` ).
+    IF mime_type IS INITIAL.
+      mime_type = `application/octet-stream`.
+    ENDIF.
+    DATA(content) = cl_web_http_utility=>decode_x_base64( base64 ).
+
+    " a static action needs no key - the %cid is the caller's own id for it.
+    " The parameter is deep: description on the first level, the file one
+    " level below under the association _streamproperties.
+    MODIFY ENTITIES OF z2ui5_r_smps_fil
+      ENTITY file
+        EXECUTE uploadfile
+        FROM VALUE #( ( %cid   = `UPLOAD_1`
+                        %param = VALUE #( description       = description
+                                          _streamproperties = VALUE #( filecontent = content
+                                                                       mimetype    = mime_type
+                                                                       filename    = file_name ) ) ) )
+      FAILED DATA(s_failed)
+      REPORTED DATA(s_reported).
+
+    IF s_failed-file IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported-file type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_fil
+      FAILED DATA(s_failed_commit)
+      REPORTED DATA(s_reported_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+
+      " a failed save keeps the changes in the transactional buffer - discard
+      " them, or abap2UI5's own COMMIT WORK at the end of the roundtrip runs
+      " into them
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported_commit-file type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    client->message_toast_display( |{ file_name } - { xstrlen( content ) } bytes stored in the business object| ).
+
+    file        = VALUE #( ).
+    file_name   = VALUE #( ).
+    description = VALUE #( ).
+    data_read( ).
+    " a rebuild, not only the model push: it also replaces the FileUploader,
+    " whose picked file is control state and not part of the model
+    view_display( ).
+
+  ENDMETHOD.
+
+
+  METHOD file_download.
+
+    DATA(file_uuid) = CONV z2ui5_t_smps_fil-file_uuid( client->get_event_arg( ) ).
+
+    READ ENTITIES OF z2ui5_r_smps_fil
+      ENTITY file
+        FIELDS ( filename mimetype content )
+        WITH VALUE #( ( fileuuid = file_uuid ) )
+      RESULT DATA(t_result).
+
+    " a file deleted in another tab is not an exception - RESULT is just empty
+    IF t_result IS INITIAL.
+      client->message_box_display( text = `The file is no longer there - press Refresh` type = `error` ).
+      RETURN.
+    ENDIF.
+
+    " the same road back: the content becomes a data URL again, and the
+    " download_b64_file frontend action saves it under its name
+    DATA(s_file) = t_result[ 1 ].
+    client->follow_up_action(
+        val   = client->cs_event-download_b64_file
+        t_arg = VALUE #( ( |data:{ s_file-mimetype };base64,{ cl_web_http_utility=>encode_x_base64( s_file-content ) }| )
+                         ( |{ s_file-filename }| ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD file_delete.
+
+    DATA(file_uuid) = CONV z2ui5_t_smps_fil-file_uuid( client->get_event_arg( ) ).
+
+    MODIFY ENTITIES OF z2ui5_r_smps_fil
+      ENTITY file
+        DELETE FROM VALUE #( ( fileuuid = file_uuid ) )
+      FAILED DATA(s_failed)
+      REPORTED DATA(s_reported).
+
+    IF s_failed-file IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported-file type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_fil
+      FAILED DATA(s_failed_commit)
+      REPORTED DATA(s_reported_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported_commit-file type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    client->message_toast_display( `File deleted` ).
+    data_read( ).
+
+  ENDMETHOD.
+
+
+  METHOD data_read.
+
+    " EML reads by key - a list of every file is a SELECT on the CDS view.
+    " The content stays in the database: the list needs its size, not its
+    " bytes, and every row would otherwise travel to the browser.
+    SELECT FROM z2ui5_r_smps_fil                        "#EC CI_NOWHERE
+      FIELDS FileUuid,
+             FileName,
+             MimeType,
+             FileSize,
+             Description,
+             CreatedAt
+      ORDER BY CreatedAt DESCENDING
+      INTO TABLE @DATA(t_result) UP TO 50 ROWS.
+
+    t_files = VALUE #( FOR s_result IN t_result
+        ( file_uuid   = |{ s_result-fileuuid }|
+          file_name   = |{ s_result-filename }|
+          mime_type   = |{ s_result-mimetype }|
+          file_size   = |{ s_result-filesize } bytes|
+          description = |{ s_result-description }|
+          created_at  = |{ s_result-createdat TIMESTAMP = ISO }| ) ).
 
   ENDMETHOD.
 

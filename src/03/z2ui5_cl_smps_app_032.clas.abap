@@ -56,12 +56,12 @@ CLASS z2ui5_cl_smps_app_032 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS data_read.
     METHODS travel_edit.
     METHODS travel_save.
     METHODS travel_change_elsewhere.
-    METHODS view_display.
+    METHODS on_event.
     METHODS popup_edit_display.
 
   PRIVATE SECTION.
@@ -85,6 +85,86 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 32 Edit with Conflict Check`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Edit a travel, press Change by Someone Else in the popup, then Save - the conflict is detected ` &&
+                                 `from LastChangedAt, without any lock held while you type.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Travel`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Booking Fee`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Last Changed`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{BOOKING_FEE} {CURRENCY}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{DESCRIPTION}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CHANGED_AT}`
+                )->tag( `Button`
+                    )->a( n = `press` v = client->_event( val = `EDIT` arg = `${TRAVEL_ID}` )
+                    )->a( n = `icon`  v = `sap-icon://edit`
+                    )->a( n = `text`  v = `Edit` ).
+
+    client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD on_event.
 
     CASE client->get_event( ).
@@ -96,11 +176,9 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
         travel_change_elsewhere( ).
       WHEN `REFRESH`.
         data_read( ).
-        view_display( ).
       WHEN `GENERATE`.
         client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
         data_read( ).
-        view_display( ).
     ENDCASE.
 
   ENDMETHOD.
@@ -199,7 +277,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
       ROLLBACK ENTITIES.
       client->popup_destroy( ).
       data_read( ).
-      view_display( ).
       client->message_box_display( text = |Travel { s_edit-travel_id } was changed by someone else after you opened it. | &&
                                           `Your change was not saved - open the travel again to see the current values.`
                                    type = `warning` ).
@@ -218,7 +295,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
 
     client->popup_destroy( ).
     data_read( ).
-    view_display( ).
     client->message_toast_display( |Travel { s_edit-travel_id } saved| ).
 
   ENDMETHOD.
@@ -257,86 +333,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
     ENDIF.
 
     client->message_toast_display( `Saved by someone else - now press Save` ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 32 Edit with Conflict Check`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Edit a travel, press Change by Someone Else in the popup, then Save - the conflict is detected ` &&
-                                 `from LastChangedAt, without any lock held while you type.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_travels )
-        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Travel`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Booking Fee`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Last Changed`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{BOOKING_FEE} {CURRENCY}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{DESCRIPTION}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CHANGED_AT}`
-                )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val = `EDIT` arg = `${TRAVEL_ID}` )
-                    )->a( n = `icon`  v = `sap-icon://edit`
-                    )->a( n = `text`  v = `Edit` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
