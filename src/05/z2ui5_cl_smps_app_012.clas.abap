@@ -34,7 +34,6 @@ CLASS z2ui5_cl_smps_app_012 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `REFRESH` ).
       data_read( ).
-      view_display( ).
     ENDIF.
   ENDMETHOD.
 

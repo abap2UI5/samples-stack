@@ -168,6 +168,8 @@ CLASS z2ui5_cl_smps_app_021 IMPLEMENTATION.
     ENDTRY.
 
     CLEAR file.
+    " a rebuild, not only the model push: it also replaces the FileUploader,
+    " whose picked file is control state and not part of the model
     view_display( ).
 
   ENDMETHOD.

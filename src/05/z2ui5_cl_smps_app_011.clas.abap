@@ -170,7 +170,6 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
         on_event_update( ).
       WHEN `REFRESH`.
         data_read( ).
-        view_display( ).
     ENDCASE.
   ENDMETHOD.
 
@@ -207,7 +206,6 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
       client->message_toast_display( |Ticket '{ ms_create-title }' created - business event fired| ).
       ms_create = VALUE #( priority = `M` status = `NEW` ).
       data_read( ).
-      view_display( ).
     ELSE.
       text = failure_text( action = `Create`
                            msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).
@@ -251,7 +249,6 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     IF commit_failed IS INITIAL.
       client->message_toast_display( |Ticket '{ s_ticket-title }' set to { s_ticket-status } - business event fired| ).
       data_read( ).
-      view_display( ).
     ELSE.
       text = failure_text( action = `Update`
                            msg    = VALUE #( commit_reported-ticket[ 1 ]-%msg OPTIONAL ) ).

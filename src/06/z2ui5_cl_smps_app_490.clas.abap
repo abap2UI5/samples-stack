@@ -35,6 +35,9 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
 
     DATA lf_new_varkey TYPE n LENGTH 4.
 
+    " not the canonical chain, on purpose: one class is two screens, told
+    " apart by view_id, and each has its own lifecycle - the start view ends
+    " the stateful session, every lock view takes its lock before it displays
     IF view_id IS INITIAL OR view_id = 1.
       view_id = 1.
       TRY.

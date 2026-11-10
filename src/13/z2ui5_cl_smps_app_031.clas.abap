@@ -211,11 +211,9 @@ CLASS z2ui5_cl_smps_app_031 IMPLEMENTATION.
     CASE client->get_event( ).
       WHEN `SEARCH`.
         data_search( ).
-        view_display( ).
       WHEN `RESET`.
         s_selection = VALUE #( max_rows = 200 ).
         data_search( ).
-        view_display( ).
       WHEN `EXPORT`.
         data_export( ).
     ENDCASE.

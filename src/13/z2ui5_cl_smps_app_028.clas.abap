@@ -269,6 +269,8 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
       CATCH cx_root INTO DATA(error).
         " not an .xlsx at all, or a damaged one - XCO says why
         client->message_box_display( text = |{ file_name }: { error->get_text( ) }| type = `error` ).
+        " a rebuild, not only the model push: Import is enabled at render
+        " time from t_rows, and the FileUploader starts over with it
         view_display( ).
         RETURN.
     ENDTRY.
@@ -292,6 +294,8 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
 
     DATA(errors) = REDUCE i( INIT n = 0 FOR r IN t_rows WHERE ( state = `Error` ) NEXT n = n + 1 ).
     client->message_toast_display( |{ file_name } - { lines( t_rows ) } rows read, { errors } with errors| ).
+    " a rebuild, not only the model push: Import is enabled at render time
+    " from t_rows, and the FileUploader starts over with it
     view_display( ).
 
   ENDMETHOD.
@@ -384,14 +388,12 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
 
     IF t_travel IS INITIAL.
       client->message_box_display( `Nothing to import - upload a file with at least one row without errors first` ).
-      view_display( ).
       RETURN.
     ENDIF.
 
     DATA(pending) = REDUCE i( INIT n = 0 FOR r IN t_rows WHERE ( travel_id IS INITIAL ) NEXT n = n + 1 ).
     IF skip_refused = abap_false AND lines( t_travel ) < pending.
       client->message_box_display( text = `Some rows have errors - fix the file, or switch on Skip refused rows` type = `error` ).
-      view_display( ).
       RETURN.
     ENDIF.
 
@@ -426,7 +428,6 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
       client->message_box_display( text = |{ created } travels created, { refused_rows } rows not imported - see the status column|
                                    type = COND #( WHEN created = 0 THEN `error` ELSE `warning` ) ).
     ENDIF.
-    view_display( ).
 
   ENDMETHOD.
 

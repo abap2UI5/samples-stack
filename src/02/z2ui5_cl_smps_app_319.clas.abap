@@ -85,17 +85,14 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     m_client = client.
-
     IF m_client->check_on_init( ).
       model_init( ).
       view_display( ).
-      RETURN.
     ELSEIF m_client->check_on_navigated( ).
       view_display( ).
-      RETURN.
+    ELSEIF m_client->check_on_event( ).
+      on_event( ).
     ENDIF.
-
-    on_event( ).
 
   ENDMETHOD.
 

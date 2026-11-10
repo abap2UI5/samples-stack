@@ -180,7 +180,6 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
     DATA(t_pdf) = forms_render( ).
 
     IF t_pdf IS INITIAL.
-      view_display( ).
       RETURN.
     ENDIF.
 
@@ -204,8 +203,6 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
                        content   = zip->save( ) ).
 
     ENDCASE.
-
-    view_display( ).
 
   ENDMETHOD.
 

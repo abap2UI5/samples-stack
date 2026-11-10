@@ -17,6 +17,10 @@ CLASS z2ui5_cl_smps_app_479 DEFINITION PUBLIC.
     " dimensions and measures the view expects.
     CONSTANTS c_odata_service TYPE string VALUE `/sap/opu/odata/sap/<YOUR_ANALYTICAL_SERVICE>/`.
 
+    DATA client TYPE REF TO z2ui5_if_client.
+
+    METHODS view_display.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -25,41 +29,9 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
+    me->client = client.
     IF client->check_on_navigated( ).
-
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-          )->ele( n = `View` ns = `mvc`
-              )->a( n = `displayBlock`     v = `true`
-              )->a( n = `height`           v = `100%`
-              )->a( n = `xmlns`            v = `sap.m`
-              )->a( n = `xmlns:mvc`        v = `sap.ui.core.mvc`
-              )->a( n = `xmlns:navpopover` v = `sap.ui.comp.navpopover`
-              )->a( n = `xmlns:smartChart` v = `sap.ui.comp.smartchart` ).
-
-      DATA(page) = view->ele( `Shell`
-          )->ele( `Page`
-              )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartChart`
-              )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-              )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-      " The chart, its dimensions/measures and the personalization dialog are all
-      " metadata-driven; the SemanticObjectController turns the annotated Category
-      " dimension into a navigation popover and reports its two events back here.
-      page->ele( n = `SmartChart` ns = `smartChart`
-          )->a( n = `enableAutoBinding`       b = abap_true
-          )->a( n = `entitySet`               v = `Products`
-          )->a( n = `useVariantManagement`    b = abap_true
-          )->a( n = `persistencyKey`          v = `SmartChart_Explored`
-          )->a( n = `useChartPersonalisation` b = abap_true
-          )->a( n = `header`                  v = `Products`
-          )->ele( n = `semanticObjectController` ns = `smartChart`
-              )->ele( n = `SemanticObjectController` ns = `navpopover`
-                  )->a( n = `navigationTargetsObtained` v = client->_event( `NAV_TARGETS_OBTAINED` )
-                  )->a( n = `navigate`                  v = client->_event( val = `NAVIGATE`
-                                                                                          arg = `${$parameters>/text}` ) ).
-
-      client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
-
+      view_display( ).
     ELSEIF client->check_on_event( `NAV_TARGETS_OBTAINED` ).
       " The tutorial answers this event by composing the navigation popover
       " imperatively (oParameters.show( ) with LinkData entries and a SimpleForm of
@@ -79,6 +51,44 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
       ENDIF.
 
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock`     v = `true`
+            )->a( n = `height`           v = `100%`
+            )->a( n = `xmlns`            v = `sap.m`
+            )->a( n = `xmlns:mvc`        v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:navpopover` v = `sap.ui.comp.navpopover`
+            )->a( n = `xmlns:smartChart` v = `sap.ui.comp.smartchart` ).
+
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartChart`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    " The chart, its dimensions/measures and the personalization dialog are all
+    " metadata-driven; the SemanticObjectController turns the annotated Category
+    " dimension into a navigation popover and reports its two events back here.
+    page->ele( n = `SmartChart` ns = `smartChart`
+        )->a( n = `enableAutoBinding`       b = abap_true
+        )->a( n = `entitySet`               v = `Products`
+        )->a( n = `useVariantManagement`    b = abap_true
+        )->a( n = `persistencyKey`          v = `SmartChart_Explored`
+        )->a( n = `useChartPersonalisation` b = abap_true
+        )->a( n = `header`                  v = `Products`
+        )->ele( n = `semanticObjectController` ns = `smartChart`
+            )->ele( n = `SemanticObjectController` ns = `navpopover`
+                )->a( n = `navigationTargetsObtained` v = client->_event( `NAV_TARGETS_OBTAINED` )
+                )->a( n = `navigate`                  v = client->_event( val = `NAVIGATE`
+                                                                                        arg = `${$parameters>/text}` ) ).
+
+    client->view_display( val = view->stringify( ) switch_default_model_path = c_odata_service ).
 
   ENDMETHOD.
 

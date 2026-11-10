@@ -176,11 +176,9 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
         travel_change_elsewhere( ).
       WHEN `REFRESH`.
         data_read( ).
-        view_display( ).
       WHEN `GENERATE`.
         client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
         data_read( ).
-        view_display( ).
     ENDCASE.
 
   ENDMETHOD.
@@ -279,7 +277,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
       ROLLBACK ENTITIES.
       client->popup_destroy( ).
       data_read( ).
-      view_display( ).
       client->message_box_display( text = |Travel { s_edit-travel_id } was changed by someone else after you opened it. | &&
                                           `Your change was not saved - open the travel again to see the current values.`
                                    type = `warning` ).
@@ -298,7 +295,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
 
     client->popup_destroy( ).
     data_read( ).
-    view_display( ).
     client->message_toast_display( |Travel { s_edit-travel_id } saved| ).
 
   ENDMETHOD.

@@ -161,7 +161,7 @@ CLASS z2ui5_cl_smps_app_029 IMPLEMENTATION.
                 )->a( n = `press`   v = client->_event( `APPLY` )
                 )->a( n = `text`    v = `Apply`
                 )->a( n = `type`    v = `Emphasized`
-                )->a( n = `enabled` b = check_preview
+                )->a( n = `enabled` v = client->_bind( check_preview )
             )->tag( `Button`
                 )->a( n = `press`   v = client->_event( `GENERATE` )
                 )->a( n = `text`    v = `Reset Demo Data`
@@ -229,7 +229,6 @@ CLASS z2ui5_cl_smps_app_029 IMPLEMENTATION.
         client->message_toast_display( z2ui5_cl_smps_data_trv=>data_reset( ) ).
         data_read( ).
     ENDCASE.
-    view_display( ).
 
   ENDMETHOD.
 

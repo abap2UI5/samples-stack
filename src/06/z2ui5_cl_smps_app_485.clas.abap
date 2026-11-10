@@ -40,6 +40,9 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
+    " not the canonical chain, on purpose: init and the return from another
+    " app each set the stateful session before they build the view, and the
+    " error of the last roundtrip is cleared on every one
     TRY.
 
         error = VALUE #( ).

@@ -145,11 +145,15 @@ CLASS z2ui5_cl_smps_app_019 IMPLEMENTATION.
 
       WHEN `NEXT`.
         request_load( ).
+        " a rebuild, not only the model push: with or without a request the
+        " view differs in structure - the warning strip, the enabled flags
         view_display( ).
 
       WHEN `GENERATE`.
         client->message_toast_display( z2ui5_cl_smps_data_req=>data_reset( ) ).
         request_load( ).
+        " a rebuild for the same reason as above - the reset may bring the
+        " first request, and with it a view without the warning strip
         view_display( ).
 
     ENDCASE.
