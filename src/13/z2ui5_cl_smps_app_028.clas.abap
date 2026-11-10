@@ -73,11 +73,11 @@ CLASS z2ui5_cl_smps_app_028 DEFINITION PUBLIC.
 
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS file_read.
     METHODS rows_import.
     METHODS example_download.
-    METHODS view_display.
+    METHODS on_event.
 
     "! one row of the sheet into the types of the business object - the
     "! problems found go into the row's status, which stays Error unless
@@ -122,6 +122,121 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Excel - 28 Import Travels into a RAP Business Object`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Columns A to F: agency, customer, begin date, end date, booking fee, currency - row 1 is the header. ` &&
+                                 `Upload checks every row, Import creates the travels in Z2UI5_R_SMPS_TRV. No file at hand? Download Example File first.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    page->ele( `HBox`
+        )->a( n = `class`      v = `sapUiSmallMargin`
+        )->a( n = `alignItems` v = `Center`
+        )->tag( n = `FileUploader` ns = `z2ui5`
+            )->a( n = `placeholder`      v = `pick an .xlsx file...`
+            )->a( n = `fileType`         v = `xlsx`
+            )->a( n = `uploadButtonText` v = `Upload`
+            )->a( n = `upload`           v = client->_event( `UPLOAD` )
+            )->a( n = `path`             v = client->_bind( file_name )
+            )->a( n = `value`            v = client->_bind( file )
+        )->tag( `Button`
+            )->a( n = `press` v = client->_event( `EXAMPLE` )
+            )->a( n = `text`  v = `Download Example File`
+            )->a( n = `icon`  v = `sap-icon://download`
+            )->a( n = `class` v = `sapUiSmallMarginBegin` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_rows )
+        )->a( n = `noDataText` v = `Nothing read yet` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Preview`
+            )->tag( `ToolbarSpacer`
+            )->tag( `CheckBox`
+                )->a( n = `text`     v = `Skip refused rows`
+                )->a( n = `selected` v = client->_bind( skip_refused )
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `IMPORT` )
+                )->a( n = `text`    v = `Import`
+                )->a( n = `type`    v = `Emphasized`
+                )->a( n = `enabled` b = xsdbool( t_rows IS NOT INITIAL ) ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->a( n = `width` v = `4rem`
+            )->tag( `Text`
+                )->a( n = `text` v = `Row`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Agency`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Customer`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Begin`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `End`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Fee`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Travel` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{ROW}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{AGENCY_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CUSTOMER_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{BEGIN_DATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{END_DATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{BOOKING_FEE} {CURRENCY}`
+                )->tag( `ObjectStatus`
+                    )->a( n = `text`  v = `{STATUS}`
+                    )->a( n = `state` v = `{STATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -434,121 +549,6 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
         val   = client->cs_event-download_b64_file
         t_arg = VALUE #( ( |data:{ z2ui5_cl_smps_xlsx=>mime_type };base64,{ cl_web_http_utility=>encode_x_base64( xlsx ) }| )
                          ( `travels.xlsx` ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Excel - 28 Import Travels into a RAP Business Object`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Columns A to F: agency, customer, begin date, end date, booking fee, currency - row 1 is the header. ` &&
-                                 `Upload checks every row, Import creates the travels in Z2UI5_R_SMPS_TRV. No file at hand? Download Example File first.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    page->ele( `HBox`
-        )->a( n = `class`      v = `sapUiSmallMargin`
-        )->a( n = `alignItems` v = `Center`
-        )->tag( n = `FileUploader` ns = `z2ui5`
-            )->a( n = `placeholder`      v = `pick an .xlsx file...`
-            )->a( n = `fileType`         v = `xlsx`
-            )->a( n = `uploadButtonText` v = `Upload`
-            )->a( n = `upload`           v = client->_event( `UPLOAD` )
-            )->a( n = `path`             v = client->_bind( file_name )
-            )->a( n = `value`            v = client->_bind( file )
-        )->tag( `Button`
-            )->a( n = `press` v = client->_event( `EXAMPLE` )
-            )->a( n = `text`  v = `Download Example File`
-            )->a( n = `icon`  v = `sap-icon://download`
-            )->a( n = `class` v = `sapUiSmallMarginBegin` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_rows )
-        )->a( n = `noDataText` v = `Nothing read yet` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Preview`
-            )->tag( `ToolbarSpacer`
-            )->tag( `CheckBox`
-                )->a( n = `text`     v = `Skip refused rows`
-                )->a( n = `selected` v = client->_bind( skip_refused )
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `IMPORT` )
-                )->a( n = `text`    v = `Import`
-                )->a( n = `type`    v = `Emphasized`
-                )->a( n = `enabled` b = xsdbool( t_rows IS NOT INITIAL ) ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->a( n = `width` v = `4rem`
-            )->tag( `Text`
-                )->a( n = `text` v = `Row`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Agency`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Customer`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Begin`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `End`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Fee`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Travel` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{ROW}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{AGENCY_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CUSTOMER_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{BEGIN_DATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{END_DATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{BOOKING_FEE} {CURRENCY}`
-                )->tag( `ObjectStatus`
-                    )->a( n = `text`  v = `{STATUS}`
-                    )->a( n = `state` v = `{STATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

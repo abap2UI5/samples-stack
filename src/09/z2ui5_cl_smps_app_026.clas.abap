@@ -60,12 +60,12 @@ CLASS z2ui5_cl_smps_app_026 DEFINITION PUBLIC.
     "! the id of the pressed link - the popover opens next to it
     DATA anchor TYPE string.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS on_event_links.
     METHODS on_event_links_read.
     METHODS on_event_navigate.
 
-    METHODS view_display.
+    METHODS on_event.
     METHODS popover_display.
 
   PRIVATE SECTION.
@@ -111,6 +111,80 @@ CLASS z2ui5_cl_smps_app_026 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Launchpad - Smart Link Popover with getLinks`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
+            )->a( n = `showHeader`     b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Press a product: follow_up_action( cs_event-cross_app_nav_get_links ) asks the ` &&
+                                 `launchpad which apps the user may open for the semantic object with the row's ` &&
+                                 `PRODUCT and QUANTITY, and the popover lists what it answers - a press on an entry ` &&
+                                 `navigates there with cs_event-cross_app_nav_to_ext. Only works inside a launchpad; ` &&
+                                 `with the target mapping of z2ui5_cl_smps_app_484 the receiver is in the list.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `The links of`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Semantic Object`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( semantic_object ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items` v = client->_bind( t_products ) ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Products` ).
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Product`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Name`
+        )->end(
+        )->ele( `Column`
+            )->a( n = `hAlign` v = `End`
+            )->tag( `Text`
+                )->a( n = `text` v = `Quantity` ).
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Link`
+                    )->a( n = `text`  v = `{PRODUCT}`
+                    )->a( n = `press` v = client->_event( val   = `LINKS`
+                                                          t_arg = VALUE #( ( `${$source>/id}` )
+                                                                           ( `${PRODUCT}` )
+                                                                           ( `${NAME}` )
+                                                                           ( `${QUANTITY}` ) ) )
+                )->tag( `Text`
+                    )->a( n = `text` v = `{NAME}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{QUANTITY}` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -267,80 +341,6 @@ CLASS z2ui5_cl_smps_app_026 IMPLEMENTATION.
 
     result = replace( val = val sub = `\` with = `\\` occ = 0 ).
     result = replace( val = result sub = `"` with = `\"` occ = 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Launchpad - Smart Link Popover with getLinks`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->a( n = `showHeader`     b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Press a product: follow_up_action( cs_event-cross_app_nav_get_links ) asks the ` &&
-                                 `launchpad which apps the user may open for the semantic object with the row's ` &&
-                                 `PRODUCT and QUANTITY, and the popover lists what it answers - a press on an entry ` &&
-                                 `navigates there with cs_event-cross_app_nav_to_ext. Only works inside a launchpad; ` &&
-                                 `with the target mapping of z2ui5_cl_smps_app_484 the receiver is in the list.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `The links of`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Semantic Object`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( semantic_object ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items` v = client->_bind( t_products ) ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Products` ).
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Product`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Name`
-        )->end(
-        )->ele( `Column`
-            )->a( n = `hAlign` v = `End`
-            )->tag( `Text`
-                )->a( n = `text` v = `Quantity` ).
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Link`
-                    )->a( n = `text`  v = `{PRODUCT}`
-                    )->a( n = `press` v = client->_event( val   = `LINKS`
-                                                          t_arg = VALUE #( ( `${$source>/id}` )
-                                                                           ( `${PRODUCT}` )
-                                                                           ( `${NAME}` )
-                                                                           ( `${QUANTITY}` ) ) )
-                )->tag( `Text`
-                    )->a( n = `text` v = `{NAME}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{QUANTITY}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

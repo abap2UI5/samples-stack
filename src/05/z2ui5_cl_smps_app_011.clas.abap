@@ -26,12 +26,11 @@ CLASS z2ui5_cl_smps_app_011 DEFINITION PUBLIC CREATE PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_init.
-    METHODS on_event.
+    METHODS view_display.
     METHODS on_event_create.
     METHODS on_event_update.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
 
     "! what to say when the business object refused a create or an update:
     "! its own message where it sent one - a lock held by a draft of another
@@ -56,7 +55,8 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     me->client = client.
     IF client->check_on_init( ).
       ms_create = VALUE #( priority = `M` status = `NEW` ).
-      on_init( ).
+      data_read( ).
+      view_display( ).
     ELSEIF client->check_on_navigated( ).
       view_display( ).
     ELSEIF client->check_on_event( ).
@@ -64,9 +64,102 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD on_init.
-    data_read( ).
-    view_display( ).
+  METHOD view_display.
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Business Events - Tickets`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Create a ticket and the business object raises the notification event TicketCreated. ` &&
+                                 `Change a status in the table and press Update Status, and it raises the data event ` &&
+                                 `StatusChanged with the new values. What the handler made of both is in the event log ` &&
+                                 `app - open it in a second tab and press refresh there.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` v = `true`
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    " --- create form ---
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Title`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( ms_create-title )
+            )->tag( `Label`
+                )->a( n = `text` v = `Priority (H / M / L)`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( ms_create-priority )
+            )->tag( `Label`
+                )->a( n = `text` v = `Status`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( ms_create-status )
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `CREATE` )
+                )->a( n = `text`  v = `Create Ticket`
+                )->a( n = `type`  v = `Emphasized` ).
+
+    " --- tickets table ---
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( mt_tickets )
+        )->a( n = `noDataText` v = `No tickets yet - create one above` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Tickets`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Title`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Priority`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Created By`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TITLE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{PRIORITY}`
+                )->tag( `Input`
+                    )->a( n = `value` v = `{STATUS}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CREATED_BY}`
+                )->tag( `Button`
+                    )->a( n = `press` v = client->_event( val = `UPDATE`
+                                            arg = `${TICKET_UUID}` )
+                    )->a( n = `text`  v = `Update Status` ).
+
+    client->view_display( view->stringify( ) ).
   ENDMETHOD.
 
   METHOD on_event.
@@ -193,104 +286,6 @@ CLASS z2ui5_cl_smps_app_011 IMPLEMENTATION.
       result = |{ action } refused by the business object, which sent no message with it|.
     ENDIF.
 
-  ENDMETHOD.
-
-  METHOD view_display.
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Business Events - Tickets`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Create a ticket and the business object raises the notification event TicketCreated. ` &&
-                                 `Change a status in the table and press Update Status, and it raises the data event ` &&
-                                 `StatusChanged with the new values. What the handler made of both is in the event log ` &&
-                                 `app - open it in a second tab and press refresh there.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` v = `true`
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    " --- create form ---
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Title`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( ms_create-title )
-            )->tag( `Label`
-                )->a( n = `text` v = `Priority (H / M / L)`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( ms_create-priority )
-            )->tag( `Label`
-                )->a( n = `text` v = `Status`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( ms_create-status )
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `CREATE` )
-                )->a( n = `text`  v = `Create Ticket`
-                )->a( n = `type`  v = `Emphasized` ).
-
-    " --- tickets table ---
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( mt_tickets )
-        )->a( n = `noDataText` v = `No tickets yet - create one above` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Tickets`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Title`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Priority`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Created By`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TITLE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{PRIORITY}`
-                )->tag( `Input`
-                    )->a( n = `value` v = `{STATUS}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CREATED_BY}`
-                )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val = `UPDATE`
-                                            arg = `${TICKET_UUID}` )
-                    )->a( n = `text`  v = `Update Status` ).
-
-    client->view_display( view->stringify( ) ).
   ENDMETHOD.
 
 ENDCLASS.

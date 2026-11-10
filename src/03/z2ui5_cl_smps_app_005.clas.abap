@@ -50,15 +50,14 @@ CLASS z2ui5_cl_smps_app_005 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_init.
-    METHODS on_event.
+    METHODS view_display.
     METHODS on_event_generate.
     METHODS on_event_create.
     METHODS on_event_save.
     METHODS on_event_accept.
     METHODS on_event_reject.
     METHODS on_event_delete.
-    METHODS view_display.
+    METHODS on_event.
     METHODS popup_create_display.
     METHODS data_read.
 
@@ -76,7 +75,8 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
 
     me->client = client.
     IF client->check_on_init( ).
-      on_init( ).
+      data_read( ).
+      view_display( ).
     ELSEIF client->check_on_navigated( ).
       view_display( ).
     ELSEIF client->check_on_event( ).
@@ -86,10 +86,113 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD on_init.
+  METHOD view_display.
 
-    data_read( ).
-    view_display( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 05 Manage Travels`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data for three, or Create your own` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `CREATE` )
+                )->a( n = `text`  v = `Create`
+                )->a( n = `icon`  v = `sap-icon://add`
+                )->a( n = `type`  v = `Emphasized`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every travel, then creates the three demo travels again`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `ID`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Customer`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Begin Date`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `End Date`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Total Price`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Actions` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CUSTOMER_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{BEGIN_DATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{END_DATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TOTAL_PRICE}`
+                )->ele( `ObjectStatus`
+                    )->a( n = `state` v = `{STATUS_STATE}`
+                    )->a( n = `text`  v = `{OVERALL_STATUS}`
+                )->end(
+                )->tag( `Input`
+                    )->a( n = `value` v = `{DESCRIPTION}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `SAVE` arg = `${TRAVEL_ID}` )
+                        )->a( n = `icon`    v = `sap-icon://save`
+                        )->a( n = `tooltip` v = `Save Description`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `ACCEPT` arg = `${TRAVEL_ID}` )
+                        )->a( n = `icon`    v = `sap-icon://accept`
+                        )->a( n = `tooltip` v = `Accept Travel`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${TRAVEL_ID}` )
+                        )->a( n = `icon`    v = `sap-icon://decline`
+                        )->a( n = `tooltip` v = `Reject Travel`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${TRAVEL_ID}` )
+                        )->a( n = `icon`    v = `sap-icon://delete`
+                        )->a( n = `tooltip` v = `Delete Travel` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -357,117 +460,6 @@ CLASS z2ui5_cl_smps_app_005 IMPLEMENTATION.
       ROLLBACK ENTITIES.
       client->message_box_display( text = s_reported-travel type = `error` ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 05 Manage Travels`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_travels )
-        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data for three, or Create your own` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `CREATE` )
-                )->a( n = `text`  v = `Create`
-                )->a( n = `icon`  v = `sap-icon://add`
-                )->a( n = `type`  v = `Emphasized`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every travel, then creates the three demo travels again`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `ID`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Customer`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Begin Date`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `End Date`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Total Price`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Actions` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CUSTOMER_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{BEGIN_DATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{END_DATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TOTAL_PRICE}`
-                )->ele( `ObjectStatus`
-                    )->a( n = `state` v = `{STATUS_STATE}`
-                    )->a( n = `text`  v = `{OVERALL_STATUS}`
-                )->end(
-                )->tag( `Input`
-                    )->a( n = `value` v = `{DESCRIPTION}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `SAVE` arg = `${TRAVEL_ID}` )
-                        )->a( n = `icon`    v = `sap-icon://save`
-                        )->a( n = `tooltip` v = `Save Description`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `ACCEPT` arg = `${TRAVEL_ID}` )
-                        )->a( n = `icon`    v = `sap-icon://accept`
-                        )->a( n = `tooltip` v = `Accept Travel`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${TRAVEL_ID}` )
-                        )->a( n = `icon`    v = `sap-icon://decline`
-                        )->a( n = `tooltip` v = `Reject Travel`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${TRAVEL_ID}` )
-                        )->a( n = `icon`    v = `sap-icon://delete`
-                        )->a( n = `tooltip` v = `Delete Travel` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

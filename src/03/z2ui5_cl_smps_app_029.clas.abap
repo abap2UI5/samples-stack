@@ -74,11 +74,11 @@ CLASS z2ui5_cl_smps_app_029 DEFINITION PUBLIC.
 
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS data_read.
     METHODS preview_build.
     METHODS changes_apply.
-    METHODS view_display.
+    METHODS on_event.
 
     "! the new values of the previewed rows, in the types of the business object
     METHODS updates_get
@@ -108,6 +108,110 @@ CLASS z2ui5_cl_smps_app_029 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 29 Mass Change with Preview`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `Change the selected travels`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `New booking fee`
+            )->tag( `Input`
+                )->a( n = `placeholder` v = `empty keeps the fee`
+                )->a( n = `value`       v = client->_bind( s_change-booking_fee )
+            )->tag( `Label`
+                )->a( n = `text` v = `Move begin date by days`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( s_change-begin_shift )
+            )->tag( `Label`
+                )->a( n = `text` v = `Move end date by days`
+            )->tag( `Input`
+                )->a( n = `value` v = client->_bind( s_change-end_shift ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `mode`       v = `MultiSelect`
+        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `PREVIEW` )
+                )->a( n = `text`  v = `Preview`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `APPLY` )
+                )->a( n = `text`    v = `Apply`
+                )->a( n = `type`    v = `Emphasized`
+                )->a( n = `enabled` b = check_preview
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Travel`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Begin Date`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `End Date`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Booking Fee`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->a( n = `selected` v = `{SELKZ}`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `ObjectIdentifier`
+                    )->a( n = `title` v = `{NEW_BEGIN_DATE}`
+                    )->a( n = `text`  v = `{BEGIN_DATE}`
+                )->tag( `ObjectIdentifier`
+                    )->a( n = `title` v = `{NEW_END_DATE}`
+                    )->a( n = `text`  v = `{END_DATE}`
+                )->tag( `ObjectIdentifier`
+                    )->a( n = `title` v = `{NEW_FEE}`
+                    )->a( n = `text`  v = `{BOOKING_FEE} {CURRENCY}`
+                )->tag( `ObjectStatus`
+                    )->a( n = `text`  v = `{STATUS}`
+                    )->a( n = `state` v = `{STATE}` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -284,110 +388,6 @@ CLASS z2ui5_cl_smps_app_029 IMPLEMENTATION.
         travel->status = `Not saved - another row was refused`.
       ENDIF.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 29 Mass Change with Preview`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `Change the selected travels`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `New booking fee`
-            )->tag( `Input`
-                )->a( n = `placeholder` v = `empty keeps the fee`
-                )->a( n = `value`       v = client->_bind( s_change-booking_fee )
-            )->tag( `Label`
-                )->a( n = `text` v = `Move begin date by days`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( s_change-begin_shift )
-            )->tag( `Label`
-                )->a( n = `text` v = `Move end date by days`
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( s_change-end_shift ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_travels )
-        )->a( n = `mode`       v = `MultiSelect`
-        )->a( n = `noDataText` v = `No travels yet - press Reset Demo Data` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Travels (Z2UI5_R_SMPS_TRV)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `PREVIEW` )
-                )->a( n = `text`  v = `Preview`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `APPLY` )
-                )->a( n = `text`    v = `Apply`
-                )->a( n = `type`    v = `Emphasized`
-                )->a( n = `enabled` b = check_preview
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Travel`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Begin Date`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `End Date`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Booking Fee`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->a( n = `selected` v = `{SELKZ}`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `ObjectIdentifier`
-                    )->a( n = `title` v = `{NEW_BEGIN_DATE}`
-                    )->a( n = `text`  v = `{BEGIN_DATE}`
-                )->tag( `ObjectIdentifier`
-                    )->a( n = `title` v = `{NEW_END_DATE}`
-                    )->a( n = `text`  v = `{END_DATE}`
-                )->tag( `ObjectIdentifier`
-                    )->a( n = `title` v = `{NEW_FEE}`
-                    )->a( n = `text`  v = `{BOOKING_FEE} {CURRENCY}`
-                )->tag( `ObjectStatus`
-                    )->a( n = `text`  v = `{STATUS}`
-                    )->a( n = `state` v = `{STATE}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

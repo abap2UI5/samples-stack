@@ -44,9 +44,9 @@ CLASS z2ui5_cl_smps_app_030 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
-    METHODS data_read.
     METHODS view_display.
+    METHODS data_read.
+    METHODS on_event.
 
     "! accepts or rejects every selected travel with one EXECUTE
     METHODS travels_decide
@@ -71,6 +71,105 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 30 Approval Worklist`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_travels )
+        )->a( n = `mode`       v = COND #( WHEN filter = `OPEN` THEN `MultiSelect` ELSE `None` )
+        )->a( n = `noDataText` v = COND #( WHEN filter = `OPEN`
+                                           THEN `Nothing waits for a decision - press Reset Demo Data for open travels`
+                                           ELSE `No travel decided yet` ) ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->ele( `SegmentedButton`
+                )->a( n = `selectedKey`     v = client->_bind( filter )
+                )->a( n = `selectionChange` v = client->_event( `FILTER` )
+                )->ele( `items`
+                    )->tag( `SegmentedButtonItem`
+                        )->a( n = `key`  v = `OPEN`
+                        )->a( n = `text` v = `To Decide`
+                    )->tag( `SegmentedButtonItem`
+                        )->a( n = `key`  v = `DONE`
+                        )->a( n = `text` v = `Decided`
+                )->end(
+            )->end(
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `ACCEPT` )
+                )->a( n = `text`    v = `Accept`
+                )->a( n = `icon`    v = `sap-icon://accept`
+                )->a( n = `type`    v = `Accept`
+                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REJECT` )
+                )->a( n = `text`    v = `Reject`
+                )->a( n = `icon`    v = `sap-icon://decline`
+                )->a( n = `type`    v = `Reject`
+                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Travel`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Customer`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Dates`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Total Price`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->a( n = `selected` v = `{SELKZ}`
+            )->ele( `cells`
+                )->tag( `ObjectIdentifier`
+                    )->a( n = `title` v = `{TRAVEL_ID}`
+                    )->a( n = `text`  v = `{DESCRIPTION}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CUSTOMER_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{BEGIN_DATE} - {END_DATE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TOTAL_PRICE}`
+                )->tag( `ObjectStatus`
+                    )->a( n = `text`  v = `{STATUS_TEXT}`
+                    )->a( n = `state` v = `{STATUS_STATE}` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -172,105 +271,6 @@ CLASS z2ui5_cl_smps_app_030 IMPLEMENTATION.
     DATA(status) = z2ui5_cl_smps_context=>status_get_text( VALUE #( t_result[ 1 ]-%param-overallstatus OPTIONAL ) ).
     client->message_toast_display( |{ status }: { ids }| ).
     data_read( ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 30 Approval Worklist`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_travels )
-        )->a( n = `mode`       v = COND #( WHEN filter = `OPEN` THEN `MultiSelect` ELSE `None` )
-        )->a( n = `noDataText` v = COND #( WHEN filter = `OPEN`
-                                           THEN `Nothing waits for a decision - press Reset Demo Data for open travels`
-                                           ELSE `No travel decided yet` ) ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->ele( `SegmentedButton`
-                )->a( n = `selectedKey`     v = client->_bind( filter )
-                )->a( n = `selectionChange` v = client->_event( `FILTER` )
-                )->ele( `items`
-                    )->tag( `SegmentedButtonItem`
-                        )->a( n = `key`  v = `OPEN`
-                        )->a( n = `text` v = `To Decide`
-                    )->tag( `SegmentedButtonItem`
-                        )->a( n = `key`  v = `DONE`
-                        )->a( n = `text` v = `Decided`
-                )->end(
-            )->end(
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `ACCEPT` )
-                )->a( n = `text`    v = `Accept`
-                )->a( n = `icon`    v = `sap-icon://accept`
-                )->a( n = `type`    v = `Accept`
-                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REJECT` )
-                )->a( n = `text`    v = `Reject`
-                )->a( n = `icon`    v = `sap-icon://decline`
-                )->a( n = `type`    v = `Reject`
-                )->a( n = `visible` b = xsdbool( filter = `OPEN` )
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every travel, then creates the demo travels again`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Travel`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Customer`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Dates`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Total Price`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->a( n = `selected` v = `{SELKZ}`
-            )->ele( `cells`
-                )->tag( `ObjectIdentifier`
-                    )->a( n = `title` v = `{TRAVEL_ID}`
-                    )->a( n = `text`  v = `{DESCRIPTION}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CUSTOMER_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{BEGIN_DATE} - {END_DATE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TOTAL_PRICE}`
-                )->tag( `ObjectStatus`
-                    )->a( n = `text`  v = `{STATUS_TEXT}`
-                    )->a( n = `state` v = `{STATUS_STATE}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

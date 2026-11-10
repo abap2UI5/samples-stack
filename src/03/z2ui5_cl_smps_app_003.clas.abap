@@ -56,6 +56,63 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(table) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 03 Update Travel`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
+            )->ele( `Table`
+                )->a( n = `items` v = client->_bind( t_travels ) ).
+
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `MODIFY ENTITIES OF Z2UI5_R_SMPS_TRV ... UPDATE` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `ID`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Customer`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CUSTOMER_ID}`
+                )->tag( `Input`
+                    )->a( n = `value` v = `{DESCRIPTION}`
+                )->tag( `Button`
+                    )->a( n = `press` v = client->_event( val = `UPDATE`
+                                            arg = `${TRAVEL_ID}` )
+                    )->a( n = `text`  v = `Update` ).
+
+    client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD data_read.
 
     " a plain SELECT on the CDS view - reading does not need EML, the list
@@ -120,63 +177,6 @@ CLASS z2ui5_cl_smps_app_003 IMPLEMENTATION.
 
     data_read( ).
     client->message_toast_display( |Travel { travel_id } updated| ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(table) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 03 Update Travel`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->ele( `Table`
-                )->a( n = `items` v = client->_bind( t_travels ) ).
-
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `MODIFY ENTITIES OF Z2UI5_R_SMPS_TRV ... UPDATE` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `ID`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Customer`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CUSTOMER_ID}`
-                )->tag( `Input`
-                    )->a( n = `value` v = `{DESCRIPTION}`
-                )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val = `UPDATE`
-                                            arg = `${TRAVEL_ID}` )
-                    )->a( n = `text`  v = `Update` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

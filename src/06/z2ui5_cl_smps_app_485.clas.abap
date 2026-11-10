@@ -38,6 +38,75 @@ ENDCLASS.
 
 CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
+  METHOD z2ui5_if_app~main.
+
+    TRY.
+
+        error = VALUE #( ).
+
+        IF client->check_on_init( ).
+          " the view first: the counter reads the lock table through a
+          " function module that can fail, and the bound text reaches the
+          " browser either way - after the view, a failure leaves a screen
+          " under the error box instead of none
+          set_session_stateful( client = client stateful = abap_true ).
+          initialize_view( client ).
+          update_lock_counter( ).
+        ELSEIF client->check_on_navigated( ).
+          " the session as the user left it - switching it back on here
+          " would undo an "End session" on every navigation
+          set_session_stateful( client = client stateful = session_is_stateful ).
+          initialize_view( client ).
+        ELSEIF client->check_on_event( ).
+          TRY.
+              on_event( client ).
+            " a lock that could not be taken is the outcome this sample is
+            " about, so it is shown in the MessageStrip of the view rather
+            " than in a popup - see lcx_error in the local implementations
+            CATCH lcx_error INTO DATA(x_error).
+              error-text = x_error->get_text( ).
+              error-flag = abap_true.
+          ENDTRY.
+        ENDIF.
+
+      CATCH cx_root INTO DATA(lx).
+        client->message_box_display( lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+      WHEN `BACK`.
+        set_session_stateful( client = client stateful = abap_false ).
+        client->nav_app_leave( ).
+      WHEN `LOCK`.
+        lcl_locking=>acquire_lock( ).
+        client->message_toast_display( `Lock acquired. Press 'Refresh lock status'` ).
+      WHEN `END_SESSION`.
+        set_session_stateful( client = client stateful = abap_false ).
+      WHEN `START_SESSION`.
+        set_session_stateful( client = client stateful = abap_true ).
+      WHEN `REFRESH`.
+        update_lock_counter( ).
+      WHEN `ROLLBACK`.
+        " read before and after, so the toast says what the ROLLBACK
+        " released and not what the last Refresh happened to show
+        DATA(locks_before) = lcl_locking=>get_lock_counter( ).
+        ROLLBACK WORK.
+        update_lock_counter( ).
+        client->message_toast_display( COND #( WHEN locks_before > 0 AND lock_counter = 0
+                                               THEN `ROLLBACK WORK done, the lock is released`
+                                               WHEN lock_counter > 0
+                                               THEN `ROLLBACK WORK done, the lock is still held`
+                                               ELSE `ROLLBACK WORK done, there was no lock to release` ) ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
   METHOD initialize_view.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -112,37 +181,6 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD on_event.
-
-    CASE client->get_event( ).
-      WHEN `BACK`.
-        set_session_stateful( client = client stateful = abap_false ).
-        client->nav_app_leave( ).
-      WHEN `LOCK`.
-        lcl_locking=>acquire_lock( ).
-        client->message_toast_display( `Lock acquired. Press 'Refresh lock status'` ).
-      WHEN `END_SESSION`.
-        set_session_stateful( client = client stateful = abap_false ).
-      WHEN `START_SESSION`.
-        set_session_stateful( client = client stateful = abap_true ).
-      WHEN `REFRESH`.
-        update_lock_counter( ).
-      WHEN `ROLLBACK`.
-        " read before and after, so the toast says what the ROLLBACK
-        " released and not what the last Refresh happened to show
-        DATA(locks_before) = lcl_locking=>get_lock_counter( ).
-        ROLLBACK WORK.
-        update_lock_counter( ).
-        client->message_toast_display( COND #( WHEN locks_before > 0 AND lock_counter = 0
-                                               THEN `ROLLBACK WORK done, the lock is released`
-                                               WHEN lock_counter > 0
-                                               THEN `ROLLBACK WORK done, the lock is still held`
-                                               ELSE `ROLLBACK WORK done, there was no lock to release` ) ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-
   METHOD set_session_stateful.
 
     client->set_session_stateful( stateful ).
@@ -154,44 +192,6 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
     ELSE.
       session_text = `Session OFF (stateless)`.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_app~main.
-
-    TRY.
-
-        error = VALUE #( ).
-
-        IF client->check_on_init( ).
-          " the view first: the counter reads the lock table through a
-          " function module that can fail, and the bound text reaches the
-          " browser either way - after the view, a failure leaves a screen
-          " under the error box instead of none
-          set_session_stateful( client = client stateful = abap_true ).
-          initialize_view( client ).
-          update_lock_counter( ).
-        ELSEIF client->check_on_navigated( ).
-          " the session as the user left it - switching it back on here
-          " would undo an "End session" on every navigation
-          set_session_stateful( client = client stateful = session_is_stateful ).
-          initialize_view( client ).
-        ELSEIF client->check_on_event( ).
-          TRY.
-              on_event( client ).
-            " a lock that could not be taken is the outcome this sample is
-            " about, so it is shown in the MessageStrip of the view rather
-            " than in a popup - see lcx_error in the local implementations
-            CATCH lcx_error INTO DATA(x_error).
-              error-text = x_error->get_text( ).
-              error-flag = abap_true.
-          ENDTRY.
-        ENDIF.
-
-      CATCH cx_root INTO DATA(lx).
-        client->message_box_display( lx->get_text( ) ).
-    ENDTRY.
 
   ENDMETHOD.
 

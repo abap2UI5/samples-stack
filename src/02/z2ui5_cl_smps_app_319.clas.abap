@@ -71,9 +71,9 @@ CLASS z2ui5_cl_smps_app_319 DEFINITION PUBLIC.
     " needs no PUBLIC: state survives the roundtrip at PROTECTED too
     DATA t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
 
-    METHODS on_init.
     METHODS view_display.
     METHODS on_event.
+    METHODS model_init.
     METHODS do_search.
 
   PRIVATE SECTION.
@@ -87,7 +87,8 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     m_client = client.
 
     IF m_client->check_on_init( ).
-      on_init( ).
+      model_init( ).
+      view_display( ).
       RETURN.
     ELSEIF m_client->check_on_navigated( ).
       view_display( ).
@@ -95,30 +96,6 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     ENDIF.
 
     on_event( ).
-
-  ENDMETHOD.
-
-
-  METHOD on_init.
-
-    " local demo product list the derived range filters (see class doc). The
-    " product types are readable words so the "contains"/"starts with" operators
-    " visibly hit something when you type free text into the value help.
-    t_product = VALUE #(
-      ( product_type = `SERVICE`  name = `Cloud Hosting` )
-      ( product_type = `SERVER`   name = `Rack Server X1` )
-      ( product_type = `SENSOR`   name = `IoT Sensor` )
-      ( product_type = `SOFTWARE` name = `ERP License` )
-      ( product_type = `HARDWARE` name = `Laptop Pro` )
-      ( product_type = `MATERIAL` name = `Steel Sheet` )
-      ( product_type = `SUPPORT`  name = `Gold Support` )
-      ( product_type = `TRAINING` name = `ABAP Course` )
-      ( product_type = `LICENSE`  name = `DB License` )
-      ( product_type = `SEMIFIN`  name = `Semi-finished Part` ) ).
-    t_result = t_product.
-    hint     = `No conditions yet - showing all demo products. Open the value help and add conditions.`.
-
-    view_display( ).
 
   ENDMETHOD.
 
@@ -329,6 +306,28 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     IF skipped > 0.
       hint = |{ hint } { skipped } condition(s) with an operation this sample does not map were left out.|.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD model_init.
+
+    " local demo product list the derived range filters (see class doc). The
+    " product types are readable words so the "contains"/"starts with" operators
+    " visibly hit something when you type free text into the value help.
+    t_product = VALUE #(
+      ( product_type = `SERVICE`  name = `Cloud Hosting` )
+      ( product_type = `SERVER`   name = `Rack Server X1` )
+      ( product_type = `SENSOR`   name = `IoT Sensor` )
+      ( product_type = `SOFTWARE` name = `ERP License` )
+      ( product_type = `HARDWARE` name = `Laptop Pro` )
+      ( product_type = `MATERIAL` name = `Steel Sheet` )
+      ( product_type = `SUPPORT`  name = `Gold Support` )
+      ( product_type = `TRAINING` name = `ABAP Course` )
+      ( product_type = `LICENSE`  name = `DB License` )
+      ( product_type = `SEMIFIN`  name = `Semi-finished Part` ) ).
+    t_result = t_product.
+    hint     = `No conditions yet - showing all demo products. Open the value help and add conditions.`.
 
   ENDMETHOD.
 

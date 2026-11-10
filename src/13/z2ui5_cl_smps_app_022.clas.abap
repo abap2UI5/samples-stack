@@ -59,34 +59,6 @@ CLASS z2ui5_cl_smps_app_022 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD file_download.
-
-    " every cell is a string in the worksheet - the header row first, then
-    " one row per product, the numbers written the way a spreadsheet reads
-    " them back: a decimal point and no thousands separator
-    DATA(t_rows) = VALUE z2ui5_cl_smps_xlsx=>ty_t_row(
-        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` e = `Total` ) ).
-
-    LOOP AT t_products INTO DATA(s_product).
-      APPEND VALUE #( a = s_product-product
-                      b = |{ s_product-quantity }|
-                      c = |{ s_product-price }|
-                      d = s_product-currency
-                      e = |{ s_product-quantity * s_product-price DECIMALS = 2 }| ) TO t_rows.
-    ENDLOOP.
-
-    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( t_rows ).
-
-    client->follow_up_action(
-        val   = client->cs_event-download_b64_file
-        t_arg = VALUE #( ( |data:{ z2ui5_cl_smps_xlsx=>mime_type };base64,{ cl_web_http_utility=>encode_x_base64( xlsx ) }| )
-                         ( `products.xlsx` ) ) ).
-
-    client->message_toast_display( |products.xlsx - { lines( t_products ) } rows, { xstrlen( xlsx ) } bytes| ).
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -151,6 +123,34 @@ CLASS z2ui5_cl_smps_app_022 IMPLEMENTATION.
                     )->a( n = `value` v = `{CURRENCY}` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD file_download.
+
+    " every cell is a string in the worksheet - the header row first, then
+    " one row per product, the numbers written the way a spreadsheet reads
+    " them back: a decimal point and no thousands separator
+    DATA(t_rows) = VALUE z2ui5_cl_smps_xlsx=>ty_t_row(
+        ( a = `Product` b = `Quantity` c = `Price` d = `Currency` e = `Total` ) ).
+
+    LOOP AT t_products INTO DATA(s_product).
+      APPEND VALUE #( a = s_product-product
+                      b = |{ s_product-quantity }|
+                      c = |{ s_product-price }|
+                      d = s_product-currency
+                      e = |{ s_product-quantity * s_product-price DECIMALS = 2 }| ) TO t_rows.
+    ENDLOOP.
+
+    DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( t_rows ).
+
+    client->follow_up_action(
+        val   = client->cs_event-download_b64_file
+        t_arg = VALUE #( ( |data:{ z2ui5_cl_smps_xlsx=>mime_type };base64,{ cl_web_http_utility=>encode_x_base64( xlsx ) }| )
+                         ( `products.xlsx` ) ) ).
+
+    client->message_toast_display( |products.xlsx - { lines( t_products ) } rows, { xstrlen( xlsx ) } bytes| ).
 
   ENDMETHOD.
 

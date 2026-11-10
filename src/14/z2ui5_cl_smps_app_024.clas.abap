@@ -55,7 +55,7 @@ CLASS z2ui5_cl_smps_app_024 DEFINITION PUBLIC.
       END OF ty_s_pdf.
     TYPES ty_t_pdf TYPE STANDARD TABLE OF ty_s_pdf WITH EMPTY KEY.
 
-    METHODS on_event.
+    METHODS view_display.
 
     "! renders every form of FORMS - the ones that worked come back, every
     "! form gets its row in T_RESULTS
@@ -77,7 +77,7 @@ CLASS z2ui5_cl_smps_app_024 DEFINITION PUBLIC.
         mime_type TYPE string
         content   TYPE xstring.
 
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -93,6 +93,84 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - Adobe Forms - 24 Render to PDF`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Type one Adobe Form name per line. Download PDF renders the first one, Download ZIP all of ` &&
+                                 `them into one ZIP file. Needs Adobe Document Services configured for this system, and ` &&
+                                 `forms whose interface needs no parameters of its own.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `FP_JOB_OPEN - generated function module - FP_JOB_CLOSE`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Forms`
+            )->tag( `TextArea`
+                )->a( n = `value`       v = client->_bind( forms )
+                )->a( n = `rows`        v = `4`
+                )->a( n = `placeholder` v = `one form name per line` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_results )
+        )->a( n = `noDataText` v = `Nothing rendered yet` ).
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Form`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Size`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Result` ).
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{FORM}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{SIZE}`
+                )->tag( `ObjectStatus`
+                    )->a( n = `text`  v = `{STATUS}`
+                    )->a( n = `state` v = `{= ${STATE} || 'None' }` ).
+
+    page->ele( `footer`
+        )->ele( `OverflowToolbar`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `PDF` )
+                )->a( n = `text`  v = `Download PDF`
+                )->a( n = `icon`  v = `sap-icon://pdf-attachment`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `ZIP` )
+                )->a( n = `text`  v = `Download ZIP`
+                )->a( n = `icon`  v = `sap-icon://attachment-zip-file`
+                )->a( n = `type`  v = `Emphasized` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -258,84 +336,6 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
         val   = client->cs_event-download_b64_file
         t_arg = VALUE #( ( |data:{ mime_type };base64,{ cl_http_utility=>encode_x_base64( content ) }| )
                          ( name ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - Adobe Forms - 24 Render to PDF`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Type one Adobe Form name per line. Download PDF renders the first one, Download ZIP all of ` &&
-                                 `them into one ZIP file. Needs Adobe Document Services configured for this system, and ` &&
-                                 `forms whose interface needs no parameters of its own.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `FP_JOB_OPEN - generated function module - FP_JOB_CLOSE`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Forms`
-            )->tag( `TextArea`
-                )->a( n = `value`       v = client->_bind( forms )
-                )->a( n = `rows`        v = `4`
-                )->a( n = `placeholder` v = `one form name per line` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_results )
-        )->a( n = `noDataText` v = `Nothing rendered yet` ).
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Form`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Size`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Result` ).
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{FORM}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{SIZE}`
-                )->tag( `ObjectStatus`
-                    )->a( n = `text`  v = `{STATUS}`
-                    )->a( n = `state` v = `{= ${STATE} || 'None' }` ).
-
-    page->ele( `footer`
-        )->ele( `OverflowToolbar`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `PDF` )
-                )->a( n = `text`  v = `Download PDF`
-                )->a( n = `icon`  v = `sap-icon://pdf-attachment`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `ZIP` )
-                )->a( n = `text`  v = `Download ZIP`
-                )->a( n = `icon`  v = `sap-icon://attachment-zip-file`
-                )->a( n = `type`  v = `Emphasized` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

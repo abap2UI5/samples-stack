@@ -71,6 +71,69 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(table) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - EML - 07 Enter Draft Mode`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
+            )->ele( `Table`
+                )->a( n = `items`      v = client->_bind( t_travels )
+                )->a( n = `noDataText` v = `No travels yet - press Regenerate Demo Data in the overview app` ).
+
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `EXECUTE Edit  /  EXECUTE Resume`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `ID`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description - active`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description - draft`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TRAVEL_ID}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{DESCRIPTION}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{DRAFT_DESCRIPTION}`
+                )->tag( `Button`
+                    )->a( n = `press` v = client->_event( val = `OPEN`
+                                            arg = `${TRAVEL_UUID}` )
+                    )->a( n = `text`  v = `{DRAFT_TEXT}` ).
+
+    client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD draft_open.
 
     DATA s_failed   TYPE RESPONSE FOR FAILED EARLY z2ui5_r_smps_trd.
@@ -170,69 +233,6 @@ CLASS z2ui5_cl_smps_app_007 IMPLEMENTATION.
                                       THEN |{ t_drafts[ KEY entity traveluuid = s_result-traveluuid ]-description }| )
           draft_text        = COND #( WHEN line_exists( t_drafts[ KEY entity traveluuid = s_result-traveluuid ] )
                                       THEN `Resume` ELSE `Edit` ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(table) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - EML - 07 Enter Draft Mode`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->ele( `Table`
-                )->a( n = `items`      v = client->_bind( t_travels )
-                )->a( n = `noDataText` v = `No travels yet - press Regenerate Demo Data in the overview app` ).
-
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `EXECUTE Edit  /  EXECUTE Resume`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `ID`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description - active`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description - draft`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TRAVEL_ID}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{DESCRIPTION}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{DRAFT_DESCRIPTION}`
-                )->tag( `Button`
-                    )->a( n = `press` v = client->_event( val = `OPEN`
-                                            arg = `${TRAVEL_UUID}` )
-                    )->a( n = `text`  v = `{DRAFT_TEXT}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

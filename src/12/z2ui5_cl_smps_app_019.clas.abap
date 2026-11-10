@@ -38,11 +38,11 @@ CLASS z2ui5_cl_smps_app_019 DEFINITION PUBLIC.
     DATA client       TYPE REF TO z2ui5_if_client.
     DATA request_uuid TYPE string.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS request_load.
     METHODS request_check.
     METHODS request_save.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -61,6 +61,74 @@ CLASS z2ui5_cl_smps_app_019 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 19 Validate on Change`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Change the quantity: every change runs the determine action checkRequest, which runs the ` &&
+                                 `validation of the business object without saving - try 0 or 5000. Save stores the value.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    IF request_uuid IS INITIAL.
+      page->tag( `MessageStrip`
+          )->a( n = `text`  v = `There is no New request to change - press Reset Demo Data below`
+          )->a( n = `type`  v = `Warning`
+          )->a( n = `class` v = `sapUiSmallMargin` ).
+    ENDIF.
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `EXECUTE checkRequest - a determine action`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Request`
+            )->tag( `Text`
+                )->a( n = `text` v = client->_bind( title )
+            )->tag( `Label`
+                )->a( n = `text` v = `Quantity`
+            )->tag( `Input`
+                )->a( n = `value`          v = client->_bind( quantity )
+                )->a( n = `type`           v = `Number`
+                )->a( n = `valueLiveUpdate` b = abap_true
+                )->a( n = `valueState`     v = client->_bind( value_state )
+                )->a( n = `valueStateText` v = client->_bind( value_state_text )
+                )->a( n = `change`         v = client->_event( `CHECK` )
+                )->a( n = `enabled`        b = xsdbool( request_uuid IS NOT INITIAL ) ).
+
+    page->ele( `footer`
+        )->ele( `OverflowToolbar`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `GENERATE` )
+                )->a( n = `text`  v = `Reset Demo Data`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `NEXT` )
+                )->a( n = `text`  v = `Reload`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `SAVE` )
+                )->a( n = `text`    v = `Save`
+                )->a( n = `type`    v = `Emphasized`
+                )->a( n = `enabled` b = xsdbool( request_uuid IS NOT INITIAL ) ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -174,74 +242,6 @@ CLASS z2ui5_cl_smps_app_019 IMPLEMENTATION.
     ENDIF.
 
     client->message_toast_display( |Quantity { quantity } saved| ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 19 Validate on Change`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Change the quantity: every change runs the determine action checkRequest, which runs the ` &&
-                                 `validation of the business object without saving - try 0 or 5000. Save stores the value.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    IF request_uuid IS INITIAL.
-      page->tag( `MessageStrip`
-          )->a( n = `text`  v = `There is no New request to change - press Reset Demo Data below`
-          )->a( n = `type`  v = `Warning`
-          )->a( n = `class` v = `sapUiSmallMargin` ).
-    ENDIF.
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `EXECUTE checkRequest - a determine action`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Request`
-            )->tag( `Text`
-                )->a( n = `text` v = client->_bind( title )
-            )->tag( `Label`
-                )->a( n = `text` v = `Quantity`
-            )->tag( `Input`
-                )->a( n = `value`          v = client->_bind( quantity )
-                )->a( n = `type`           v = `Number`
-                )->a( n = `valueLiveUpdate` b = abap_true
-                )->a( n = `valueState`     v = client->_bind( value_state )
-                )->a( n = `valueStateText` v = client->_bind( value_state_text )
-                )->a( n = `change`         v = client->_event( `CHECK` )
-                )->a( n = `enabled`        b = xsdbool( request_uuid IS NOT INITIAL ) ).
-
-    page->ele( `footer`
-        )->ele( `OverflowToolbar`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `GENERATE` )
-                )->a( n = `text`  v = `Reset Demo Data`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `NEXT` )
-                )->a( n = `text`  v = `Reload`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `SAVE` )
-                )->a( n = `text`    v = `Save`
-                )->a( n = `type`    v = `Emphasized`
-                )->a( n = `enabled` b = xsdbool( request_uuid IS NOT INITIAL ) ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

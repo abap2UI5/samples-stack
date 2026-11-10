@@ -43,8 +43,8 @@ CLASS z2ui5_cl_smps_app_013 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
     METHODS view_display.
+    METHODS on_event.
     METHODS model_init.
 
     "! the configuration as the form describes it - the stored key unless a
@@ -72,83 +72,6 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( ).
       on_event( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD on_event.
-
-    CASE client->get_event( ).
-
-      WHEN `SAVE`.
-        on_save( ).
-
-      WHEN `TEST`.
-        on_test( ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD on_save.
-
-    TRY.
-        z2ui5_cl_smps_llm_factory=>config_save( config_from_form( ) ).
-        model_init( ).
-        " the strip reported an earlier test or a failed save - neither is
-        " true of the configuration that was just saved
-        CLEAR result_text.
-        result_type    = `Information`.
-        result_visible = abap_false.
-        client->message_toast_display( `Settings saved` ).
-
-      CATCH z2ui5_cx_smps_llm INTO DATA(error).
-        result_text    = error->get_text( ).
-        result_type    = `Error`.
-        result_visible = abap_true.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD on_test.
-
-    " what the FORM says, saved or not - testing before saving is the point
-    TRY.
-        DATA(llm) = z2ui5_cl_smps_llm_factory=>create( config_from_form( ) ).
-        DATA(answer) = llm->chat( system   = `You are a connection test. Answer with one short sentence.`
-                                  messages = VALUE #( ( role    = z2ui5_if_smps_llm=>cs_role-user
-                                                        content = `Say hello to an ABAP developer.` ) ) ).
-        result_text = |The model answered: { answer }|.
-        result_type = `Success`.
-
-      CATCH z2ui5_cx_smps_llm INTO DATA(error).
-        result_text = error->get_text( ).
-        result_type = `Error`.
-    ENDTRY.
-
-    result_visible = abap_true.
-
-  ENDMETHOD.
-
-
-  METHOD config_from_form.
-
-    DATA(stored) = z2ui5_cl_smps_llm_factory=>config_read( ).
-
-    result = VALUE #( provider    = provider
-                      destination = condense( destination )
-                      model       = condense( model )
-                      max_tokens  = max_tokens
-                      uri_path    = condense( uri_path )
-                      api_key     = stored-api_key ).
-
-    IF api_key IS NOT INITIAL.
-      result-api_key = condense( api_key ).
-    ELSEIF key_remove = abap_true.
-      CLEAR result-api_key.
     ENDIF.
 
   ENDMETHOD.
@@ -256,6 +179,83 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
                 )->a( n = `press` v = client->_event( `SAVE` ) ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get_event( ).
+
+      WHEN `SAVE`.
+        on_save( ).
+
+      WHEN `TEST`.
+        on_test( ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD on_save.
+
+    TRY.
+        z2ui5_cl_smps_llm_factory=>config_save( config_from_form( ) ).
+        model_init( ).
+        " the strip reported an earlier test or a failed save - neither is
+        " true of the configuration that was just saved
+        CLEAR result_text.
+        result_type    = `Information`.
+        result_visible = abap_false.
+        client->message_toast_display( `Settings saved` ).
+
+      CATCH z2ui5_cx_smps_llm INTO DATA(error).
+        result_text    = error->get_text( ).
+        result_type    = `Error`.
+        result_visible = abap_true.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD on_test.
+
+    " what the FORM says, saved or not - testing before saving is the point
+    TRY.
+        DATA(llm) = z2ui5_cl_smps_llm_factory=>create( config_from_form( ) ).
+        DATA(answer) = llm->chat( system   = `You are a connection test. Answer with one short sentence.`
+                                  messages = VALUE #( ( role    = z2ui5_if_smps_llm=>cs_role-user
+                                                        content = `Say hello to an ABAP developer.` ) ) ).
+        result_text = |The model answered: { answer }|.
+        result_type = `Success`.
+
+      CATCH z2ui5_cx_smps_llm INTO DATA(error).
+        result_text = error->get_text( ).
+        result_type = `Error`.
+    ENDTRY.
+
+    result_visible = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD config_from_form.
+
+    DATA(stored) = z2ui5_cl_smps_llm_factory=>config_read( ).
+
+    result = VALUE #( provider    = provider
+                      destination = condense( destination )
+                      model       = condense( model )
+                      max_tokens  = max_tokens
+                      uri_path    = condense( uri_path )
+                      api_key     = stored-api_key ).
+
+    IF api_key IS NOT INITIAL.
+      result-api_key = condense( api_key ).
+    ELSEIF key_remove = abap_true.
+      CLEAR result-api_key.
+    ENDIF.
 
   ENDMETHOD.
 

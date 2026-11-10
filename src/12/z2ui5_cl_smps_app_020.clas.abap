@@ -45,14 +45,14 @@ CLASS z2ui5_cl_smps_app_020 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS approve_via_projection.
     METHODS approve_via_business_object.
     METHODS data_save
       RETURNING
         VALUE(result) TYPE abap_bool.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -71,6 +71,87 @@ CLASS z2ui5_cl_smps_app_020 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 20 One Business Object, Two Contracts`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Approve a New request through the projection Z2UI5_C_SMPS_REQ or on the business object ` &&
+                                 `Z2UI5_R_SMPS_REQ - the same handler runs, asks cl_abap_behv_aux which contract called it ` &&
+                                 `and writes the answer into Approved via.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_requests )
+        )->a( n = `noDataText` v = `No requests yet - press Reset Demo Data` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Requests (Z2UI5_C_SMPS_REQ)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Title`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Approved via`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Approve` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TITLE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{STATUS}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{APPROVED_VIA}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `APPROVE_C` arg = `${REQUEST_UUID}` )
+                        )->a( n = `text`    v = `via projection`
+                        )->a( n = `enabled` v = `{IS_NEW}`
+                        )->a( n = `class`   v = `sapUiTinyMarginEnd`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `APPROVE_R` arg = `${REQUEST_UUID}` )
+                        )->a( n = `text`    v = `on the business object`
+                        )->a( n = `enabled` v = `{IS_NEW}` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -180,87 +261,6 @@ CLASS z2ui5_cl_smps_app_020 IMPLEMENTATION.
                                    WHEN 'R' THEN `Rejected` )
           approved_via = |{ s_result-approvedvia }|
           is_new       = xsdbool( s_result-status = 'N' ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 20 One Business Object, Two Contracts`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Approve a New request through the projection Z2UI5_C_SMPS_REQ or on the business object ` &&
-                                 `Z2UI5_R_SMPS_REQ - the same handler runs, asks cl_abap_behv_aux which contract called it ` &&
-                                 `and writes the answer into Approved via.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_requests )
-        )->a( n = `noDataText` v = `No requests yet - press Reset Demo Data` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Requests (Z2UI5_C_SMPS_REQ)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Title`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Approved via`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Approve` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TITLE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{STATUS}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{APPROVED_VIA}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `APPROVE_C` arg = `${REQUEST_UUID}` )
-                        )->a( n = `text`    v = `via projection`
-                        )->a( n = `enabled` v = `{IS_NEW}`
-                        )->a( n = `class`   v = `sapUiTinyMarginEnd`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `APPROVE_R` arg = `${REQUEST_UUID}` )
-                        )->a( n = `text`    v = `on the business object`
-                        )->a( n = `enabled` v = `{IS_NEW}` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

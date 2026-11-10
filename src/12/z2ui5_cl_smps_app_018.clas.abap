@@ -67,7 +67,7 @@ CLASS z2ui5_cl_smps_app_018 DEFINITION PUBLIC.
     DATA popup_mode   TYPE string.
     DATA request_uuid TYPE string.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS popup_open_create.
     METHODS popup_confirm.
     METHODS request_create.
@@ -77,7 +77,7 @@ CLASS z2ui5_cl_smps_app_018 DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
     METHODS popup_display.
 
   PRIVATE SECTION.
@@ -97,6 +97,103 @@ CLASS z2ui5_cl_smps_app_018 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 18 Parameters, Factory Actions, Defaults`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Create opens with the proposal of the default function and creates through a static ` &&
+                                 `factory action, Copy runs a factory action on the row, Reject an action whose parameter ` &&
+                                 `is the reason - every popup fills an abstract entity that travels in %param.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_requests )
+        )->a( n = `noDataText` v = `No requests yet - press Create or Reset Demo Data` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Requests (Z2UI5_R_SMPS_REQ)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `CREATE` )
+                )->a( n = `text`  v = `Create`
+                )->a( n = `icon`  v = `sap-icon://add`
+                )->a( n = `type`  v = `Emphasized`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `GENERATE` )
+                )->a( n = `text`    v = `Reset Demo Data`
+                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Title`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Quantity`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Priority`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Status`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Note`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Actions` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{TITLE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{QUANTITY}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{PRIORITY}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{STATUS}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{NOTE}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `COPY` t_arg = VALUE #( ( `${REQUEST_UUID}` ) ( `${TITLE}` ) ) )
+                        )->a( n = `icon`    v = `sap-icon://copy`
+                        )->a( n = `tooltip` v = `Copy - factory action copyRequest`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${REQUEST_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://decline`
+                        )->a( n = `tooltip` v = `Reject - action with a parameter` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -301,103 +398,6 @@ CLASS z2ui5_cl_smps_app_018 IMPLEMENTATION.
                                    WHEN 'A' THEN `Approved`
                                    WHEN 'R' THEN `Rejected` )
           note         = |{ s_result-note }| ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - RAP Actions - 18 Parameters, Factory Actions, Defaults`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Create opens with the proposal of the default function and creates through a static ` &&
-                                 `factory action, Copy runs a factory action on the row, Reject an action whose parameter ` &&
-                                 `is the reason - every popup fills an abstract entity that travels in %param.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_requests )
-        )->a( n = `noDataText` v = `No requests yet - press Create or Reset Demo Data` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Requests (Z2UI5_R_SMPS_REQ)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `CREATE` )
-                )->a( n = `text`  v = `Create`
-                )->a( n = `icon`  v = `sap-icon://add`
-                )->a( n = `type`  v = `Emphasized`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `GENERATE` )
-                )->a( n = `text`    v = `Reset Demo Data`
-                )->a( n = `tooltip` v = `Deletes every request the business object lets go of, then creates three new ones`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Title`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Quantity`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Priority`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Status`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Note`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Actions` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{TITLE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{QUANTITY}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{PRIORITY}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{STATUS}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{NOTE}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `COPY` t_arg = VALUE #( ( `${REQUEST_UUID}` ) ( `${TITLE}` ) ) )
-                        )->a( n = `icon`    v = `sap-icon://copy`
-                        )->a( n = `tooltip` v = `Copy - factory action copyRequest`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `REJECT` arg = `${REQUEST_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://decline`
-                        )->a( n = `tooltip` v = `Reject - action with a parameter` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

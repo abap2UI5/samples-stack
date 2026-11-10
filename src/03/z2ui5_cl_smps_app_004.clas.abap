@@ -53,61 +53,6 @@ CLASS z2ui5_cl_smps_app_004 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD data_read.
-
-    SELECT FROM z2ui5_r_smps_trv                        "#EC CI_NOWHERE
-      FIELDS TravelId,
-             CustomerId,
-             Description
-      ORDER BY TravelId
-      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
-
-    t_travels = VALUE #( FOR s_result IN t_result
-        ( travel_id   = |{ s_result-travelid ALPHA = OUT }|
-          customer_id = |{ s_result-customerid ALPHA = OUT }|
-          description = |{ s_result-description }| ) ).
-
-  ENDMETHOD.
-
-
-  METHOD data_delete.
-
-    DATA(travel_id) = client->get_event_arg( ).
-
-    " DELETE only needs the key - and it can still fail, e.g. when the
-    " business object refuses the deletion or the instance is locked
-    MODIFY ENTITIES OF z2ui5_r_smps_trv
-      ENTITY travel
-        DELETE FROM VALUE #( ( travelid = travel_id ) )
-      FAILED DATA(s_failed)
-      REPORTED DATA(s_reported).
-
-    IF s_failed-travel IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported-travel type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
-      FAILED DATA(s_failed_commit)
-      REPORTED DATA(s_reported_commit).
-
-    IF s_failed_commit IS NOT INITIAL.
-
-      ROLLBACK ENTITIES.
-      client->message_box_display( text = s_reported_commit-travel type = `error` ).
-      RETURN.
-
-    ENDIF.
-
-    data_read( ).
-    client->message_toast_display( |Travel { travel_id } deleted| ).
-
-  ENDMETHOD.
-
-
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
@@ -162,6 +107,61 @@ CLASS z2ui5_cl_smps_app_004 IMPLEMENTATION.
                     )->a( n = `icon`  v = `sap-icon://delete` ).
 
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD data_read.
+
+    SELECT FROM z2ui5_r_smps_trv                        "#EC CI_NOWHERE
+      FIELDS TravelId,
+             CustomerId,
+             Description
+      ORDER BY TravelId
+      INTO TABLE @DATA(t_result) UP TO 20 ROWS.
+
+    t_travels = VALUE #( FOR s_result IN t_result
+        ( travel_id   = |{ s_result-travelid ALPHA = OUT }|
+          customer_id = |{ s_result-customerid ALPHA = OUT }|
+          description = |{ s_result-description }| ) ).
+
+  ENDMETHOD.
+
+
+  METHOD data_delete.
+
+    DATA(travel_id) = client->get_event_arg( ).
+
+    " DELETE only needs the key - and it can still fail, e.g. when the
+    " business object refuses the deletion or the instance is locked
+    MODIFY ENTITIES OF z2ui5_r_smps_trv
+      ENTITY travel
+        DELETE FROM VALUE #( ( travelid = travel_id ) )
+      FAILED DATA(s_failed)
+      REPORTED DATA(s_reported).
+
+    IF s_failed-travel IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported-travel type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    COMMIT ENTITIES RESPONSE OF z2ui5_r_smps_trv
+      FAILED DATA(s_failed_commit)
+      REPORTED DATA(s_reported_commit).
+
+    IF s_failed_commit IS NOT INITIAL.
+
+      ROLLBACK ENTITIES.
+      client->message_box_display( text = s_reported_commit-travel type = `error` ).
+      RETURN.
+
+    ENDIF.
+
+    data_read( ).
+    client->message_toast_display( |Travel { travel_id } deleted| ).
 
   ENDMETHOD.
 

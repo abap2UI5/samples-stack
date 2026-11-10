@@ -53,12 +53,12 @@ CLASS z2ui5_cl_smps_app_016 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
-    METHODS on_event.
+    METHODS view_display.
     METHODS file_upload.
     METHODS file_download.
     METHODS file_delete.
     METHODS data_read.
-    METHODS view_display.
+    METHODS on_event.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -77,6 +77,114 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       on_event( ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD view_display.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:form`   v = `sap.ui.layout.form`
+            )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = `abap2UI5 - RAP File Upload - Deep Action Parameter`
+            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
+
+    page->tag( `MessageStrip`
+        )->a( n = `text`     v = `Pick a file and press Upload: the FileUploader hands it to the backend as base64, the app ` &&
+                                 `calls the static action uploadFile of Z2UI5_R_SMPS_FIL with EML and passes the file in ` &&
+                                 `its deep parameter - no OData service, no annotations needed.`
+        )->a( n = `type`     v = `Information`
+        )->a( n = `showIcon` b = abap_true
+        )->a( n = `class`    v = `sapUiSmallMargin` ).
+
+    page->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `title`    v = `MODIFY ENTITIES OF Z2UI5_R_SMPS_FIL ... EXECUTE uploadFile`
+        )->a( n = `editable` b = abap_true
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label`
+                )->a( n = `text` v = `Description`
+            )->tag( `Input`
+                )->a( n = `placeholder` v = `optional - stored with the file`
+                )->a( n = `value`       v = client->_bind( description )
+            )->tag( `Label`
+                )->a( n = `text` v = `File`
+            )->tag( n = `FileUploader` ns = `z2ui5`
+                )->a( n = `placeholder`      v = `pick a file...`
+                )->a( n = `uploadButtonText` v = `Upload`
+                )->a( n = `upload`           v = client->_event( `UPLOAD` )
+                )->a( n = `path`             v = client->_bind( file_name )
+                )->a( n = `value`            v = client->_bind( file ) ).
+
+    DATA(table) = page->ele( `Table`
+        )->a( n = `items`      v = client->_bind( t_files )
+        )->a( n = `noDataText` v = `No files yet - upload one above` ).
+    table->ele( `headerToolbar`
+        )->ele( `Toolbar`
+            )->tag( `Title`
+                )->a( n = `text` v = `Files (Z2UI5_R_SMPS_FIL)`
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press`   v = client->_event( `REFRESH` )
+                )->a( n = `icon`    v = `sap-icon://refresh`
+                )->a( n = `tooltip` v = `Refresh` ).
+
+    table->ele( `columns`
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Name`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `MIME Type`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Size`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Description`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Created`
+        )->end(
+        )->ele( `Column`
+            )->tag( `Text`
+                )->a( n = `text` v = `Actions` ).
+
+    table->ele( `items`
+        )->ele( `ColumnListItem`
+            )->ele( `cells`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{FILE_NAME}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{MIME_TYPE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{FILE_SIZE}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{DESCRIPTION}`
+                )->tag( `Text`
+                    )->a( n = `text` v = `{CREATED_AT}`
+                )->ele( `HBox`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `DOWNLOAD` arg = `${FILE_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://download`
+                        )->a( n = `tooltip` v = `Download File`
+                    )->tag( `Button`
+                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${FILE_UUID}` )
+                        )->a( n = `icon`    v = `sap-icon://delete`
+                        )->a( n = `tooltip` v = `Delete File` ).
+
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -249,114 +357,6 @@ CLASS z2ui5_cl_smps_app_016 IMPLEMENTATION.
           file_size   = |{ s_result-filesize } bytes|
           description = |{ s_result-description }|
           created_at  = |{ s_result-createdat TIMESTAMP = ISO }| ) ).
-
-  ENDMETHOD.
-
-
-  METHOD view_display.
-
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `displayBlock` v = `true`
-            )->a( n = `height`       v = `100%`
-            )->a( n = `xmlns`        v = `sap.m`
-            )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-            )->a( n = `xmlns:form`   v = `sap.ui.layout.form`
-            )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
-    DATA(page) = view->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title`          v = `abap2UI5 - RAP File Upload - Deep Action Parameter`
-            )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
-            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
-
-    page->tag( `MessageStrip`
-        )->a( n = `text`     v = `Pick a file and press Upload: the FileUploader hands it to the backend as base64, the app ` &&
-                                 `calls the static action uploadFile of Z2UI5_R_SMPS_FIL with EML and passes the file in ` &&
-                                 `its deep parameter - no OData service, no annotations needed.`
-        )->a( n = `type`     v = `Information`
-        )->a( n = `showIcon` b = abap_true
-        )->a( n = `class`    v = `sapUiSmallMargin` ).
-
-    page->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `title`    v = `MODIFY ENTITIES OF Z2UI5_R_SMPS_FIL ... EXECUTE uploadFile`
-        )->a( n = `editable` b = abap_true
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label`
-                )->a( n = `text` v = `Description`
-            )->tag( `Input`
-                )->a( n = `placeholder` v = `optional - stored with the file`
-                )->a( n = `value`       v = client->_bind( description )
-            )->tag( `Label`
-                )->a( n = `text` v = `File`
-            )->tag( n = `FileUploader` ns = `z2ui5`
-                )->a( n = `placeholder`      v = `pick a file...`
-                )->a( n = `uploadButtonText` v = `Upload`
-                )->a( n = `upload`           v = client->_event( `UPLOAD` )
-                )->a( n = `path`             v = client->_bind( file_name )
-                )->a( n = `value`            v = client->_bind( file ) ).
-
-    DATA(table) = page->ele( `Table`
-        )->a( n = `items`      v = client->_bind( t_files )
-        )->a( n = `noDataText` v = `No files yet - upload one above` ).
-    table->ele( `headerToolbar`
-        )->ele( `Toolbar`
-            )->tag( `Title`
-                )->a( n = `text` v = `Files (Z2UI5_R_SMPS_FIL)`
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press`   v = client->_event( `REFRESH` )
-                )->a( n = `icon`    v = `sap-icon://refresh`
-                )->a( n = `tooltip` v = `Refresh` ).
-
-    table->ele( `columns`
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Name`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `MIME Type`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Size`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Description`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Created`
-        )->end(
-        )->ele( `Column`
-            )->tag( `Text`
-                )->a( n = `text` v = `Actions` ).
-
-    table->ele( `items`
-        )->ele( `ColumnListItem`
-            )->ele( `cells`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{FILE_NAME}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{MIME_TYPE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{FILE_SIZE}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{DESCRIPTION}`
-                )->tag( `Text`
-                    )->a( n = `text` v = `{CREATED_AT}`
-                )->ele( `HBox`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `DOWNLOAD` arg = `${FILE_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://download`
-                        )->a( n = `tooltip` v = `Download File`
-                    )->tag( `Button`
-                        )->a( n = `press`   v = client->_event( val = `DELETE` arg = `${FILE_UUID}` )
-                        )->a( n = `icon`    v = `sap-icon://delete`
-                        )->a( n = `tooltip` v = `Delete File` ).
-
-    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
