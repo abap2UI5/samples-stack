@@ -94,8 +94,6 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
         travel_save( ).
       WHEN `ELSEWHERE`.
         travel_change_elsewhere( ).
-      WHEN `CANCEL`.
-        client->popup_destroy( ).
       WHEN `REFRESH`.
         data_read( ).
         view_display( ).
@@ -380,7 +378,7 @@ CLASS z2ui5_cl_smps_app_032 IMPLEMENTATION.
             )->a( n = `text`  v = `Save`
             )->a( n = `type`  v = `Emphasized`
         )->tag( `Button`
-            )->a( n = `press` v = client->_event( `CANCEL` )
+            )->a( n = `press` v = client->follow_up_action( val = client->cs_event-popup_close )
             )->a( n = `text`  v = `Cancel` ).
 
     client->popup_display( popup->stringify( ) ).

@@ -116,8 +116,6 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
         on_event_activate( ).
       WHEN `DISCARD`.
         on_event_discard( ).
-      WHEN `POPUP_CLOSE`.
-        client->popup_destroy( ).
     ENDCASE.
 
   ENDMETHOD.
@@ -549,7 +547,7 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
             )->a( n = `text`  v = `Discard Draft`
             )->a( n = `type`  v = `Reject`
         )->tag( `Button`
-            )->a( n = `press` v = client->_event( `POPUP_CLOSE` )
+            )->a( n = `press` v = client->follow_up_action( val = client->cs_event-popup_close )
             )->a( n = `text`  v = `Close` ).
 
     client->popup_display( popup->stringify( ) ).

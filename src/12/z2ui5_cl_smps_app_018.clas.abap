@@ -123,9 +123,6 @@ CLASS z2ui5_cl_smps_app_018 IMPLEMENTATION.
       WHEN `POPUP_CONFIRM`.
         popup_confirm( ).
 
-      WHEN `POPUP_CANCEL`.
-        client->popup_destroy( ).
-
       WHEN `REFRESH`.
         data_read( ).
 
@@ -473,7 +470,7 @@ CLASS z2ui5_cl_smps_app_018 IMPLEMENTATION.
             )->a( n = `type`  v = `Emphasized` ).
     dialog->ele( `endButton`
         )->tag( `Button`
-            )->a( n = `press` v = client->_event( `POPUP_CANCEL` )
+            )->a( n = `press` v = client->follow_up_action( val = client->cs_event-popup_close )
             )->a( n = `text`  v = `Cancel` ).
 
     client->popup_display( popup->stringify( ) ).
