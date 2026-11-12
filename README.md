@@ -223,6 +223,10 @@ overview app and nothing else:
 | [`08-mime`](../../tree/08-mime) | [`src/08`](src/08) — MIME Play Audio | Standard only, ≥ 7.50 |
 | [`09-launchpad`](../../tree/09-launchpad) | [`src/09`](src/09) — Launchpad | Cloud + Standard ≥ 7.40 SP08 |
 | [`10-ai-llm`](../../tree/10-ai-llm) | [`src/10`](src/10) — AI / LLM | Cloud + Standard ≥ 7.40 SP08 |
+| [`11-rap-file-upload`](../../tree/11-rap-file-upload) | [`src/11`](src/11) — RAP File Upload | Cloud + Standard ≥ 8.16 (2025) |
+| [`12-rap-actions`](../../tree/12-rap-actions) | [`src/12`](src/12) — RAP Actions & Permissions | Cloud + Standard ≥ 8.16 (2025) |
+| [`13-excel-email`](../../tree/13-excel-email) | [`src/13`](src/13) — Excel & E-Mail | Cloud + Standard ≥ 7.58 (2023) |
+| [`14-adobe-forms`](../../tree/14-adobe-forms) | [`src/14`](src/14) — Adobe Forms | Standard only, ≥ 7.50 |
 
 The overview app ships on every branch and keeps listing **every sample in the
 repository**, so it stays the catalogue of what the other branches hold — the
@@ -286,7 +290,7 @@ in CI. The node checks carry no dependencies, so they take seconds.
 |---|---|
 | `abap-standard` | `abaplint ./abaplint.jsonc` — syntax `v757`, the on-premise release |
 | `check-abap2UI5` | [`abap2ui5lint`](https://github.com/abap2UI5/linter) — the app class and the view it produces, together; also writes the two badges above |
-| `check-overview` | the hand-kept indexes: every sample is listed in the overview app, the package table matches `.github/packages.json`, and the *Which package do I need?* table routes to every package |
+| `check-overview` | the hand-kept indexes: every sample is listed in the overview app, the package table and the branch table match `.github/packages.json`, and the *Which package do I need?* table routes to every package |
 | `check-samples-md` | [`SAMPLES.md`](SAMPLES.md) still is what the generator would write — and every app that exists is in an entry |
 | `check-keywords` | every app carries `@keywords` and `@summary`, and the overview's detail line still is the class's `@summary` |
 | `check-page-titles` | every sample's main page title starts with `abap2UI5 - ` |
