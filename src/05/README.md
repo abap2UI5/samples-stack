@@ -1,9 +1,9 @@
 # 05 — Business Events
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 A RAP business object announces what happened, and something else reacts to it.
-Packages [`03`](../03/README.md) and [`04`](../04/README.md) end at the save — this
+Packages [`03`](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) and [`04`](https://github.com/abap2UI5/samples-stack/blob/main/src/04/README.md) end at the save — this
 one starts there.
 
 The interesting part for abap2UI5 is the decoupling. The app that creates a ticket
@@ -152,5 +152,5 @@ your system with the predefined type `RAW` length 16, and the rest activates.
 
 ## Where to go next
 
-- [`07` AMC/APC](../07/README.md) — the other half of the story: pushing what
+- [`07` AMC/APC](https://github.com/abap2UI5/samples-stack/blob/main/src/07/README.md) — the other half of the story: pushing what
   happened into an open browser tab instead of waiting for a refresh.
