@@ -7,7 +7,7 @@
 // documentation). The price is that the compiler no longer notices a renamed
 // or a newly added sample - this check is what notices instead.
 //
-// Five directions:
+// Seven directions:
 //   1. every sample class in the tree is listed in the overview  (always)
 //   2. every class the overview names exists in the tree         (full tree only)
 //   3. every package of .github/packages.json is in the README
@@ -18,6 +18,9 @@
 //      every package exactly once                                (full tree only)
 //   6. every package's branch name in the overview is the one
 //      .github/packages.json builds                              (always)
+//   7. the README's branch table has one row per package, with the
+//      branch, the directory and the release packages.json
+//      declares                                                  (full tree only)
 //
 // (3) is the second index this repository keeps by hand: packages.json drives
 // the generated per-package branches and the release each one is checked at,
@@ -183,6 +186,32 @@ if (complete) {
         `README.md row for src/${entry.dir} does not carry the release ` +
           `.github/packages.json declares ("${entry.runsOn}")`,
       );
+    }
+  }
+
+  // (7) the branch table - "Pick one and you import that package". Same
+  // drift as (3): packages.json builds the branches, this table names them
+  // by hand, and it once listed ten of fourteen
+  const branchRows = readme.split('\n').filter((line) => /^\| \[`\d{2}-/.test(line));
+  for (const entry of packages) {
+    const head = `| [\`${entry.branch}\`](../../tree/${entry.branch}) | [\`src/${entry.dir}\`](src/${entry.dir}) `;
+    const matching = branchRows.filter((line) => line.startsWith(head));
+    if (matching.length !== 1) {
+      errors.push(
+        `README.md's branch table must have exactly one row for ${entry.branch} -> src/${entry.dir}, ` +
+          `found ${matching.length}`,
+      );
+    } else if (!matching[0].includes(`| ${entry.runsOn} |`)) {
+      errors.push(
+        `README.md branch table row for ${entry.branch} does not carry the release ` +
+          `.github/packages.json declares ("${entry.runsOn}")`,
+      );
+    }
+  }
+  for (const line of branchRows) {
+    const name = line.match(/^\| \[`([^`]+)`/)[1];
+    if (!packages.some((entry) => entry.branch === name)) {
+      errors.push(`README.md's branch table lists ${name}, which .github/packages.json does not build`);
     }
   }
 

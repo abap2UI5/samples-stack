@@ -10,7 +10,7 @@ ENDCLASS.
 CLASS lhe_ticket IMPLEMENTATION.
 
   METHOD on_ticket_created.
-    DATA lt_log TYPE STANDARD TABLE OF z2ui5_t_smps_log.
+    DATA lt_log TYPE STANDARD TABLE OF z2ui5_t_smps_log WITH EMPTY KEY.
     DATA lv_now TYPE timestampl.
 
     GET TIME STAMP FIELD lv_now.
@@ -36,7 +36,7 @@ CLASS lhe_ticket IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_status_changed.
-    DATA lt_log TYPE STANDARD TABLE OF z2ui5_t_smps_log.
+    DATA lt_log TYPE STANDARD TABLE OF z2ui5_t_smps_log WITH EMPTY KEY.
     DATA lv_now TYPE timestampl.
 
     GET TIME STAMP FIELD lv_now.
