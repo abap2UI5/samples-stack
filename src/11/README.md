@@ -1,6 +1,6 @@
 # 11 — RAP File Upload
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 A file goes into a RAP business object as an **action parameter**. The static
 action `uploadFile` of `Z2UI5_R_SMPS_FIL` takes a *deep parameter*: next to a
@@ -101,7 +101,7 @@ business object keeping only a reference.
 
 ## Where to go next
 
-- [`03` RAP](../03/README.md) — the EML statements one by one, on a business
+- [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — the EML statements one by one, on a business
   object without files.
 - The upload without RAP: `Z2UI5_CL_SMP_APP_074` (FileUploader) and
   `Z2UI5_CL_SMP_APP_517` (UploadSet, several files, drag and drop) in
