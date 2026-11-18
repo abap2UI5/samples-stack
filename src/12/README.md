@@ -1,6 +1,6 @@
 # 12 — RAP Actions & Permissions
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 A business object does more than create, update and delete. It decides what is
 allowed right now, offers actions that need input, proposes values for a new
@@ -86,11 +86,11 @@ that one counts.
 abaplint has no grammar for `GET PERMISSIONS` at any language version, so a file
 containing it does not parse. `Z2UI5_CL_SMPS_PERM_REQ` holds that one statement
 and nothing else, and is listed in `noIssues` in `abaplint.jsonc` — the same way
-the RAP event handler of [`05`](../05/README.md) is. The sample app that calls
+the RAP event handler of [`05`](https://github.com/abap2UI5/samples-stack/blob/main/src/05/README.md) is. The sample app that calls
 it, `Z2UI5_CL_SMPS_APP_017`, stays fully checked.
 
 ## Where to go next
 
-- [`03` RAP](../03/README.md) — the basic EML statements, one per sample.
-- [`11` RAP File Upload](../11/README.md) — a deep action parameter that carries
+- [`03` RAP](https://github.com/abap2UI5/samples-stack/blob/main/src/03/README.md) — the basic EML statements, one per sample.
+- [`11` RAP File Upload](https://github.com/abap2UI5/samples-stack/blob/main/src/11/README.md) — a deep action parameter that carries
   a file.
