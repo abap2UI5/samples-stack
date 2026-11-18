@@ -46,7 +46,7 @@ Every area is self-contained and brings its own README. Pick the one you came
 for and try it out — the others can wait until you need them.
 
 > **Looking for one particular sample?**
-> **<https://abap2ui5.github.io/playground/samples/>** is this catalogue as a
+> **<https://abap2ui5.github.io/browser-playground/samples/>** is this catalogue as a
 > searchable page — together with the other two sample repositories: filter by
 > the technology you came for and by the release your system runs, and every
 > card says what the sample needs from that system before you install
@@ -315,7 +315,7 @@ full-tree halves on a checkout that carries only part of the repository.
 This repository published its own searchable page until 2026-09-03 (`web/`,
 `check-web`, `deploy-web`, `check-family-nav`). It does not any more: one
 catalogue over all three sample repositories is published from the
-[playground](https://abap2ui5.github.io/playground/samples/), and three pages
+[playground](https://abap2ui5.github.io/browser-playground/samples/), and three pages
 that each had to explain that the other two existed were the reason for the
 shared family-nav block and the check policing its three copies.
 
@@ -379,7 +379,7 @@ prerequisite for using abap2UI5 at all: they are options you can reach for when
 they help.
 
 If you are not sure which package that is, start at
-**<https://abap2ui5.github.io/playground/samples/>**: pick the release your system runs
+**<https://abap2ui5.github.io/browser-playground/samples/>**: pick the release your system runs
 and it shows you what is within reach, with the setup each sample needs on its
 card.
 

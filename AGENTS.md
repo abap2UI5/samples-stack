@@ -359,7 +359,7 @@ gone.
 
 ## 8. The catalogue — published from the playground
 
-**<https://abap2ui5.github.io/playground/samples/>** — every sample of this
+**<https://abap2ui5.github.io/browser-playground/samples/>** — every sample of this
 repository, of `abap2UI5/samples` and of `abap2UI5/samples-controls`,
 searchable, for somebody who has installed nothing yet and is asking whether
 their system can run any of it.
