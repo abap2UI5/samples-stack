@@ -1,6 +1,6 @@
 # 07 — AMC/APC: WebSockets
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 A news feed pushed from ABAP into every open browser tab, **without a line of
 JavaScript**: the abap2UI5 custom control `z2ui5:Websocket` keeps the connection
@@ -41,5 +41,5 @@ Start it with `?app_start=z2ui5_cl_smps_app_489`, or from the overview app
 
 ## Where to go next
 
-- [`05` Business Events](../05/README.md) — a business object announcing what
+- [`05` Business Events](https://github.com/abap2UI5/samples-stack/blob/main/src/05/README.md) — a business object announcing what
   happened. Combine the two and a RAP event can end up in an open browser tab.
