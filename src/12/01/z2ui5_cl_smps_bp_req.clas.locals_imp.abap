@@ -168,20 +168,20 @@ CLASS lhc_request IMPLEMENTATION.
       " the area before the validation runs again, so a corrected value does
       " not keep the old message - which matters once the determine action
       " checkRequest runs it on every change
-      APPEND VALUE #( %tky        = request-%tky
-                      %state_area = 'VALIDATE_QUANTITY' ) TO reported-request.
+      INSERT VALUE #( %tky        = request-%tky
+                      %state_area = 'VALIDATE_QUANTITY' ) INTO TABLE reported-request.
 
       IF request-quantity BETWEEN 1 AND 1000.
         CONTINUE.
       ENDIF.
 
-      APPEND VALUE #( %tky = request-%tky ) TO failed-request.
-      APPEND VALUE #( %tky              = request-%tky
+      INSERT VALUE #( %tky = request-%tky ) INTO TABLE failed-request.
+      INSERT VALUE #( %tky              = request-%tky
                       %state_area       = 'VALIDATE_QUANTITY'
                       %element-quantity = if_abap_behv=>mk-on
                       %msg              = new_message_with_text(
                                               severity = if_abap_behv_message=>severity-error
-                                              text     = 'Quantity must be between 1 and 1000' ) ) TO reported-request.
+                                              text     = 'Quantity must be between 1 and 1000' ) ) INTO TABLE reported-request.
 
     ENDLOOP.
 
@@ -227,11 +227,11 @@ CLASS lhc_request IMPLEMENTATION.
     " the parameter arrives per key in %param - one reason per request
     LOOP AT keys INTO DATA(key) WHERE %param-reason IS INITIAL.
 
-      APPEND VALUE #( %tky = key-%tky ) TO failed-request.
-      APPEND VALUE #( %tky = key-%tky
+      INSERT VALUE #( %tky = key-%tky ) INTO TABLE failed-request.
+      INSERT VALUE #( %tky = key-%tky
                       %msg = new_message_with_text(
                                  severity = if_abap_behv_message=>severity-error
-                                 text     = 'A rejection needs a reason' ) ) TO reported-request.
+                                 text     = 'A rejection needs a reason' ) ) INTO TABLE reported-request.
 
     ENDLOOP.
 

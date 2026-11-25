@@ -18,13 +18,13 @@ CLASS lhe_ticket IMPLEMENTATION.
 
     TRY.
         LOOP AT ticketcreated INTO DATA(ls_ev).
-          APPEND VALUE #(
+          INSERT VALUE #(
             log_uuid    = cl_system_uuid=>create_uuid_x16_static( )
             ticket_uuid = ls_ev-ticketuuid
             event_name  = 'TicketCreated'
             log_text    = |NOTIFICATION event (key only): ticket { ls_ev-ticketuuid } was created.|
             created_by  = lv_user
-            created_at  = lv_now ) TO lt_log.
+            created_at  = lv_now ) INTO TABLE lt_log.
         ENDLOOP.
       CATCH cx_uuid_error.
         RETURN.
@@ -44,7 +44,7 @@ CLASS lhe_ticket IMPLEMENTATION.
 
     TRY.
         LOOP AT statuschanged INTO DATA(ls_ev).
-          APPEND VALUE #(
+          INSERT VALUE #(
             log_uuid    = cl_system_uuid=>create_uuid_x16_static( )
             ticket_uuid = ls_ev-ticketuuid
             event_name  = 'StatusChanged'
@@ -52,7 +52,7 @@ CLASS lhe_ticket IMPLEMENTATION.
                           |Priority={ ls_ev-priority } Title={ ls_ev-title } | &&
                           |(changed by { ls_ev-changedby }).|
             created_by  = lv_user
-            created_at  = lv_now ) TO lt_log.
+            created_at  = lv_now ) INTO TABLE lt_log.
         ENDLOOP.
       CATCH cx_uuid_error.
         RETURN.

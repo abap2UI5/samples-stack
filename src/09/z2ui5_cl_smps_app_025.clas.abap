@@ -229,8 +229,8 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
     ENDIF.
 
     DATA(class_descr) = CAST cl_abap_objectdescr( descr ).
-    READ TABLE class_descr->methods INTO DATA(s_method) WITH KEY name = method_name.
-    IF sy-subrc <> 0.
+    DATA(s_method) = VALUE abap_methdescr( class_descr->methods[ name = method_name ] OPTIONAL ).
+    IF s_method IS INITIAL.
       RETURN.
     ENDIF.
 
@@ -255,7 +255,7 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
               " its row type may be whatever the system declares
               ASSIGN value_ref->* TO <table>.
               LOOP AT t_params INTO DATA(s_nav_param) WHERE name IS NOT INITIAL.
-                APPEND INITIAL LINE TO <table> ASSIGNING <row>.
+                INSERT INITIAL LINE INTO TABLE <table> ASSIGNING <row>.
                 ASSIGN COMPONENT 'NAME' OF STRUCTURE <row> TO <comp>.
                 IF sy-subrc = 0.
                   <comp> = s_nav_param-name.

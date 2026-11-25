@@ -232,6 +232,9 @@ CLASS z2ui5_cl_smps_app_031 IMPLEMENTATION.
         amount   TYPE z2ui5_t_smps_trv-total_price,
       END OF ty_s_total.
     DATA t_total TYPE SORTED TABLE OF ty_s_total WITH UNIQUE KEY currency.
+    " declared here, not inline at the ASSIGN below, so it can be UNASSIGNed
+    " before each one
+    FIELD-SYMBOLS <total> TYPE ty_s_total.
 
     IF NOT matches( val = s_selection-agency_id && s_selection-customer_id regex = `^\d*$` ).
       client->message_box_display( text = `Agency and customer are numbers - leave a field empty to select all` type = `error` ).
@@ -283,8 +286,14 @@ CLASS z2ui5_cl_smps_app_031 IMPLEMENTATION.
     " a total only makes sense per currency - summed in the types of the
     " business object, not from the strings on the screen
     LOOP AT t_result INTO DATA(result).
-      DATA(total) = VALUE ty_s_total( currency = result-currencycode amount = result-totalprice ).
-      COLLECT total INTO t_total.
+      " UNASSIGN first: a failed ASSIGN keeps the previous round's row
+      UNASSIGN <total>.
+      ASSIGN t_total[ currency = result-currencycode ] TO <total>.
+      IF <total> IS ASSIGNED.
+        <total>-amount = <total>-amount + result-totalprice.
+      ELSE.
+        INSERT VALUE #( currency = result-currencycode amount = result-totalprice ) INTO TABLE t_total.
+      ENDIF.
     ENDLOOP.
 
     summary = |{ lines( t_travels ) } travels| &&
@@ -307,12 +316,12 @@ CLASS z2ui5_cl_smps_app_031 IMPLEMENTATION.
     DATA(t_cells) = VALUE z2ui5_cl_smps_xlsx=>ty_t_row(
         ( a = `Travel` b = `Customer` c = `Begin Date` d = `End Date` e = `Total Price` f = `Status` ) ).
     LOOP AT t_travels INTO DATA(travel).
-      APPEND VALUE #( a = travel-travel_id
+      INSERT VALUE #( a = travel-travel_id
                       b = travel-customer_id
                       c = travel-begin_date
                       d = travel-end_date
                       e = |{ travel-total_price } { travel-currency }|
-                      f = travel-status ) TO t_cells.
+                      f = travel-status ) INTO TABLE t_cells.
     ENDLOOP.
 
     DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( t_cells ).

@@ -136,11 +136,11 @@ CLASS z2ui5_cl_smps_app_022 IMPLEMENTATION.
         ( a = `Product` b = `Quantity` c = `Price` d = `Currency` e = `Total` ) ).
 
     LOOP AT t_products INTO DATA(s_product).
-      APPEND VALUE #( a = s_product-product
+      INSERT VALUE #( a = s_product-product
                       b = |{ s_product-quantity }|
                       c = |{ s_product-price }|
                       d = s_product-currency
-                      e = |{ s_product-quantity * s_product-price DECIMALS = 2 }| ) TO t_rows.
+                      e = |{ s_product-quantity * s_product-price DECIMALS = 2 }| ) INTO TABLE t_rows.
     ENDLOOP.
 
     DATA(xlsx) = z2ui5_cl_smps_xlsx=>write( t_rows ).

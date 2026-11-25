@@ -302,10 +302,10 @@ CLASS z2ui5_cl_smps_app_029 IMPLEMENTATION.
   METHOD updates_get.
 
     LOOP AT t_travels INTO DATA(travel) WHERE new_begin_date IS NOT INITIAL.
-      APPEND VALUE #( travel_id   = travel-travel_id
+      INSERT VALUE #( travel_id   = travel-travel_id
                       begin_date  = replace( val = travel-new_begin_date sub = `-` with = `` occ = 0 )
                       end_date    = replace( val = travel-new_end_date sub = `-` with = `` occ = 0 )
-                      booking_fee = travel-new_fee ) TO result.
+                      booking_fee = travel-new_fee ) INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.

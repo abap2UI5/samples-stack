@@ -285,8 +285,8 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
           CONTINUE.
       ENDCASE.
 
-      APPEND VALUE #( sign = sign option = option low = low high = high ) TO lr_type.
-      APPEND VALUE #( sign = sign option = option low = low high = high ) TO t_selopt.
+      INSERT VALUE #( sign = sign option = option low = low high = high ) INTO TABLE lr_type.
+      INSERT VALUE #( sign = sign option = option low = low high = high ) INTO TABLE t_selopt.
     ENDLOOP.
 
     " apply the derived SELECT-OPTIONS just like any ABAP query would
@@ -296,7 +296,7 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
       hint     = |No conditions - showing all { lines( t_product ) } demo products.|.
     ELSE.
       LOOP AT t_product INTO DATA(p) WHERE product_type IN lr_type.
-        APPEND p TO t_result.
+        INSERT p INTO TABLE t_result.
       ENDLOOP.
       hint = |{ lines( t_selopt ) } condition(s) -> { lines( t_result ) } of { lines( t_product ) } demo products match.|.
     ENDIF.

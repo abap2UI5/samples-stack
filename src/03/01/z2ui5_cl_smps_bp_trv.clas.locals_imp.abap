@@ -70,8 +70,8 @@ CLASS lhc_travel IMPLEMENTATION.
     LOOP AT entities INTO DATA(entity).
 
       max_id += 1.
-      APPEND VALUE #( %cid = entity-%cid
-                      %key = VALUE #( travelid = max_id ) ) TO mapped-travel.
+      INSERT VALUE #( %cid = entity-%cid
+                      %key = VALUE #( travelid = max_id ) ) INTO TABLE mapped-travel.
 
     ENDLOOP.
 
@@ -125,12 +125,12 @@ CLASS lhc_travel IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      APPEND VALUE #( %tky = travel-%tky ) TO failed-travel.
-      APPEND VALUE #( %tky                = travel-%tky
+      INSERT VALUE #( %tky = travel-%tky ) INTO TABLE failed-travel.
+      INSERT VALUE #( %tky                = travel-%tky
                       %element-customerid = if_abap_behv=>mk-on
                       %msg                = new_message_with_text(
                                                 severity = if_abap_behv_message=>severity-error
-                                                text     = 'Customer ID is initial' ) ) TO reported-travel.
+                                                text     = 'Customer ID is initial' ) ) INTO TABLE reported-travel.
 
     ENDLOOP.
 
@@ -152,13 +152,13 @@ CLASS lhc_travel IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      APPEND VALUE #( %tky = travel-%tky ) TO failed-travel.
-      APPEND VALUE #( %tky               = travel-%tky
+      INSERT VALUE #( %tky = travel-%tky ) INTO TABLE failed-travel.
+      INSERT VALUE #( %tky               = travel-%tky
                       %element-begindate = if_abap_behv=>mk-on
                       %element-enddate   = if_abap_behv=>mk-on
                       %msg               = new_message_with_text(
                                                severity = if_abap_behv_message=>severity-error
-                                               text     = 'End date must not be before begin date' ) ) TO reported-travel.
+                                               text     = 'End date must not be before begin date' ) ) INTO TABLE reported-travel.
 
     ENDLOOP.
 
