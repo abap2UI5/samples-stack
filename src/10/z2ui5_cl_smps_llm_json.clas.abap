@@ -159,7 +159,6 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
 
   METHOD get_string.
 
-    DATA key TYPE string.
     DATA token TYPE string.
 
     DATA(length) = strlen( json ).
@@ -186,8 +185,7 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      READ TABLE path INDEX level INTO key.
-      IF sy-subrc <> 0 OR token <> key.
+      IF NOT line_exists( path[ level ] ) OR token <> path[ level ].
         CONTINUE.
       ENDIF.
 

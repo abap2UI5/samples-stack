@@ -224,15 +224,15 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
                              error = DATA(error) ).
 
       IF error IS INITIAL.
-        APPEND VALUE #( form = form pdf = pdf ) TO result.
-        APPEND VALUE #( form   = form
+        INSERT VALUE #( form = form pdf = pdf ) INTO TABLE result.
+        INSERT VALUE #( form   = form
                         size   = |{ xstrlen( pdf ) } bytes|
                         status = `rendered`
-                        state  = `Success` ) TO t_results.
+                        state  = `Success` ) INTO TABLE t_results.
       ELSE.
-        APPEND VALUE #( form   = form
+        INSERT VALUE #( form   = form
                         status = error
-                        state  = `Error` ) TO t_results.
+                        state  = `Error` ) INTO TABLE t_results.
       ENDIF.
 
     ENDLOOP.

@@ -402,12 +402,12 @@ CLASS z2ui5_cl_smps_app_010 IMPLEMENTATION.
 
     " READ ENTITIES returns no row, and no exception, for a key that is not
     " there - a table expression without a guard would dump on it
-    READ TABLE t_result INTO DATA(s_result) INDEX 1.
-    IF sy-subrc <> 0.
+    IF t_result IS INITIAL.
       client->message_box_display( text = `The draft could not be read - it was discarded or activated in the meantime`
                                    type = `error` ).
       RETURN.
     ENDIF.
+    DATA(s_result) = t_result[ 1 ].
 
     s_draft = VALUE #(
       travel_uuid = uuid

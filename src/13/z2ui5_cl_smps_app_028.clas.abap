@@ -289,7 +289,7 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
                                   booking_fee = condense( cells-e )
                                   currency    = to_upper( condense( cells-f ) ) ).
       row_convert( CHANGING row = row ).
-      APPEND row TO t_rows.
+      INSERT row INTO TABLE t_rows.
     ENDLOOP.
 
     DATA(errors) = REDUCE i( INIT n = 0 FOR r IN t_rows WHERE ( state = `Error` ) NEXT n = n + 1 ).
@@ -313,7 +313,7 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
     IF matches( val = row-agency_id regex = `^\d{1,6}$` ).
       travel-agency_id = row-agency_id.
     ELSE.
-      APPEND |agency '{ row-agency_id }' is not a number of up to 6 digits| TO problems.
+      INSERT |agency '{ row-agency_id }' is not a number of up to 6 digits| INTO TABLE problems.
     ENDIF.
 
     " an empty customer is passed on on purpose - the validation
@@ -321,23 +321,23 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
     IF row-customer_id IS INITIAL OR matches( val = row-customer_id regex = `^\d{1,6}$` ).
       travel-customer_id = row-customer_id.
     ELSE.
-      APPEND |customer '{ row-customer_id }' is not a number of up to 6 digits| TO problems.
+      INSERT |customer '{ row-customer_id }' is not a number of up to 6 digits| INTO TABLE problems.
     ENDIF.
 
     travel-begin_date = date_convert( row-begin_date ).
     IF travel-begin_date IS INITIAL.
-      APPEND |begin date '{ row-begin_date }' is no date| TO problems.
+      INSERT |begin date '{ row-begin_date }' is no date| INTO TABLE problems.
     ENDIF.
 
     travel-end_date = date_convert( row-end_date ).
     IF travel-end_date IS INITIAL.
-      APPEND |end date '{ row-end_date }' is no date| TO problems.
+      INSERT |end date '{ row-end_date }' is no date| INTO TABLE problems.
     ENDIF.
 
     TRY.
         travel-booking_fee = row-booking_fee.
       CATCH cx_sy_conversion_error.
-        APPEND |booking fee '{ row-booking_fee }' is not a number - write it like 20.00| TO problems.
+        INSERT |booking fee '{ row-booking_fee }' is not a number - write it like 20.00| INTO TABLE problems.
     ENDTRY.
 
     travel-currency = row-currency.
@@ -378,11 +378,14 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
   METHOD rows_import.
 
     DATA t_travel TYPE ty_t_travel.
+    " declared here, not inline at the ASSIGN below, so it can be UNASSIGNed
+    " before each one
+    FIELD-SYMBOLS <row> LIKE LINE OF t_rows.
 
     LOOP AT t_rows REFERENCE INTO DATA(row) WHERE travel_id IS INITIAL.
       row_convert( IMPORTING travel = DATA(travel) CHANGING row = row->* ).
       IF row->state <> `Error`.
-        APPEND travel TO t_travel.
+        INSERT travel INTO TABLE t_travel.
       ENDIF.
     ENDLOOP.
 
@@ -410,8 +413,10 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
       ENDLOOP.
       IF t_retry IS NOT INITIAL.
         LOOP AT t_retry INTO DATA(retry).
-          READ TABLE t_rows ASSIGNING FIELD-SYMBOL(<row>) WITH KEY row = retry-row.
-          IF sy-subrc = 0.
+          " UNASSIGN first: a failed ASSIGN keeps the previous round's row
+          UNASSIGN <row>.
+          ASSIGN t_rows[ row = retry-row ] TO <row>.
+          IF <row> IS ASSIGNED.
             <row>-state  = `None`.
             <row>-status = `Ready`.
           ENDIF.
@@ -436,6 +441,9 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
 
     DATA row   TYPE i.
     DATA texts TYPE string_table.
+    " declared here, not inline at the ASSIGNs below, so it can be UNASSIGNed
+    " before each one
+    FIELD-SYMBOLS <row> LIKE LINE OF t_rows.
 
     " the %cid is the Excel row number: it is the one thing the business
     " object hands back with each instance, before a key exists - so it is
@@ -464,7 +472,7 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
         texts = VALUE #( FOR r IN s_reported-travel WHERE ( %cid = failed-%cid AND %msg IS BOUND )
                          ( r-%msg->if_message~get_text( ) ) ).
         row_refuse( row = row text = concat_lines_of( table = texts sep = `; ` ) ).
-        APPEND VALUE #( row = row ) TO result.
+        INSERT VALUE #( row = row ) INTO TABLE result.
       ENDLOOP.
 
     ELSE.
@@ -478,8 +486,10 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
       IF s_failed_commit IS INITIAL.
         LOOP AT s_mapped-travel INTO DATA(created).
           row = substring_after( val = created-%cid sub = `ROW_` ).
-          READ TABLE t_rows ASSIGNING FIELD-SYMBOL(<row>) WITH KEY row = row.
-          IF sy-subrc = 0.
+          " UNASSIGN first: a failed ASSIGN keeps the previous round's row
+          UNASSIGN <row>.
+          ASSIGN t_rows[ row = row ] TO <row>.
+          IF <row> IS ASSIGNED.
             <row>-travel_id = |{ created-travelid ALPHA = OUT }|.
             <row>-state     = `Success`.
             <row>-status    = `Created`.
@@ -498,7 +508,7 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
         texts = VALUE #( FOR r IN s_reported_commit-travel WHERE ( travelid = failed_commit-travelid AND %msg IS BOUND )
                          ( r-%msg->if_message~get_text( ) ) ).
         row_refuse( row = row text = concat_lines_of( table = texts sep = `; ` ) ).
-        APPEND VALUE #( row = row ) TO result.
+        INSERT VALUE #( row = row ) INTO TABLE result.
       ENDLOOP.
 
     ENDIF.
@@ -507,8 +517,9 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
     " not object to are rolled back with the others
     LOOP AT t_travel INTO DATA(travel).
       IF NOT line_exists( result[ row = travel-row ] ).
-        READ TABLE t_rows ASSIGNING <row> WITH KEY row = travel-row.
-        IF sy-subrc = 0.
+        UNASSIGN <row>.
+        ASSIGN t_rows[ row = travel-row ] TO <row>.
+        IF <row> IS ASSIGNED.
           <row>-state  = `Warning`.
           <row>-status = `Not saved - another row was refused`.
         ENDIF.
@@ -520,8 +531,8 @@ CLASS z2ui5_cl_smps_app_028 IMPLEMENTATION.
 
   METHOD row_refuse.
 
-    READ TABLE t_rows ASSIGNING FIELD-SYMBOL(<row>) WITH KEY row = row.
-    IF sy-subrc <> 0.
+    ASSIGN t_rows[ row = row ] TO FIELD-SYMBOL(<row>).
+    IF <row> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     <row>-state  = `Error`.

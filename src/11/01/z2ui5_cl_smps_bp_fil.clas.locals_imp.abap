@@ -39,12 +39,12 @@ CLASS lhc_file IMPLEMENTATION.
     LOOP AT keys INTO DATA(key) WHERE %param-_streamproperties-filecontent IS NOT INITIAL.
 
       DATA(stream) = key-%param-_streamproperties.
-      APPEND VALUE #( %cid        = key-%cid
+      INSERT VALUE #( %cid        = key-%cid
                       filename    = stream-filename
                       mimetype    = stream-mimetype
                       description = key-%param-description
                       filesize    = xstrlen( stream-filecontent )
-                      content     = stream-filecontent ) TO creates.
+                      content     = stream-filecontent ) INTO TABLE creates.
 
     ENDLOOP.
 
@@ -68,11 +68,11 @@ CLASS lhc_file IMPLEMENTATION.
     " with a message the caller can show
     LOOP AT keys INTO key WHERE %param-_streamproperties-filecontent IS INITIAL.
 
-      APPEND VALUE #( %cid = key-%cid ) TO failed-file.
-      APPEND VALUE #( %cid = key-%cid
+      INSERT VALUE #( %cid = key-%cid ) INTO TABLE failed-file.
+      INSERT VALUE #( %cid = key-%cid
                       %msg = new_message_with_text(
                                  severity = if_abap_behv_message=>severity-error
-                                 text     = 'The file is empty - nothing to upload' ) ) TO reported-file.
+                                 text     = 'The file is empty - nothing to upload' ) ) INTO TABLE reported-file.
 
     ENDLOOP.
 
