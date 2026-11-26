@@ -37,12 +37,13 @@ Two consequences worth stating:
   every `z2ui5_` object and abap2UI5 along with it. `package.json`
   `config.renameSkip` leaves out what it cannot do yet, each with its reason,
   printed on every run: the CDS/RAP packages (`abaplint-rename-cds-rap`),
-  APC/AMC and MIME (`abaplint-rename-connectivity-mime-objects`), `src/13`
-  that builds on `src/03`, and `src/06` and `src/10`, whose tables are too
-  long for a renamed name (`samples-rename-semantics`). The overview app
-  writes every class name without its `z2ui5_` prefix and puts the
-  installation's in front at runtime (`own_prefix( )`) - the rename rewrites
-  references, never a literal.
+  APC/AMC and MIME (`abaplint-rename-connectivity-mime-objects`) and `src/13`
+  that builds on `src/03`. The overview app writes every class name without
+  its `z2ui5_` prefix and puts the installation's in front at runtime
+  (`own_prefix( )`) - the rename rewrites references, never a literal. The
+  same idiom elsewhere: the lock samples of `src/06` read their table's name
+  from a typed row, and `z2ui5_cl_smps_llm_factory=>class_name( )` completes
+  the transports it creates by name.
 - **Objects other than classes.** Packages bring their own tables, data
   elements, CDS entities, behavior definitions and service bindings. They are
   part of the sample, not scaffolding around it.
@@ -62,6 +63,7 @@ Naming, enforced by `object_naming`:
 ```
 Z2UI5_CL_SMPS_<object>   classes, including behavior pools   (max 25 chars)
 Z2UI5_T_SMPS_<object>    persistent tables                   (max 16 chars)
+Z2UI5_T_S<xx>            persistent tables the rename takes  (max 11 chars)
 Z2UI5_D_SMPS_<object>    draft tables                        (max 16 chars)
 Z2UI5_R_SMPS_<object>    CDS root view entities + behavior definitions
 ```
@@ -70,8 +72,13 @@ The 25-character cap is not ABAP's 30: the namespace rename (`npm run
 rename`) swaps the 5-character `z2ui5` namespace for one up to 10 long, which
 costs 5. Tables are capped at 16 because that is the DDIC limit — a
 17-character table does not activate; a table that is to survive the rename
-needs 11 (`src/06` and `src/10` have 15 and 16, which is why the rename
-leaves them out).
+needs 11, which leaves no room for `SMPS_`: `Z2UI5_T_S` and two characters.
+`src/06` and `src/10` had `Z2UI5_T_SMPS_01` (15) and `Z2UI5_T_SMPS_LLM` (16)
+and the rename left them out; since 2026-11-26 they are `Z2UI5_T_SLK` and
+`Z2UI5_T_SAI` (breaking - the README says what an installation does with the
+old tables) and the rename takes both packages. The RAP tables
+(`Z2UI5_T_SMPS_TRV`, ...) are in packages the rename leaves out for other
+reasons; shorten them the same way once abaplint renames CDS.
 
 ### Sample numbers are per repository — the prefix is what qualifies them
 

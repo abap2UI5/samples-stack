@@ -24,7 +24,7 @@ ABAP Standard (on-premise). The locks go through the function modules
 `ENQUEUE_E_TABLE`, `DEQUEUE_E_TABLE` and `ENQUEUE_READ`, which are available
 there — the page title of `Z2UI5_CL_SMPS_APP_485` points this out.
 
-The lock table `Z2UI5_T_SMPS_01` comes with this package
+The lock table `Z2UI5_T_SLK` comes with this package
 ([`src/06/01`](01)); after the import it only has to be activated, it is never
 filled with data. Keep `SM12` open next to the browser and you can watch the entries
 appear live.

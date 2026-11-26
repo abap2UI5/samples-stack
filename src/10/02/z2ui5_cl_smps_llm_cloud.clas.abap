@@ -11,7 +11,7 @@
 "!   - ABAP environment: the communication arrangement for scenario
 "!     SAP_COM_0276 (SAP BTP Destination Service Integration), which is what
 "!     lets create_by_cloud_destination( ) read that destination
-"! The API key travels in the configuration (Z2UI5_T_SMPS_LLM), or a gateway
+"! The API key travels in the configuration (Z2UI5_T_SAI), or a gateway
 "! in front of the provider adds it and the configuration leaves it empty.
 "!
 "! cl_web_http_client_manager does not exist on 7.40 - on an older

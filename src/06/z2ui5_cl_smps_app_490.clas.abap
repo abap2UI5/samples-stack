@@ -16,7 +16,7 @@ CLASS z2ui5_cl_smps_app_490 DEFINITION PUBLIC.
     DATA view_id TYPE i.
 
     "! ENQUEUE_E_TABLE (abap_true) or DEQUEUE_E_TABLE (abap_false) on this
-    "! view's VARKEY in Z2UI5_T_SMPS_01
+    "! view's VARKEY in the lock table (table_name)
     "! @parameter acquire | abap_true sets the lock, abap_false releases it
     "! @parameter result | the message of a lock that could not be set, else empty
     METHODS lock
@@ -24,6 +24,13 @@ CLASS z2ui5_cl_smps_app_490 DEFINITION PUBLIC.
         acquire       TYPE abap_bool
       RETURNING
         VALUE(result) TYPE string.
+
+    "! The lock table, Z2UI5_T_SLK, by the name this installation gives it -
+    "! read from a typed row, so a namespace rename takes it along
+    "! @parameter result | the table name
+    METHODS table_name
+      RETURNING
+        VALUE(result) TYPE tabname.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -58,7 +65,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
                     )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
                     )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
             page->tag( `MessageStrip`
-                )->a( n = `text`     v = `Every lock view takes the next key of table Z2UI5_T_SMPS_01 and holds an ENQUEUE ` &&
+                )->a( n = `text`     t = |Every lock view takes the next key of table { table_name( ) } and holds an ENQUEUE | &&
                                          `lock on it while the session is stateful - keep SM12 open and watch them line up. ` &&
                                          `Back releases the lock of the view you leave, and only that one.`
                 )->a( n = `type`     v = `Information`
@@ -149,7 +156,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
       lv_fm = `DEQUEUE_E_TABLE`.
       CALL FUNCTION lv_fm
         EXPORTING
-          tabname = 'Z2UI5_T_SMPS_01'
+          tabname = table_name( )
           varkey  = lv_varkey.
       RETURN.
     ENDIF.
@@ -157,7 +164,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
     lv_fm = `ENQUEUE_E_TABLE`.
     CALL FUNCTION lv_fm
       EXPORTING
-        tabname        = 'Z2UI5_T_SMPS_01'
+        tabname        = table_name( )
         varkey         = lv_varkey
       EXCEPTIONS
         foreign_lock   = 1
@@ -193,7 +200,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
     DATA(hbox) = vbox->ele( `HBox`
         )->a( n = `alignItems` v = `Center` ).
     hbox->tag( `Title`
-        )->a( n = `text` v = `Current Lock Value in Table Z2UI5_T_SMPS_01` ).
+        )->a( n = `text` t = |Current Lock Value in Table { table_name( ) }| ).
     hbox->tag( `Input`
         )->a( n = `editable` b = abap_false
         )->a( n = `value`    v = client->_bind( varkey ) ).
@@ -201,6 +208,15 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
         )->a( n = `press` v = client->_event( `NEXT_LOCK` )
         )->a( n = `text`  v = `Next Lock View` ).
     client->view_display( view->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD table_name.
+
+    DATA row TYPE z2ui5_t_slk.
+
+    result = cl_abap_typedescr=>describe_by_data( row )->get_relative_name( ).
 
   ENDMETHOD.
 

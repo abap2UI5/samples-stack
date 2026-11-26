@@ -643,15 +643,20 @@
     // in samples, samples-controls and samples-stack.
     // ===================================================================
     // Class names are capped at 25 characters by the leading lookahead. ABAP
-    // allows 30, but build_rename (see abap2UI5) replaces the namespace
-    // z2ui5 (5 chars) with up to 9, which costs 4 - so 26 is the hard
-    // ceiling and 25 keeps one character in reserve. A parallel installation
-    // therefore never needs truncation patterns.
+    // allows 30, but the namespace rename (npm run rename, build-rename)
+    // replaces z2ui5 (5 chars) with up to 10, which costs 5 - so 25 is the
+    // ceiling. A parallel installation therefore never needs truncation
+    // patterns.
+    // Tables: 16 is the DDIC limit of a transparent table. One the rename
+    // takes (npm run rename, 10 characters in place of z2ui5's 5) needs 11,
+    // which leaves no room for SMPS_ - those are Z2UI5_T_S<xx> (Z2UI5_T_SLK,
+    // Z2UI5_T_SAI); the RAP tables of the packages the rename leaves out keep
+    // Z2UI5_(T|D)_SMPS_<xxx>.
     "object_naming": {
       "patternKind": "required",
       "severity": "Error",
       "clas": "^(?=.{1,25}$)Z2UI5_C(L|X)_SMPS_",
-      "tabl": "^(?=.{1,16}$)Z2UI5_(T|D)_SMPS_"
+      "tabl": "^(?=.{1,16}$)Z2UI5_(T|D)_(SMPS_|S[A-Z0-9]{2}$)"
     }
   }
 }

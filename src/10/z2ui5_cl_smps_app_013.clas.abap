@@ -9,7 +9,7 @@
 "! Nothing of it is in the code. The endpoint is a destination of the system
 "! - SM59 on Standard, the BTP destination service on ABAP Cloud, an
 "! intelligent scenario for SAP's ABAP AI SDK - and model, token limit, path
-"! and key are one row of Z2UI5_T_SMPS_LLM (Z2UI5_CL_SMPS_LLM_FACTORY).
+"! and key are one row of Z2UI5_T_SAI (Z2UI5_CL_SMPS_LLM_FACTORY).
 "!
 "! The API key is WRITE-ONLY on this screen: it is never read back into the
 "! view model, so it never reaches a browser after it was typed. Leave it
@@ -283,15 +283,18 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
                               ELSE `empty when the destination or a gateway adds the key` ).
 
     DATA(transport) = z2ui5_cl_smps_llm_factory=>transport_get( ).
+    DATA(sm59) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-sm59 ).
+    DATA(cloud) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-cloud ).
+    DATA(islm) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-islm ).
     transport_text = SWITCH #( transport
-        WHEN z2ui5_cl_smps_llm_factory=>cs_class-sm59
+        WHEN sm59
         THEN |This system calls out with { transport }: Destination is an SM59 destination of type G.|
-        WHEN z2ui5_cl_smps_llm_factory=>cs_class-cloud
+        WHEN cloud
         THEN |This system calls out with { transport }: Destination is a destination of the BTP | &&
              |destination service (communication arrangement SAP_COM_0276).|
         ELSE |No HTTP transport is active on this system - only the ABAP AI SDK (ISLM) can work here.| ).
 
-    IF z2ui5_cl_smps_llm_factory=>class_check( z2ui5_cl_smps_llm_factory=>cs_class-islm ) = abap_true.
+    IF z2ui5_cl_smps_llm_factory=>class_check( islm ) = abap_true.
       transport_text = |{ transport_text } The ABAP AI SDK is available too: for it, Destination is the intelligent scenario.|.
     ENDIF.
 

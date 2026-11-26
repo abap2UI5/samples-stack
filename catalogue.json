@@ -81,7 +81,7 @@
       "package": "src/06",
       "technology": "Stateful Sessions / Locks",
       "topic": "sticky session, `ENQUEUE`",
-      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SMPS_01`",
+      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SLK`",
       "runsOn": "Standard only, ≥ 7.40 SP08",
       "cloud": false,
       "release": "7.40 SP08",
@@ -780,7 +780,7 @@
       ],
       "runsOn": "Standard only, ≥ 7.40 SP08",
       "cloud": false,
-      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SMPS_01`",
+      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SLK`",
       "branch": "06-stateful-locks",
       "setup": "src/06/README.md"
     },
@@ -801,7 +801,7 @@
       ],
       "runsOn": "Standard only, ≥ 7.40 SP08",
       "cloud": false,
-      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SMPS_01`",
+      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SLK`",
       "branch": "06-stateful-locks",
       "setup": "src/06/README.md"
     },
@@ -822,7 +822,7 @@
       ],
       "runsOn": "Standard only, ≥ 7.40 SP08",
       "cloud": false,
-      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SMPS_01`",
+      "needs": "ABAP Standard (on-premise), the table `Z2UI5_T_SLK`",
       "branch": "06-stateful-locks",
       "setup": "src/06/README.md"
     },
