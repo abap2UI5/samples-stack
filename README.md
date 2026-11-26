@@ -97,7 +97,7 @@ column into concrete steps; the table below adds the exact release floors.
 | [`src/03`](src/03) | **[RAP](src/03/README.md)** — consume a business object with EML | ABAP Platform >= 1909; the BO ships with this repo | Cloud + Standard ≥ 7.54 (1909) |
 | [`src/04`](src/04) | **[RAP with Draft](src/04/README.md)** — use draft handling | as above | Cloud + Standard ≥ 7.54 (1909) |
 | [`src/05`](src/05) | **[Business Events](src/05/README.md)** — react to RAP events, log them, show them | as above | Cloud + Standard ≥ 7.56 (2021) |
-| [`src/06`](src/06) | **[Stateful Sessions / Locks](src/06/README.md)** — sticky session, `ENQUEUE` | ABAP Standard (on-premise), the table `Z2UI5_T_SMPS_01` | Standard only, ≥ 7.40 SP08 |
+| [`src/06`](src/06) | **[Stateful Sessions / Locks](src/06/README.md)** — sticky session, `ENQUEUE` | ABAP Standard (on-premise), the table `Z2UI5_T_SLK` | Standard only, ≥ 7.40 SP08 |
 | [`src/07`](src/07) | **[AMC/APC](src/07/README.md)** — a news feed over WebSocket | on-premise APC/AMC, the ICF node `Z2UI5_APC_SMP_2` | Standard only, ≥ 7.50 |
 | [`src/08`](src/08) | **[MIME Play Audio](src/08/README.md)** — play a sound from the MIME repository | the ICF service `/SAP/PUBLIC/BC/ABAP/mime_demo` | Standard only, ≥ 7.50 |
 | [`src/09`](src/09) | **[Launchpad](src/09/README.md)** — startup parameters, shell title, cross-app navigation | a Fiori Launchpad with a tile pointing at abap2UI5 | Cloud + Standard ≥ 7.40 SP08 |
@@ -138,8 +138,10 @@ ABAP Cloud API.
 ABAP Platform name where there is one — `7.54` is 1909, `7.56` is 2021. The number
 is the higher of two floors:
 
-- *the ABAP the package is written in.* Unlike the other sample repositories this
-  one is not downported to 7.02, so **7.40 SP08 is the floor everywhere**. These
+- *the ABAP the package is written in.* The branch `702` carries a 7.02
+  downport of the packages that have a 7.02 form (not the RAP packages, not
+  `07` and not the ABAP Cloud half of `10`); on `main` and the package
+  branches **7.40 SP08 is the floor everywhere**. These
   syntax floors are measured, not estimated: one abaplint run per release over the
   tree, and the number in the table is the lowest release the package parses clean
   at.
@@ -165,8 +167,8 @@ of them.
 2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all fourteen
    packages, or the branch of the single package you came for (see
    [One package at a time](#one-package-at-a-time)). `main` as a whole runs on
-   ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for,
-   which is why it is the one sample repository without a 7.02 downport.
+   ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for.
+   On 7.02 pull the branch `702`, the packages that have a 7.02 form.
 3. Set up whatever the package you picked builds on — its README says so in one
    short section.
 4. Start an app with `?app_start=<class name>`.
@@ -245,7 +247,7 @@ samples repository uses with its `SMP` token:
 
 ```
 Z2UI5_CL_SMPS_<object>    classes, including the behavior pools and event handlers
-Z2UI5_T_SMPS_<object>     persistent tables
+Z2UI5_T_SMPS_<object>     persistent tables (Z2UI5_T_S<xx> where the rename has to take them, below)
 Z2UI5_D_SMPS_<object>     draft tables
 Z2UI5_E_SMPS_<object>     data elements
 Z2UI5_R_SMPS_<object>     CDS entities and their behavior definitions
@@ -256,7 +258,10 @@ Z2UI5_SB_SMPS_<object>    service bindings
 Runnable samples are `Z2UI5_CL_SMPS_APP_<no>`, so the class name is what you pass to
 `?app_start=`.
 
-Class names are capped at **25** characters, tables at **16**. Both limits and the
+Class names are capped at **25** characters, tables at **16** - and a table the
+namespace rename has to take at **11** (16 minus the 5 a 10-character name adds),
+which leaves no room for `SMPS_`: those are `Z2UI5_T_S` and two characters
+(`Z2UI5_T_SLK`, `Z2UI5_T_SAI`). Both limits and the
 patterns themselves are enforced by the `object_naming` rule in
 [`abaplint.jsonc`](abaplint.jsonc); the comment there explains where the numbers come
 from. The other object types have no `object_naming` key in abaplint, so for those
@@ -333,9 +338,13 @@ so a change that would break one of the branches fails while it can still be
 fixed. Adding a package is one entry in `.github/packages.json`; neither the
 workflow nor the checks have to be touched.
 
-There is no `abap-702` counterpart: EML runs from ABAP Platform 1909 onwards, so
-unlike the other sample repositories this one needs no downport — the derived
-branches here split the tree by package, they do not downport it. There is no
+`check-702` downports a copy of the tree and lints it at v702, and
+`publish-702` pushes the result to the branch `702` - without the packages
+that have no 7.02 form, which `.github/abaplint/abap_702.jsonc` names (RAP and
+EML, APC/AMC, the ABAP Cloud and AI SDK transports of `src/10`).
+`check-rename` is the namespace rename (`npm run rename`, `build-rename` pushes
+`rename_<name>`) - without the packages abaplint cannot rename yet, which
+`package.json` `config.renameSkip` names. There is no
 `abap-cloud` counterpart either — several packages here are
 on-premise by design (`src/06` `ENQUEUE`, `src/07` APC/AMC), so a cloud syntax check
 over the whole tree would report expected errors rather than useful ones.
@@ -369,6 +378,26 @@ says they go: SE80 → MIME Repository → `SAP/PUBLIC/BC/ABAP/mime_demo`, delet
 `z2ui5_smp_error.mp3` and `z2ui5_smp_success.mp3`, then pull again. If the warning
 names other objects too, pull the `DEVC` entries alone first — that recreates
 every package of the current layout — and pull the rest afterwards.
+
+### The lock and LLM tables were renamed (BREAKING, 2026-11-26)
+
+`Z2UI5_T_SMPS_01` (the lock table of `src/06`) is now `Z2UI5_T_SLK`, and
+`Z2UI5_T_SMPS_LLM` (the configuration of `src/10`) is now `Z2UI5_T_SAI` - at 15
+and 16 characters they left no room for a namespace rename. The next pull
+creates the new tables; abapGit does not delete the old ones, and their data is
+not migrated:
+
+- `Z2UI5_T_SMPS_01` is never filled - delete it (SE11 or ADT).
+- `Z2UI5_T_SMPS_LLM` holds the configuration row of the settings sample
+  `Z2UI5_CL_SMPS_APP_013`, API key included. Save it again in that sample, or
+  copy it over once - the columns are the same - with a few lines in a report
+  (SE38) or an ADT console class, then delete the old table:
+
+  ```abap
+  SELECT * FROM z2ui5_t_smps_llm INTO TABLE @DATA(rows).
+  MODIFY z2ui5_t_sai FROM TABLE @rows.
+  COMMIT WORK.
+  ```
 
 ## Where to go from here
 

@@ -13,7 +13,7 @@
 "!   Proxy         if the system reaches the internet only through one
 "! The API key is NOT a field of SM59 - SM59 knows user/password and
 "! certificates, not an x-api-key header. It travels in the configuration
-"! (Z2UI5_T_SMPS_LLM), or a gateway between the system and the provider adds
+"! (Z2UI5_T_SAI), or a gateway between the system and the provider adds
 "! it and the configuration leaves it empty.
 "!
 "! cl_http_client is not released for ABAP Cloud: on a cloud stack this class

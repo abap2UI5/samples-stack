@@ -19,7 +19,7 @@ with the package:
 
 Which one answers is a **setting**, not code. Endpoint, model and key are never
 written into a class: the endpoint is a destination, and model, token limit,
-request path and key are one row of the table `Z2UI5_T_SMPS_LLM`, maintained
+request path and key are one row of the table `Z2UI5_T_SAI`, maintained
 with the settings sample.
 
 ## What you need
@@ -70,7 +70,7 @@ an API-key header. So the key has two possible homes:
    empty. This is the place for anything beyond a sandbox.
 2. **The configuration row.** The settings screen is write-only for it: a stored
    key is never sent back to a browser. It is still a plain table field, readable
-   by anybody with a data browser — so restrict access to `Z2UI5_T_SMPS_LLM`, and
+   by anybody with a data browser — so restrict access to `Z2UI5_T_SAI`, and
    restrict who may start `Z2UI5_CL_SMPS_APP_013`, because any user who reaches
    it can change where your prompts go.
 
@@ -92,7 +92,7 @@ keep their buttons disabled and send nothing.
 ```
 Z2UI5_CL_SMPS_APP_014 / _015      the apps - know Z2UI5_IF_SMPS_LLM only
         |
-Z2UI5_CL_SMPS_LLM_FACTORY         reads Z2UI5_T_SMPS_LLM, creates the provider
+Z2UI5_CL_SMPS_LLM_FACTORY         reads Z2UI5_T_SAI, creates the provider
         |
 Z2UI5_CL_SMPS_LLM_CLAUDE          wire format of one API each,
 Z2UI5_CL_SMPS_LLM_OPENAI          built and read with Z2UI5_CL_SMPS_LLM_JSON

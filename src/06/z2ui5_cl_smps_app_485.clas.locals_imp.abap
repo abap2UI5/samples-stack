@@ -93,7 +93,7 @@ CLASS lcl_locking DEFINITION CREATE PRIVATE.
         gusevbt  TYPE n LENGTH 10,
       END OF ty_seqg3.
 
-    " the key this sample locks. Z2UI5_T_SMPS_01 is client-dependent, and
+    " the key this sample locks. Z2UI5_T_SLK is client-dependent, and
     " ENQUEUE_E_TABLE takes the table key as one string, client included -
     " see lock_argument
     CONSTANTS lock_key TYPE c LENGTH 4 VALUE 'Z100'.
@@ -109,6 +109,13 @@ CLASS lcl_locking DEFINITION CREATE PRIVATE.
     CLASS-METHODS lock_argument
       RETURNING
         VALUE(result) TYPE char120.
+
+    "! the lock table, Z2UI5_T_SLK, by the name this installation gives it -
+    "! read from a typed row, so a namespace rename takes it along
+    "! @parameter result | the table name
+    CLASS-METHODS table_name
+      RETURNING
+        VALUE(result) TYPE tabname.
 
     "! the message a failed function module left in sy-msg*
     "! @parameter fallback | the text when it left none
@@ -129,7 +136,7 @@ CLASS lcl_locking IMPLEMENTATION.
     DATA(lv_fm) = 'ENQUEUE_E_TABLE'.
     CALL FUNCTION lv_fm
       EXPORTING
-        tabname        = 'Z2UI5_T_SMPS_01'
+        tabname        = table_name( )
         varkey         = lv_varkey
       EXCEPTIONS
         foreign_lock   = 1
@@ -164,7 +171,7 @@ CLASS lcl_locking IMPLEMENTATION.
       RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock entries could not be read (sy-subrc { sy-subrc })| ).
     ENDIF.
 
-    DATA(lv_pattern) = |Z2UI5_T_SMPS_01*{ lock_argument( ) }*|.
+    DATA(lv_pattern) = |{ table_name( ) }*{ lock_argument( ) }*|.
     LOOP AT enqueue_table INTO DATA(ls_enqueue).
       IF ls_enqueue-gobj = 'E_TABLE' AND ls_enqueue-garg CP lv_pattern.
         " the cumulative counter of the update task owner - ENQUEUE_E_TABLE
@@ -194,6 +201,15 @@ CLASS lcl_locking IMPLEMENTATION.
   METHOD lock_argument.
 
     result = |{ sy-mandt }{ lock_key }|.
+
+  ENDMETHOD.
+
+
+  METHOD table_name.
+
+    DATA row TYPE z2ui5_t_slk.
+
+    result = cl_abap_typedescr=>describe_by_data( row )->get_relative_name( ).
 
   ENDMETHOD.
 

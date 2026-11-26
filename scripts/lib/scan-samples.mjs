@@ -165,7 +165,9 @@ export function scanOverview(root, overviewClass = OVERVIEW_CLASS) {
   const text = fs.readFileSync(file, 'utf8');
   const byClass = new Map();
   for (const m of text.matchAll(ENTRY)) {
-    byClass.set(m[4].toLowerCase(), { no: m[1], title: m[2], detail: m[3] });
+    // the overview writes the class without its z2ui5_ prefix (own_prefix( ),
+    // the namespace rename) - the key is the class's name in this repository
+    byClass.set(`z2ui5_${m[4].toLowerCase().replace(/^z2ui5_/, '')}`, { no: m[1], title: m[2], detail: m[3] });
   }
   return byClass;
 }

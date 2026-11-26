@@ -8,14 +8,15 @@
 "!     an intelligent scenario for the ABAP AI SDK
 "!   - the MODEL, the token limit, the request path and - where nothing in
 "!     front of the endpoint adds it - the API KEY are one row of the table
-"!     Z2UI5_T_SMPS_LLM, maintained with the settings sample
+"!     Z2UI5_T_SAI, maintained with the settings sample
 "!     Z2UI5_CL_SMPS_APP_013
 "!
 "! The transport is created BY NAME (transport_get( )): Z2UI5_CL_SMPS_LLM_SM59
 "! activates on Standard only and Z2UI5_CL_SMPS_LLM_CLOUD on ABAP Cloud only,
 "! so a static reference to either would leave this class inactive on the
 "! other stack. Same reason, same technique for Z2UI5_CL_SMPS_LLM_ISLM, which
-"! needs the ABAP AI SDK.
+"! needs the ABAP AI SDK. The names are written without their prefix and
+"! completed by class_name( ), so a namespace rename takes them along.
 CLASS z2ui5_cl_smps_llm_factory DEFINITION PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -45,11 +46,12 @@ CLASS z2ui5_cl_smps_llm_factory DEFINITION PUBLIC
       END OF cs_provider.
 
     CONSTANTS:
-      "! the classes created by name - see the class documentation
+      "! the classes created by name - see the class documentation; without
+      "! their prefix, class_name( ) puts this installation's in front
       BEGIN OF cs_class,
-        sm59  TYPE string VALUE `Z2UI5_CL_SMPS_LLM_SM59` ##NO_TEXT,
-        cloud TYPE string VALUE `Z2UI5_CL_SMPS_LLM_CLOUD` ##NO_TEXT,
-        islm  TYPE string VALUE `Z2UI5_CL_SMPS_LLM_ISLM` ##NO_TEXT,
+        sm59  TYPE string VALUE `CL_SMPS_LLM_SM59` ##NO_TEXT,
+        cloud TYPE string VALUE `CL_SMPS_LLM_CLOUD` ##NO_TEXT,
+        islm  TYPE string VALUE `CL_SMPS_LLM_ISLM` ##NO_TEXT,
       END OF cs_class.
 
     "! the token limit when the configuration leaves it at 0 - the Messages
@@ -94,6 +96,15 @@ CLASS z2ui5_cl_smps_llm_factory DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The full name of a class of cs_class in this installation: the
+    "! prefix of this class's own name - Z2UI5_, or the customer name or
+    "! namespace a rename put in its place - in front of it.
+    CLASS-METHODS class_name
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     "! Is the class on this system and active?
     CLASS-METHODS class_check
       IMPORTING
@@ -113,9 +124,9 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
   METHOD config_read.
 
-    DATA row TYPE z2ui5_t_smps_llm.
+    DATA row TYPE z2ui5_t_sai.
 
-    SELECT SINGLE * FROM z2ui5_t_smps_llm WHERE id = @config_id INTO @row.
+    SELECT SINGLE * FROM z2ui5_t_sai WHERE id = @config_id INTO @row.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -132,15 +143,15 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
   METHOD config_save.
 
-    DATA(row) = VALUE z2ui5_t_smps_llm( id          = config_id
-                                        provider    = config-provider
-                                        destination = config-destination
-                                        uri_path    = config-uri_path
-                                        model       = config-model
-                                        max_tokens  = config-max_tokens
-                                        api_key     = config-api_key ).
+    DATA(row) = VALUE z2ui5_t_sai( id          = config_id
+                                   provider    = config-provider
+                                   destination = config-destination
+                                   uri_path    = config-uri_path
+                                   model       = config-model
+                                   max_tokens  = config-max_tokens
+                                   api_key     = config-api_key ).
 
-    MODIFY z2ui5_t_smps_llm FROM @row.
+    MODIFY z2ui5_t_sai FROM @row.
     IF sy-subrc <> 0.
       z2ui5_cx_smps_llm=>raise( `The configuration could not be saved.` ).
     ENDIF.
@@ -178,12 +189,13 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
     IF config-provider = cs_provider-islm.
       TRY.
-          CREATE OBJECT result TYPE (cs_class-islm)
+          DATA(islm) = class_name( cs_class-islm ).
+          CREATE OBJECT result TYPE (islm)
             EXPORTING
               scenario   = config-destination
               max_tokens = max_tokens.
         CATCH cx_sy_create_object_error INTO DATA(islm_error).
-          z2ui5_cx_smps_llm=>raise( text     = |{ cs_class-islm } is not active on this system - it needs the ABAP AI SDK | &&
+          z2ui5_cx_smps_llm=>raise( text     = |{ class_name( cs_class-islm ) } is not active on this system - it needs the ABAP AI SDK | &&
                                     |(CL_AIC_ISLM_COMPL_API_FACTORY). Pick another provider in the settings.|
                                     previous = islm_error ).
       ENDTRY.
@@ -192,7 +204,7 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
     DATA(transport) = transport_get( ).
     IF transport IS INITIAL.
-      z2ui5_cx_smps_llm=>raise( |Neither { cs_class-sm59 } (Standard) nor { cs_class-cloud } (ABAP Cloud) is active on this system.| ).
+      z2ui5_cx_smps_llm=>raise( |Neither { class_name( cs_class-sm59 ) } (Standard) nor { class_name( cs_class-cloud ) } (ABAP Cloud) is active on this system.| ).
     ENDIF.
 
     TRY.
@@ -226,11 +238,26 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
   METHOD transport_get.
 
-    IF class_check( cs_class-sm59 ) = abap_true.
-      result = cs_class-sm59.
-    ELSEIF class_check( cs_class-cloud ) = abap_true.
-      result = cs_class-cloud.
+    DATA(sm59) = class_name( cs_class-sm59 ).
+    DATA(cloud) = class_name( cs_class-cloud ).
+
+    IF class_check( sm59 ) = abap_true.
+      result = sm59.
+    ELSEIF class_check( cloud ) = abap_true.
+      result = cloud.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD class_name.
+
+    DATA factory TYPE REF TO z2ui5_cl_smps_llm_factory.
+
+    " the referenced type of a typed reference is this class under the name
+    " the installation gives it - a literal would keep Z2UI5_ through a rename
+    DATA(own) = CAST cl_abap_refdescr( cl_abap_typedescr=>describe_by_data( factory ) )->get_referenced_type( )->get_relative_name( ).
+    result = substring_before( val = own sub = `CL_SMPS_LLM_FACTORY` ) && val.
 
   ENDMETHOD.
 

@@ -1,0 +1,34 @@
+name: check-rename
+
+# npm run rename (scripts/rename.mjs, the file every renameable repository of
+# the abap2UI5 ecosystem shares): the namespace rename with the longest name
+# abap2UI5 allows, abap2UI5 renamed along - the renamed sources must lint,
+# every new name must fit its object type, and no literal may name a renamed
+# object. The packages abaplint cannot rename yet are left out by
+# package.json config.renameSkip, which says why for each, and every run
+# prints them.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-rename-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-rename:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '22'
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run rename

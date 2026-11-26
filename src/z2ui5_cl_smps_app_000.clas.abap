@@ -23,6 +23,12 @@
 "!   - a package that is not installed at all, because the system only got
 "!     part of this repository.
 "!
+"! Every class name is written WITHOUT its z2ui5_ prefix: own_prefix( ) puts
+"! the installation's in front at runtime. The namespace rename (npm run
+"! rename) rewrites references but never a literal, so a literal
+"! Z2UI5_CL_SMPS_APP_315 would look up the ORIGINAL class in a renamed
+"! installation - and .github/scripts/rename.mjs refuses it.
+"!
 "! So the list is complete no matter what is on the system: what is there
 "! opens, what is missing says so in its Status column and keeps its Open
 "! button disabled. The price is that a renamed class no longer breaks the
@@ -106,17 +112,17 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
       "! renders them - each repository is installed on its own, so the header
       "! asks per entry whether its overview app is on THIS system
       BEGIN OF cs_overview,
-        samples      TYPE string VALUE `z2ui5_cl_smp_app_000` ##NO_TEXT,
+        samples      TYPE string VALUE `cl_smp_app_000` ##NO_TEXT,
         "! the overview app of samples before its rename - an installation that
         "! predates it still answers to this name
-        samples_old  TYPE string VALUE `z2ui5_cl_demo_app_g00` ##NO_TEXT,
-        controls     TYPE string VALUE `z2ui5_cl_smpc_app_000` ##NO_TEXT,
+        samples_old  TYPE string VALUE `cl_demo_app_g00` ##NO_TEXT,
+        controls     TYPE string VALUE `cl_smpc_app_000` ##NO_TEXT,
         "! the overview app of samples-controls before its 2026-08 rename to
         "! the three-digit number scheme - an installation that predates it
         "! still answers to this name (the dmo-era name is older still and no
         "! longer tried)
-        controls_old TYPE string VALUE `z2ui5_cl_smpc_app_overview` ##NO_TEXT,
-        stack        TYPE string VALUE `z2ui5_cl_smps_app_000` ##NO_TEXT,
+        controls_old TYPE string VALUE `cl_smpc_app_overview` ##NO_TEXT,
+        stack        TYPE string VALUE `cl_smps_app_000` ##NO_TEXT,
       END OF cs_overview.
 
     CONSTANTS:
@@ -131,9 +137,9 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
       "! the demo data of the RAP packages - called by name for the same
       "! reason the samples are, see the class documentation
       BEGIN OF cs_class,
-        data_trv TYPE string VALUE `Z2UI5_CL_SMPS_DATA_TRV` ##NO_TEXT,
-        data_trd TYPE string VALUE `Z2UI5_CL_SMPS_DATA_TRD` ##NO_TEXT,
-        data_req TYPE string VALUE `Z2UI5_CL_SMPS_DATA_REQ` ##NO_TEXT,
+        data_trv TYPE string VALUE `CL_SMPS_DATA_TRV` ##NO_TEXT,
+        data_trd TYPE string VALUE `CL_SMPS_DATA_TRD` ##NO_TEXT,
+        data_req TYPE string VALUE `CL_SMPS_DATA_REQ` ##NO_TEXT,
       END OF cs_class.
 
     METHODS on_event.
@@ -236,6 +242,12 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    "! the prefix this installation's classes carry - z2ui5_, or the name it
+    "! was renamed to
+    METHODS own_prefix
+      RETURNING
+        VALUE(result) TYPE string.
+
     "! calls DATA_RESET on one of the demo data classes, empty if absent
     METHODS data_reset
       IMPORTING
@@ -321,15 +333,15 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         " most common reason a sample looks broken. data_reset( ) deletes
         " first, so the travel ids stay 1, 2, 3. The answers read alike, so
         " each one says which package it is from.
-        DATA(text) = data_reset( cs_class-data_trv ).
+        DATA(text) = data_reset( own_prefix( ) && cs_class-data_trv ).
         IF text IS NOT INITIAL.
           text = |RAP: { text }|.
         ENDIF.
-        DATA(text_draft) = data_reset( cs_class-data_trd ).
+        DATA(text_draft) = data_reset( own_prefix( ) && cs_class-data_trd ).
         IF text_draft IS NOT INITIAL.
           text = condense( |{ text } RAP with Draft: { text_draft }| ).
         ENDIF.
-        DATA(text_actions) = data_reset( cs_class-data_req ).
+        DATA(text_actions) = data_reset( own_prefix( ) && cs_class-data_req ).
         IF text_actions IS NOT INITIAL.
           text = condense( |{ text } RAP Actions: { text_actions }| ).
         ENDIF.
@@ -624,6 +636,9 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     DATA color  TYPE string.
 
     DATA(tooltip) = |{ name } - { descr }|.
+    " cs_overview names the apps without the installation's prefix
+    DATA(app)     = COND string( WHEN class IS NOT INITIAL THEN own_prefix( ) && class ).
+    DATA(app_old) = COND string( WHEN class_old IS NOT INITIAL THEN own_prefix( ) && class_old ).
 
     IF here = abap_true.
 
@@ -641,10 +656,10 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       " overview app answers something much bigger - see the method.
       " to_upper: the repository stores class names in upper case, while the
       " constants above follow this repository's lower-case spelling of them
-      IF class IS NOT INITIAL AND class_check_exists( to_upper( class ) ) = abap_true.
-        target = class.
-      ELSEIF class_old IS NOT INITIAL AND class_check_exists( to_upper( class_old ) ) = abap_true.
-        target = class_old.
+      IF app IS NOT INITIAL AND class_check_exists( to_upper( app ) ) = abap_true.
+        target = app.
+      ELSEIF app_old IS NOT INITIAL AND class_check_exists( to_upper( app_old ) ) = abap_true.
+        target = app_old.
       ENDIF.
 
       IF target IS INITIAL AND class IS NOT INITIAL.
@@ -678,8 +693,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " IconColor and press="" is not a handler, so the three optional ones are
     " added only when they carry something. The documentation and GitHub
     " entries have no class, and the entry you are standing on has no press.
-    IF class IS NOT INITIAL.
-      toolbar->a( n = `id` t = class ).
+    IF app IS NOT INITIAL.
+      toolbar->a( n = `id` t = app ).
     ENDIF.
 
     IF color IS NOT INITIAL.
@@ -708,7 +723,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                         " where to get it (install_display), instead of
                         " dropping the user on GitHub without a word
                         ELSE client->_event( val   = cs_backend_event-install
-                                             t_arg = VALUE #( ( class )
+                                             t_arg = VALUE #( ( app )
                                                               ( href )
                                                               ( name ) ) ) ) ).
     ENDIF.
@@ -830,13 +845,15 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " the address the browser has to open for that class - same ICF node and
     " same url parameters as the running overview, only app_start exchanged
     DATA(s_config) = client->get( )-s_config.
+    " the catalogue names the class without the installation's prefix
+    DATA(name) = to_upper( |{ own_prefix( ) }{ classname }| ).
 
     result = VALUE #( no        = no
                       title     = title
                       detail    = detail
-                      classname = to_upper( classname )
-                      installed = class_check_installed( classname )
-                      url       = app_get_url( classname = classname
+                      classname = name
+                      installed = class_check_installed( name )
+                      url       = app_get_url( classname = name
                                                origin    = s_config-origin
                                                pathname  = s_config-pathname
                                                search    = s_config-search
@@ -893,6 +910,17 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD own_prefix.
+
+    " z2ui5_ - or, in an installation renamed into another namespace, the
+    " customer name or namespace that took its place: the part of this
+    " class's own name in front of CL_SMPS_APP_000
+    DATA(name) = substring_after( val = cl_abap_classdescr=>get_class_name( me ) sub = `=` ).
+    result = to_lower( substring_before( val = name sub = `CL_SMPS_APP_000` ) ).
+
+  ENDMETHOD.
+
+
   METHOD data_reset.
 
     TRY.
@@ -908,241 +936,227 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD model_init.
 
-    demo_data_installed = xsdbool( class_check_installed( cs_class-data_trv ) = abap_true
-                                OR class_check_installed( cs_class-data_trd ) = abap_true
-                                OR class_check_installed( cs_class-data_req ) = abap_true ).
+    demo_data_installed = xsdbool( class_check_installed( own_prefix( ) && cs_class-data_trv ) = abap_true
+                                OR class_check_installed( own_prefix( ) && cs_class-data_trd ) = abap_true
+                                OR class_check_installed( own_prefix( ) && cs_class-data_req ) = abap_true ).
 
-    t_odata = VALUE #(
-      ( sample( no        = `315`
-                title     = `Two OData models in one view`
-                detail    = `one table bound to each, column headers from the metadata`
-                classname = `Z2UI5_CL_SMPS_APP_315` ) ) ).
+    INSERT sample( no        = `315`
+                   title     = `Two OData models in one view`
+                   detail    = `one table bound to each, column headers from the metadata`
+                   classname = `CL_SMPS_APP_315` ) INTO TABLE t_odata.
 
-    t_smart = VALUE #(
-      ( sample( no        = `313`
-                title     = `SmartFilterBar and SmartTable`
-                detail    = `with variant management - UI_PRODUCTLIST`
-                classname = `Z2UI5_CL_SMPS_APP_313` ) )
-      ( sample( no        = `314`
-                title     = `Switch the default model`
-                detail    = `device, HTTP and OData model side by side - GWSAMPLE_BASIC`
-                classname = `Z2UI5_CL_SMPS_APP_314` ) )
-      ( sample( no        = `319`
-                title     = `SmartMultiInput to SELECT-OPTIONS`
-                detail    = `UI conditions mapped 1:1 onto an ABAP range table`
-                classname = `Z2UI5_CL_SMPS_APP_319` ) )
-      ( sample( no        = `475`
-                title     = `SmartField inside a SmartForm`
-                detail    = `needs the GWSAMPLE_BASIC OData service`
-                classname = `Z2UI5_CL_SMPS_APP_475` ) )
-      ( sample( no        = `476`
-                title     = `SmartForm, display/edit toggle`
-                detail    = `needs the GWSAMPLE_BASIC OData service`
-                classname = `Z2UI5_CL_SMPS_APP_476` ) )
-      ( sample( no        = `477`
-                title     = `SmartFilterBar driving a SmartTable`
-                detail    = `needs the GWSAMPLE_BASIC OData service`
-                classname = `Z2UI5_CL_SMPS_APP_477` ) )
-      ( sample( no        = `478`
-                title     = `Page variant management`
-                detail    = `needs the GWSAMPLE_BASIC OData service`
-                classname = `Z2UI5_CL_SMPS_APP_478` ) )
-      ( sample( no        = `479`
-                title     = `SmartChart with NavigationPopover`
-                detail    = `an analytical service - you supply the path`
-                classname = `Z2UI5_CL_SMPS_APP_479` ) )
-      ( sample( no        = `493`
-                title     = `Classic FilterBar with variant management`
-                detail    = `no service needed - the data is ABAP`
-                classname = `Z2UI5_CL_SMPS_APP_493` ) ) ).
+    INSERT sample( no        = `313`
+                   title     = `SmartFilterBar and SmartTable`
+                   detail    = `with variant management - UI_PRODUCTLIST`
+                   classname = `CL_SMPS_APP_313` ) INTO TABLE t_smart.
+    INSERT sample( no        = `314`
+                   title     = `Switch the default model`
+                   detail    = `device, HTTP and OData model side by side - GWSAMPLE_BASIC`
+                   classname = `CL_SMPS_APP_314` ) INTO TABLE t_smart.
+    INSERT sample( no        = `319`
+                   title     = `SmartMultiInput to SELECT-OPTIONS`
+                   detail    = `UI conditions mapped 1:1 onto an ABAP range table`
+                   classname = `CL_SMPS_APP_319` ) INTO TABLE t_smart.
+    INSERT sample( no        = `475`
+                   title     = `SmartField inside a SmartForm`
+                   detail    = `needs the GWSAMPLE_BASIC OData service`
+                   classname = `CL_SMPS_APP_475` ) INTO TABLE t_smart.
+    INSERT sample( no        = `476`
+                   title     = `SmartForm, display/edit toggle`
+                   detail    = `needs the GWSAMPLE_BASIC OData service`
+                   classname = `CL_SMPS_APP_476` ) INTO TABLE t_smart.
+    INSERT sample( no        = `477`
+                   title     = `SmartFilterBar driving a SmartTable`
+                   detail    = `needs the GWSAMPLE_BASIC OData service`
+                   classname = `CL_SMPS_APP_477` ) INTO TABLE t_smart.
+    INSERT sample( no        = `478`
+                   title     = `Page variant management`
+                   detail    = `needs the GWSAMPLE_BASIC OData service`
+                   classname = `CL_SMPS_APP_478` ) INTO TABLE t_smart.
+    INSERT sample( no        = `479`
+                   title     = `SmartChart with NavigationPopover`
+                   detail    = `an analytical service - you supply the path`
+                   classname = `CL_SMPS_APP_479` ) INTO TABLE t_smart.
+    INSERT sample( no        = `493`
+                   title     = `Classic FilterBar with variant management`
+                   detail    = `no service needed - the data is ABAP`
+                   classname = `CL_SMPS_APP_493` ) INTO TABLE t_smart.
 
-    t_rap = VALUE #(
-      ( sample( no        = `001`
-                title     = `Read a travel`
-                detail    = `reads one instance by its key - a missing key comes back in FAILED, not as an exception`
-                classname = `Z2UI5_CL_SMPS_APP_001` ) )
-      ( sample( no        = `002`
-                title     = `Create a travel`
-                detail    = `MODIFY ... CREATE, key from MAPPED`
-                classname = `Z2UI5_CL_SMPS_APP_002` ) )
-      ( sample( no        = `003`
-                title     = `Update a travel`
-                detail    = `changes single fields of one instance - UPDATE FIELDS names what may be touched`
-                classname = `Z2UI5_CL_SMPS_APP_003` ) )
-      ( sample( no        = `004`
-                title     = `Delete a travel`
-                detail    = `deletes one instance - MODIFY ... DELETE FROM`
-                classname = `Z2UI5_CL_SMPS_APP_004` ) )
-      ( sample( no        = `005`
-                title     = `Manage travels - the complete app`
-                detail    = `01-04 plus EXECUTE and COMMIT ENTITIES RESPONSE OF`
-                classname = `Z2UI5_CL_SMPS_APP_005` ) )
-      ( sample( no        = `029`
-                title     = `Mass change with preview`
-                detail    = `Several travels changed in one go - the new values are previewed next to the old ones, one MODIFY ENTITIES ... UPDATE saves them, and a refusal is shown on its row`
-                classname = `Z2UI5_CL_SMPS_APP_029` ) )
-      ( sample( no        = `030`
-                title     = `Approval worklist`
-                detail    = `An approval worklist - the open travels, several selected and accepted or rejected with one EXECUTE, the list shrinking as they are decided`
-                classname = `Z2UI5_CL_SMPS_APP_030` ) )
-      ( sample( no        = `032`
-                title     = `Edit with conflict check`
-                detail    = `Edit a travel without a stateful session - the app remembers LastChangedAt when it reads, and Save refuses the change if someone else saved the travel in between`
-                classname = `Z2UI5_CL_SMPS_APP_032` ) ) ).
+    INSERT sample( no        = `001`
+                   title     = `Read a travel`
+                   detail    = `reads one instance by its key - a missing key comes back in FAILED, not as an exception`
+                   classname = `CL_SMPS_APP_001` ) INTO TABLE t_rap.
+    INSERT sample( no        = `002`
+                   title     = `Create a travel`
+                   detail    = `MODIFY ... CREATE, key from MAPPED`
+                   classname = `CL_SMPS_APP_002` ) INTO TABLE t_rap.
+    INSERT sample( no        = `003`
+                   title     = `Update a travel`
+                   detail    = `changes single fields of one instance - UPDATE FIELDS names what may be touched`
+                   classname = `CL_SMPS_APP_003` ) INTO TABLE t_rap.
+    INSERT sample( no        = `004`
+                   title     = `Delete a travel`
+                   detail    = `deletes one instance - MODIFY ... DELETE FROM`
+                   classname = `CL_SMPS_APP_004` ) INTO TABLE t_rap.
+    INSERT sample( no        = `005`
+                   title     = `Manage travels - the complete app`
+                   detail    = `01-04 plus EXECUTE and COMMIT ENTITIES RESPONSE OF`
+                   classname = `CL_SMPS_APP_005` ) INTO TABLE t_rap.
+    INSERT sample( no        = `029`
+                   title     = `Mass change with preview`
+                   detail    = `Several travels changed in one go - the new values are previewed next to the old ones, one MODIFY ENTITIES ... UPDATE saves them, and a refusal is shown on its row`
+                   classname = `CL_SMPS_APP_029` ) INTO TABLE t_rap.
+    INSERT sample( no        = `030`
+                   title     = `Approval worklist`
+                   detail    = `An approval worklist - the open travels, several selected and accepted or rejected with one EXECUTE, the list shrinking as they are decided`
+                   classname = `CL_SMPS_APP_030` ) INTO TABLE t_rap.
+    INSERT sample( no        = `032`
+                   title     = `Edit with conflict check`
+                   detail    = `Edit a travel without a stateful session - the app remembers LastChangedAt when it reads, and Save refuses the change if someone else saved the travel in between`
+                   classname = `CL_SMPS_APP_032` ) INTO TABLE t_rap.
 
-    t_draft = VALUE #(
-      ( sample( no        = `006`
-                title     = `Which travels have a draft?`
-                detail    = `READ ... %is_draft = mk-on`
-                classname = `Z2UI5_CL_SMPS_APP_006` ) )
-      ( sample( no        = `007`
-                title     = `Enter draft mode`
-                detail    = `Edit copies the active instance into a new draft, Resume picks up an existing one`
-                classname = `Z2UI5_CL_SMPS_APP_007` ) )
-      ( sample( no        = `008`
-                title     = `Change and save a draft`
-                detail    = `UPDATE ... %is_draft = mk-on`
-                classname = `Z2UI5_CL_SMPS_APP_008` ) )
-      ( sample( no        = `009`
-                title     = `Leave draft mode`
-                detail    = `EXECUTE Activate / Discard`
-                classname = `Z2UI5_CL_SMPS_APP_009` ) )
-      ( sample( no        = `010`
-                title     = `Manage travels with draft - the complete app`
-                detail    = `a whole app, not a snippet - the complete draft lifecycle in one screen`
-                classname = `Z2UI5_CL_SMPS_APP_010` ) ) ).
+    INSERT sample( no        = `006`
+                   title     = `Which travels have a draft?`
+                   detail    = `READ ... %is_draft = mk-on`
+                   classname = `CL_SMPS_APP_006` ) INTO TABLE t_draft.
+    INSERT sample( no        = `007`
+                   title     = `Enter draft mode`
+                   detail    = `Edit copies the active instance into a new draft, Resume picks up an existing one`
+                   classname = `CL_SMPS_APP_007` ) INTO TABLE t_draft.
+    INSERT sample( no        = `008`
+                   title     = `Change and save a draft`
+                   detail    = `UPDATE ... %is_draft = mk-on`
+                   classname = `CL_SMPS_APP_008` ) INTO TABLE t_draft.
+    INSERT sample( no        = `009`
+                   title     = `Leave draft mode`
+                   detail    = `EXECUTE Activate / Discard`
+                   classname = `CL_SMPS_APP_009` ) INTO TABLE t_draft.
+    INSERT sample( no        = `010`
+                   title     = `Manage travels with draft - the complete app`
+                   detail    = `a whole app, not a snippet - the complete draft lifecycle in one screen`
+                   classname = `CL_SMPS_APP_010` ) INTO TABLE t_draft.
 
-    t_events = VALUE #(
-      ( sample( no        = `011`
-                title     = `Create tickets through the BO`
-                detail    = `every create and update raises an entity event`
-                classname = `Z2UI5_CL_SMPS_APP_011` ) )
-      ( sample( no        = `012`
-                title     = `The event log`
-                detail    = `what the handler wrote, newest first`
-                classname = `Z2UI5_CL_SMPS_APP_012` ) ) ).
+    INSERT sample( no        = `011`
+                   title     = `Create tickets through the BO`
+                   detail    = `every create and update raises an entity event`
+                   classname = `CL_SMPS_APP_011` ) INTO TABLE t_events.
+    INSERT sample( no        = `012`
+                   title     = `The event log`
+                   detail    = `what the handler wrote, newest first`
+                   classname = `CL_SMPS_APP_012` ) INTO TABLE t_events.
 
-    t_stateful = VALUE #(
-      ( sample( no        = `486`
-                title     = `The basics - a counter in a static container`
-                detail    = `counts up while the session is stateful, starts over once it is not`
-                classname = `Z2UI5_CL_SMPS_APP_486` ) )
-      ( sample( no        = `485`
-                title     = `Set and read an ENQUEUE lock`
-                detail    = `ENQUEUE_E_TABLE and ENQUEUE_READ, end and restart the session`
-                classname = `Z2UI5_CL_SMPS_APP_485` ) )
-      ( sample( no        = `490`
-                title     = `One lock per screen`
-                detail    = `every Next Lock View takes the next VARKEY, going back releases it`
-                classname = `Z2UI5_CL_SMPS_APP_490` ) ) ).
+    INSERT sample( no        = `486`
+                   title     = `The basics - a counter in a static container`
+                   detail    = `counts up while the session is stateful, starts over once it is not`
+                   classname = `CL_SMPS_APP_486` ) INTO TABLE t_stateful.
+    INSERT sample( no        = `485`
+                   title     = `Set and read an ENQUEUE lock`
+                   detail    = `ENQUEUE_E_TABLE and ENQUEUE_READ, end and restart the session`
+                   classname = `CL_SMPS_APP_485` ) INTO TABLE t_stateful.
+    INSERT sample( no        = `490`
+                   title     = `One lock per screen`
+                   detail    = `every Next Lock View takes the next VARKEY, going back releases it`
+                   classname = `CL_SMPS_APP_490` ) INTO TABLE t_stateful.
 
-    t_websocket = VALUE #(
-      ( sample( no        = `489`
-                title     = `A news feed over WebSocket`
-                detail    = `connect, publish, list the active connections - no JavaScript`
-                classname = `Z2UI5_CL_SMPS_APP_489` ) ) ).
+    INSERT sample( no        = `489`
+                   title     = `A news feed over WebSocket`
+                   detail    = `connect, publish, list the active connections - no JavaScript`
+                   classname = `CL_SMPS_APP_489` ) INTO TABLE t_websocket.
 
-    t_mime = VALUE #(
-      ( sample( no        = `487`
-                title     = `Play a sound from the MIME repository`
-                detail    = `a success and an error tone, addressed by their ICF path`
-                classname = `Z2UI5_CL_SMPS_APP_487` ) ) ).
+    INSERT sample( no        = `487`
+                   title     = `Play a sound from the MIME repository`
+                   detail    = `a success and an error tone, addressed by their ICF path`
+                   classname = `CL_SMPS_APP_487` ) INTO TABLE t_mime.
 
-    t_launchpad = VALUE #(
-      ( sample( no        = `481`
-                title     = `Read the startup parameters`
-                detail    = `what the tile passed in - client->get( )-t_comp_params`
-                classname = `Z2UI5_CL_SMPS_APP_481` ) )
-      ( sample( no        = `482`
-                title     = `Set the shell title`
-                detail    = `follow_up_action( cs_event-set_title_launchpad )`
-                classname = `Z2UI5_CL_SMPS_APP_482` ) )
-      ( sample( no        = `483`
-                title     = `Cross-app navigation - sender`
-                detail    = `hands two values over to another tile`
-                classname = `Z2UI5_CL_SMPS_APP_483` ) )
-      ( sample( no        = `484`
-                title     = `Cross-app navigation - receiver`
-                detail    = `reads them back out of its startup parameters`
-                classname = `Z2UI5_CL_SMPS_APP_484` ) )
-      ( sample( no        = `025`
-                title     = `Build the URL of a launchpad app`
-                detail    = `Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not`
-                classname = `Z2UI5_CL_SMPS_APP_025` ) )
-      ( sample( no        = `026`
-                title     = `Smart link popover with getLinks`
-                detail    = `a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover`
-                classname = `Z2UI5_CL_SMPS_APP_026` ) )
-      ( sample( no        = `027`
-                title     = `Full width`
-                detail    = `follow_up_action( cs_event-set_app_full_width ) - the app takes the launchpad's whole width instead of the shell's letterbox`
-                classname = `Z2UI5_CL_SMPS_APP_027` ) ) ).
+    INSERT sample( no        = `481`
+                   title     = `Read the startup parameters`
+                   detail    = `what the tile passed in - client->get( )-t_comp_params`
+                   classname = `CL_SMPS_APP_481` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `482`
+                   title     = `Set the shell title`
+                   detail    = `follow_up_action( cs_event-set_title_launchpad )`
+                   classname = `CL_SMPS_APP_482` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `483`
+                   title     = `Cross-app navigation - sender`
+                   detail    = `hands two values over to another tile`
+                   classname = `CL_SMPS_APP_483` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `484`
+                   title     = `Cross-app navigation - receiver`
+                   detail    = `reads them back out of its startup parameters`
+                   classname = `CL_SMPS_APP_484` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `025`
+                   title     = `Build the URL of a launchpad app`
+                   detail    = `Builds the URL of a launchpad app from semantic object, action and parameters - through cl_lsapi_manager where the system has it, as an intent URL of its own where it does not`
+                   classname = `CL_SMPS_APP_025` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `026`
+                   title     = `Smart link popover with getLinks`
+                   detail    = `a list of products whose ids are smart links - a press asks the launchpad which apps the user may open for the product and lists them in a popover`
+                   classname = `CL_SMPS_APP_026` ) INTO TABLE t_launchpad.
+    INSERT sample( no        = `027`
+                   title     = `Full width`
+                   detail    = `follow_up_action( cs_event-set_app_full_width ) - the app takes the launchpad's whole width instead of the shell's letterbox`
+                   classname = `CL_SMPS_APP_027` ) INTO TABLE t_launchpad.
 
-    t_ai = VALUE #(
-      ( sample( no        = `013`
-                title     = `Settings and connection test`
-                detail    = `where the two AI samples get their model from - provider, destination, model and key, saved once and tested with one press`
-                classname = `Z2UI5_CL_SMPS_APP_013` ) )
-      ( sample( no        = `014`
-                title     = `Chat with a language model`
-                detail    = `a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration`
-                classname = `Z2UI5_CL_SMPS_APP_014` ) )
-      ( sample( no        = `015`
-                title     = `Summarize a table with AI`
-                detail    = `a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel`
-                classname = `Z2UI5_CL_SMPS_APP_015` ) ) ).
+    INSERT sample( no        = `013`
+                   title     = `Settings and connection test`
+                   detail    = `where the two AI samples get their model from - provider, destination, model and key, saved once and tested with one press`
+                   classname = `CL_SMPS_APP_013` ) INTO TABLE t_ai.
+    INSERT sample( no        = `014`
+                   title     = `Chat with a language model`
+                   detail    = `a chat with a real language model over HTTPS - the conversation goes out, the answer comes back, the provider is configuration`
+                   classname = `CL_SMPS_APP_014` ) INTO TABLE t_ai.
+    INSERT sample( no        = `015`
+                   title     = `Summarize a table with AI`
+                   detail    = `a table of sales figures and one button - the rows go to a language model as context, its summary comes back into a panel`
+                   classname = `CL_SMPS_APP_015` ) INTO TABLE t_ai.
 
-    t_upload = VALUE #(
-      ( sample( no        = `016`
-                title     = `Upload a file through a RAP action`
-                detail    = `EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included`
-                classname = `Z2UI5_CL_SMPS_APP_016` ) ) ).
+    INSERT sample( no        = `016`
+                   title     = `Upload a file through a RAP action`
+                   detail    = `EXECUTE uploadFile with a deep parameter - the file travels as a stream property, download and delete included`
+                   classname = `CL_SMPS_APP_016` ) INTO TABLE t_upload.
 
-    t_actions = VALUE #(
-      ( sample( no        = `017`
-                title     = `Feature control with GET PERMISSIONS`
-                detail    = `GET PERMISSIONS asks the business object what may happen to each request - the buttons follow its answer, and the business object refuses the rest anyway`
-                classname = `Z2UI5_CL_SMPS_APP_017` ) )
-      ( sample( no        = `018`
-                title     = `Parameters, factory actions, defaults`
-                detail    = `Actions with a parameter - a default function proposes a new request, a static factory action creates it, a factory action copies one, and reject asks for its reason in a popup`
-                classname = `Z2UI5_CL_SMPS_APP_018` ) )
-      ( sample( no        = `019`
-                title     = `Validate on change with a determine action`
-                detail    = `A determine action runs the validation of the business object while the user types - the quantity is checked on every change, and nothing is saved until Save`
-                classname = `Z2UI5_CL_SMPS_APP_019` ) )
-      ( sample( no        = `020`
-                title     = `One business object, two contracts`
-                detail    = `One business object, two contracts - approve through the projection Z2UI5_C_SMPS_REQ or on the business object itself, and the handler records which one it was`
-                classname = `Z2UI5_CL_SMPS_APP_020` ) ) ).
+    INSERT sample( no        = `017`
+                   title     = `Feature control with GET PERMISSIONS`
+                   detail    = `GET PERMISSIONS asks the business object what may happen to each request - the buttons follow its answer, and the business object refuses the rest anyway`
+                   classname = `CL_SMPS_APP_017` ) INTO TABLE t_actions.
+    INSERT sample( no        = `018`
+                   title     = `Parameters, factory actions, defaults`
+                   detail    = `Actions with a parameter - a default function proposes a new request, a static factory action creates it, a factory action copies one, and reject asks for its reason in a popup`
+                   classname = `CL_SMPS_APP_018` ) INTO TABLE t_actions.
+    INSERT sample( no        = `019`
+                   title     = `Validate on change with a determine action`
+                   detail    = `A determine action runs the validation of the business object while the user types - the quantity is checked on every change, and nothing is saved until Save`
+                   classname = `CL_SMPS_APP_019` ) INTO TABLE t_actions.
+    INSERT sample( no        = `020`
+                   title     = `One business object, two contracts`
+                   detail    = `One business object, two contracts - approve through the projection Z2UI5_C_SMPS_REQ or on the business object itself, and the handler records which one it was`
+                   classname = `CL_SMPS_APP_020` ) INTO TABLE t_actions.
 
-    t_office = VALUE #(
-      ( sample( no        = `021`
-                title     = `Read an uploaded XLSX file`
-                detail    = `An .xlsx file from the FileUploader read with the XCO XLSX library - the first worksheet becomes an ABAP table and is shown as it arrived`
-                classname = `Z2UI5_CL_SMPS_APP_021` ) )
-      ( sample( no        = `022`
-                title     = `Export a table as XLSX file`
-                detail    = `The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line`
-                classname = `Z2UI5_CL_SMPS_APP_022` ) )
-      ( sample( no        = `023`
-                title     = `Send a table as XLSX attachment`
-                detail    = `A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library`
-                classname = `Z2UI5_CL_SMPS_APP_023` ) )
-      ( sample( no        = `028`
-                title     = `Import an XLSX file into a RAP business object`
-                detail    = `An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to`
-                classname = `Z2UI5_CL_SMPS_APP_028` ) )
-      ( sample( no        = `031`
-                title     = `Report with selection and export`
-                detail    = `A report as it is written every day - a selection with ranges, the result in a table with a total, and the same rows exported as .xlsx with XCO`
-                classname = `Z2UI5_CL_SMPS_APP_031` ) ) ).
+    INSERT sample( no        = `021`
+                   title     = `Read an uploaded XLSX file`
+                   detail    = `An .xlsx file from the FileUploader read with the XCO XLSX library - the first worksheet becomes an ABAP table and is shown as it arrived`
+                   classname = `CL_SMPS_APP_021` ) INTO TABLE t_office.
+    INSERT sample( no        = `022`
+                   title     = `Export a table as XLSX file`
+                   detail    = `The table on the screen written into an .xlsx file with the XCO XLSX library and handed to the browser as a download - a header row, then one row per line`
+                   classname = `CL_SMPS_APP_022` ) INTO TABLE t_office.
+    INSERT sample( no        = `023`
+                   title     = `Send a table as XLSX attachment`
+                   detail    = `A mail with an .xlsx attachment, sent with cl_bcs_mail_message - recipient, subject and text from the screen, the attachment written with the XCO XLSX library`
+                   classname = `CL_SMPS_APP_023` ) INTO TABLE t_office.
+    INSERT sample( no        = `028`
+                   title     = `Import an XLSX file into a RAP business object`
+                   detail    = `An .xlsx file of travels checked row by row and created in the RAP business object with one MODIFY ENTITIES - every refusal lands on the row it belongs to`
+                   classname = `CL_SMPS_APP_028` ) INTO TABLE t_office.
+    INSERT sample( no        = `031`
+                   title     = `Report with selection and export`
+                   detail    = `A report as it is written every day - a selection with ranges, the result in a table with a total, and the same rows exported as .xlsx with XCO`
+                   classname = `CL_SMPS_APP_031` ) INTO TABLE t_office.
 
-    t_forms = VALUE #(
-      ( sample( no        = `024`
-                title     = `Render Adobe Forms to PDF, one file or a ZIP`
-                detail    = `Renders Adobe Forms of the system to PDF with FP_JOB_OPEN and the generated function module - one form as a PDF download, several at once as one ZIP file`
-                classname = `Z2UI5_CL_SMPS_APP_024` ) ) ).
+    INSERT sample( no        = `024`
+                   title     = `Render Adobe Forms to PDF, one file or a ZIP`
+                   detail    = `Renders Adobe Forms of the system to PDF with FP_JOB_OPEN and the generated function module - one form as a PDF download, several at once as one ZIP file`
+                   classname = `CL_SMPS_APP_024` ) INTO TABLE t_forms.
 
   ENDMETHOD.
 
