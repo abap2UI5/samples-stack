@@ -103,6 +103,7 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
           IF client->check_on_init( ).
             DATA(lv_error) = lock( abap_true ).
             IF lv_error IS NOT INITIAL.
+              " abap2ui5lint-disable-next-line message-before-navigation -- known: the toast is lost with this view until nav_app_leave( keep_messages = abap_true ) is in an abap2UI5 release
               client->message_toast_display( lv_error ).
               client->nav_app_leave( ).
               RETURN.
