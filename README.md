@@ -138,8 +138,10 @@ ABAP Cloud API.
 ABAP Platform name where there is one — `7.54` is 1909, `7.56` is 2021. The number
 is the higher of two floors:
 
-- *the ABAP the package is written in.* Unlike the other sample repositories this
-  one is not downported to 7.02, so **7.40 SP08 is the floor everywhere**. These
+- *the ABAP the package is written in.* The branch `702` carries a 7.02
+  downport of the packages that have a 7.02 form (not the RAP packages, not
+  `07` and not the ABAP Cloud half of `10`); on `main` and the package
+  branches **7.40 SP08 is the floor everywhere**. These
   syntax floors are measured, not estimated: one abaplint run per release over the
   tree, and the number in the table is the lowest release the package parses clean
   at.
@@ -165,8 +167,8 @@ of them.
 2. Pull this repository with [abapGit](https://abapgit.org) — `main` for all fourteen
    packages, or the branch of the single package you came for (see
    [One package at a time](#one-package-at-a-time)). `main` as a whole runs on
-   ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for,
-   which is why it is the one sample repository without a 7.02 downport.
+   ABAP Platform >= 1909 or a BTP ABAP Environment — that is what EML asks for.
+   On 7.02 pull the branch `702`, the packages that have a 7.02 form.
 3. Set up whatever the package you picked builds on — its README says so in one
    short section.
 4. Start an app with `?app_start=<class name>`.
@@ -333,9 +335,13 @@ so a change that would break one of the branches fails while it can still be
 fixed. Adding a package is one entry in `.github/packages.json`; neither the
 workflow nor the checks have to be touched.
 
-There is no `abap-702` counterpart: EML runs from ABAP Platform 1909 onwards, so
-unlike the other sample repositories this one needs no downport — the derived
-branches here split the tree by package, they do not downport it. There is no
+`check-702` downports a copy of the tree and lints it at v702, and
+`publish-702` pushes the result to the branch `702` - without the packages
+that have no 7.02 form, which `.github/abaplint/abap_702.jsonc` names (RAP and
+EML, APC/AMC, the ABAP Cloud and AI SDK transports of `src/10`).
+`check-rename` is the namespace rename (`npm run rename`, `build-rename` pushes
+`rename_<name>`) - without the packages abaplint cannot rename yet, which
+`package.json` `config.renameSkip` names. There is no
 `abap-cloud` counterpart either — several packages here are
 on-premise by design (`src/06` `ENQUEUE`, `src/07` APC/AMC), so a cloud syntax check
 over the whole tree would report expected errors rather than useful ones.

@@ -22,8 +22,27 @@ sample that runs standalone belongs there, not here.
 
 Two consequences worth stating:
 
-- **No 7.02 downport.** EML sets the floor at 1909, so this repository is not
-  downported the way the others are. `abaplint.jsonc` checks `main` at v757.
+- **A 7.02 downport of what has a 7.02 form.** `abaplint.jsonc` checks `main`
+  at v757; `npm run check:702` (`scripts/check-702.mjs`, workflow
+  `check-702`) downports a copy of the tree and lints it at v702, and
+  `publish-702` pushes the result to the branch `702`. RAP and EML
+  (`src/03`-`05`, `11`-`13`), ABAP Push Channels (`src/07`) and the ABAP Cloud
+  and AI SDK transports of `src/10` have none and are left out -
+  `.github/abaplint/abap_702.jsonc` says why for each, every run prints the
+  list, and abaplint itself cannot say what does not downport (abap2UI5
+  backlog item `abaplint-downport-rap-eml`).
+- **A namespace rename of what abaplint can rename.** `npm run rename`
+  (`scripts/rename.mjs`, the file every renameable repository of the
+  ecosystem shares; workflows `check-rename` and `build-rename`) renames
+  every `z2ui5_` object and abap2UI5 along with it. `package.json`
+  `config.renameSkip` leaves out what it cannot do yet, each with its reason,
+  printed on every run: the CDS/RAP packages (`abaplint-rename-cds-rap`),
+  APC/AMC and MIME (`abaplint-rename-connectivity-mime-objects`), `src/13`
+  that builds on `src/03`, and `src/06` and `src/10`, whose tables are too
+  long for a renamed name (`samples-rename-semantics`). The overview app
+  writes every class name without its `z2ui5_` prefix and puts the
+  installation's in front at runtime (`own_prefix( )`) - the rename rewrites
+  references, never a literal.
 - **Objects other than classes.** Packages bring their own tables, data
   elements, CDS entities, behavior definitions and service bindings. They are
   part of the sample, not scaffolding around it.
@@ -47,9 +66,12 @@ Z2UI5_D_SMPS_<object>    draft tables                        (max 16 chars)
 Z2UI5_R_SMPS_<object>    CDS root view entities + behavior definitions
 ```
 
-The 25-character cap is not ABAP's 30: `build_rename` swaps the 5-character
-`z2ui5` namespace for one up to 9 long, which costs 4. Tables are capped at 16
-because that is the DDIC limit — a 17-character table does not activate.
+The 25-character cap is not ABAP's 30: the namespace rename (`npm run
+rename`) swaps the 5-character `z2ui5` namespace for one up to 10 long, which
+costs 5. Tables are capped at 16 because that is the DDIC limit — a
+17-character table does not activate; a table that is to survive the rename
+needs 11 (`src/06` and `src/10` have 15 and 16, which is why the rename
+leaves them out).
 
 ### Sample numbers are per repository — the prefix is what qualifies them
 
@@ -113,6 +135,7 @@ What that costs you when you edit:
 npm ci
 npm run check        # pin + abaplint + abap2UI5-linter + overview + keywords + titles + abapdoc + SAMPLES.md
                      # + catalogue.json + app-rules + atc + prose + catalogue-derived.json + released-api
+                     # + 702 downport + namespace rename
 ```
 
 Individually: `npm run lint` (abaplint), `npm run check:abap2ui5` (the app

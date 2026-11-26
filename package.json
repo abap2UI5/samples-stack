@@ -9,7 +9,7 @@
     "check:abap2ui5": "abap2ui5lint",
     "fmt:chains": "abap2ui5lint --fix",
     "check:overview": "node scripts/check-overview.mjs",
-    "check": "npm run check:pin && npm run lint && npm run check:abap2ui5 && npm run check:overview && npm run check:keywords && npm run check:titles && npm run check:abapdoc && npm run check:samples-md && npm run check:catalogue && npm run check:app-rules && npm run check:atc && npm run check:prose && npm run check:derived && npm run check:released-api",
+    "check": "npm run check:pin && npm run lint && npm run check:abap2ui5 && npm run check:overview && npm run check:keywords && npm run check:titles && npm run check:abapdoc && npm run check:samples-md && npm run check:catalogue && npm run check:app-rules && npm run check:atc && npm run check:prose && npm run check:derived && npm run check:released-api && npm run check:702 && npm run rename",
     "check:keywords": "node scripts/check-keywords.mjs",
     "check:titles": "node scripts/check-page-titles.mjs",
     "check:abapdoc": "node scripts/check-abapdoc.mjs",
@@ -23,7 +23,9 @@
     "check:prose": "node scripts/check-prose-names.mjs",
     "derived": "node scripts/generate-derived.mjs",
     "check:derived": "node scripts/generate-derived.mjs --check",
-    "check:released-api": "node scripts/check-released-api.mjs"
+    "check:released-api": "node scripts/check-released-api.mjs",
+    "check:702": "node scripts/check-702.mjs",
+    "rename": "node scripts/rename.mjs"
   },
   "repository": {
     "type": "git",
@@ -41,5 +43,19 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "config": {
+    "renameSkip": {
+      "src/03/": "RAP: the CDS root entity Z2UI5_R_SMPS_TRV and its behavior definition - abaplint 2.120.120 renames no DDLS/BDEF (abap2UI5 backlog item abaplint-rename-cds-rap), nor the EML that names them",
+      "src/04/": "RAP with Draft: the CDS root entity and behavior definition - abaplint 2.120.120 renames no DDLS/BDEF (abap2UI5 backlog item abaplint-rename-cds-rap), nor the EML that names them",
+      "src/05/": "Business Events: CDS entities, behavior definitions, a service definition and binding (SRVD, SRVB) and an event binding (G4BA) - abaplint 2.120.120 renames no DDLS/BDEF (abap2UI5 backlog item abaplint-rename-cds-rap), nor the EML that names them, nor SRVD/SRVB/G4BA (abaplint-rename-cds-rap, abaplint-rename-gateway-objects)",
+      "src/06/": "Stateful Sessions / Locks: its table z2ui5_t_smps_01 has 15 characters and a transparent table at most 16, so a name longer than 6 characters pushes it over (renaming the table is breaking); the lock samples also name it in three literals - abap2UI5 backlog item samples-rename-semantics",
+      "src/07/": "AMC/APC: the APC application (SAPC), the AMC channel (SAMC), their authorization defaults (SUSH) and the ICF node name the handler class and the channel - abaplint 2.120.120 renames none of them (abaplint-rename-connectivity-mime-objects, abaplint-rename-authorization-objects)",
+      "src/08/": "MIME: the class plays the two MIME objects (SMIM) of src/08/01, which abaplint 2.120.120 cannot rename (abaplint-rename-connectivity-mime-objects)",
+      "src/10/": "AI / LLM: its table z2ui5_t_smps_llm has 16 characters, the most a transparent table may have, so any name longer than z2ui5 pushes it over (renaming the table is breaking); z2ui5_cl_smps_llm_factory also creates its three transports by name from literals - abap2UI5 backlog item samples-rename-semantics",
+      "src/11/": "RAP File Upload: CDS entities and behavior definitions - abaplint 2.120.120 renames no DDLS/BDEF (abap2UI5 backlog item abaplint-rename-cds-rap), nor the EML that names them",
+      "src/12/": "RAP Actions & Permissions: CDS entities and behavior definitions - abaplint 2.120.120 renames no DDLS/BDEF (abap2UI5 backlog item abaplint-rename-cds-rap), nor the EML that names them",
+      "src/13/": "Excel & E-Mail: creates travels in the RAP business object of src/03 with EML, so it goes where src/03 goes (abaplint-rename-cds-rap)"
+    }
   }
 }

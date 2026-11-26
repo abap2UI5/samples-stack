@@ -1,0 +1,39 @@
+name: publish-702
+
+# Rebuilds the branch 702 from main: the downported tree, linted at v702,
+# without the packages that have no 7.02 form (.github/abaplint/abap_702.jsonc
+# names them and says why) - scripts/check-702.mjs --in-place on this fresh
+# checkout. Force-pushed on every push to main; never commit to 702 by hand.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-702
+  cancel-in-progress: false
+
+jobs:
+  publish-702:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: '22'
+        cache: 'npm'
+    - run: npm ci
+    - name: Downport, lint, drop what has no 7.02 form
+      run: node scripts/check-702.mjs --in-place
+    - name: Commit and push to 702
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add -A
+        git commit -m "generate 702 from ${GITHUB_SHA}"
+        git push --force origin HEAD:702

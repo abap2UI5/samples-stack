@@ -71,10 +71,12 @@ const samples = files
   .filter((path) => /INTERFACES\s+z2ui5_if_app\s*\./i.test(readFileSync(path, 'utf8')))
   .map((path) => basename(path).replace('.clas.abap', '').toUpperCase());
 
-// every Z2UI5_CL_SMPS_* class name the overview carries as a string literal:
-// the samples in model_init and the two demo data classes in cs_class
+// every CL_SMPS_* class name the overview carries as a string literal: the
+// samples in model_init and the demo data classes in cs_class. Written
+// without the z2ui5_ prefix, which own_prefix( ) puts in front at runtime so
+// that a renamed installation finds its own classes (npm run rename)
 const overview = readFileSync(OVERVIEW, 'utf8');
-const listed = [...overview.matchAll(/`(Z2UI5_C[LX]_SMPS_[A-Z0-9_]+)`/g)].map((match) => match[1]);
+const listed = [...overview.matchAll(/`(?:Z2UI5_)?(C[LX]_SMPS_[A-Z0-9_]+)`/g)].map((match) => `Z2UI5_${match[1]}`);
 
 const known = new Set(
   files

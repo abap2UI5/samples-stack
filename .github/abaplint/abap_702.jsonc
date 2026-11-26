@@ -1,0 +1,88 @@
+// The 7.02 downport of samples-stack: `npm run downport` on a copy of the
+// tree (never on the one you commit - abaplint --fix rewrites it), then this
+// config lints the result at v702. CI: the abap-702 workflow.
+//
+// Not every package has a 7.02 form, and the ones that do not are left out
+// here, each for the reason below (abap2UI5 backlog item
+// abaplint-downport-rap-eml - abaplint does not report what cannot be
+// downported, so this list is kept by hand):
+//
+//   src/03, 04, 11, 12   RAP - CDS entities and behavior definitions (no
+//                        7.02 object types) and EML (READ/MODIFY/COMMIT
+//                        ENTITIES), which has no 7.02 form
+//   src/05               RAP business events - the same, plus a service
+//                        definition and binding and an event binding
+//   src/13               creates travels in the business object of src/03
+//                        with EML
+//   src/07               ABAP Push Channels and ABAP Messaging Channels exist
+//                        from 7.40 on - the WebSocket handler inherits from
+//                        cl_apc_wsp_ext_stateless_base
+//   src/10/02, 10/03     the ABAP Cloud transport (cl_web_http_client_manager)
+//                        and the one on SAP's ABAP AI SDK: neither API exists
+//                        on 7.02 - they activate on their own stack only, as
+//                        on 7.50 (src/10/README.md) - and the downport cannot
+//                        type what they return ("Cannot downport, type ... is
+//                        void"). z2ui5_cl_smps_llm_factory creates them by
+//                        name, so src/10 runs on 7.02 through src/10/01
+//
+// Everything else - the overview app, src/00, 01, 02, 06, 08, 09, 10 (but
+// 10/02 and 10/03) and 14 - is downported and has to lint here with 0 issues.
+{
+  "global": {
+    "files": "/../../src/**/*.*",
+    "exclude": [
+      "/src/03/",
+      "/src/04/",
+      "/src/05/",
+      "/src/07/",
+      "/src/11/",
+      "/src/12/",
+      "/src/13/",
+      "/src/10/02/",
+      "/src/10/03/"
+    ]
+  },
+  "dependencies": [
+    {
+      "url": "https://github.com/open-abap/open-abap-core",
+      "folder": "/deps",
+      "files": "/src/**/*.*"
+    },
+    {
+      "url": "https://github.com/abap2UI5/abap2UI5",
+      // the downported framework - check-framework-pin.mjs allows exactly
+      // this branch for this file (abap2UI5's auto_downport rebuilds it from
+      // main, as the other two sample repositories resolve it)
+      "branch": "702",
+      "folder": "/abap2UI5",
+      "files": "/src/**/*.*"
+    }
+  ],
+  "syntax": {
+    "version": "v702",
+    // as abaplint.jsonc: only Z2UI5 objects are resolved strictly - the SAP
+    // APIs the packages use beyond the framework (APC, Adobe Forms, the HTTP
+    // clients) are not all in the dependencies
+    "errorNamespace": "^Z2UI5"
+  },
+  "rules": {
+    "downport": true,
+    "definitions_top": true,
+    "begin_end_names": true,
+    "check_ddic": true,
+    "check_include": true,
+    "check_syntax": true,
+    "global_class": true,
+    "implement_methods": true,
+    // the 7.02 editor stores 255 characters a line and cuts the rest on
+    // import; the downport is what makes such lines
+    "line_length": {
+      "length": 255
+    },
+    "method_implemented_twice": true,
+    "parser_error": true,
+    "superclass_final": true,
+    "unknown_types": true,
+    "xml_consistency": true
+  }
+}
