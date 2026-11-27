@@ -22,7 +22,9 @@ name: create-package-branches
 # The verifying job runs `npm ci` and the code of a pull request, so it holds
 # a read-only token and a checkout without credentials. The tree it verified
 # travels as an artifact to `publish`, the one job with contents: write - it
-# runs nothing but git, and never for a pull request.
+# runs nothing but git, and never for a pull request or a manual run off
+# main: a dispatch from a feature branch verifies that branch and pushes
+# nothing (it used to force-push the ten branches from that branch).
 
 on:
   push:
@@ -111,12 +113,12 @@ jobs:
     # the tree exactly as verified: every file git would commit, nothing
     # ignored (node_modules, abaplint output)
     - name: Pack the verified tree
-      if: github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack'
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/samples-stack'
       run: |
         git add -A
         git ls-files -z | tar --null -T - -czf "$RUNNER_TEMP/tree.tgz"
     - name: Hand the tree over
-      if: github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack'
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/samples-stack'
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: package-branch-${{ matrix.branch }}
@@ -124,13 +126,14 @@ jobs:
         if-no-files-found: error
         retention-days: 1
 
-  # Pushes each verified tree to its branch. Never for a pull request, and
+  # Pushes each verified tree to its branch. Only from main - never for a
+  # pull request or a dispatch from another branch - and
   # no npm here: a fresh checkout of the same commit, the tree laid over it,
   # one commit, the push. A package whose `branch` leg failed handed nothing
   # over - its branch keeps its previous state and the run stays red there.
   publish:
     needs: [packages, branch]
-    if: ${{ !cancelled() && needs.packages.result == 'success' && github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack' }}
+    if: ${{ !cancelled() && needs.packages.result == 'success' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/samples-stack' }}
     permissions:
       contents: write
     strategy:
