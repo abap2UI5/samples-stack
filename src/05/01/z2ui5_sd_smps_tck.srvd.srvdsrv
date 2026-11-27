@@ -1,5 +1,0 @@
-@EndUserText.label: 'RAP Events Demo Service'
-define service Z2UI5_SD_SMPS_TCK {
-  expose Z2UI5_R_SMPS_TCK_C as Ticket;
-  expose Z2UI5_R_SMPS_LOG as EventLog;
-}
