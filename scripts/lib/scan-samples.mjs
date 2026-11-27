@@ -30,6 +30,11 @@
 import fs from 'fs';
 import path from 'path';
 
+/* Text order from a FIXED locale: a bare localeCompare( ) collates in the
+ * locale of whoever runs the generator (sv_SE puts 'Ä' after 'z'), so the
+ * committed output would depend on the machine that wrote it. */
+const collate = new Intl.Collator('en').compare;
+
 const unescapeXml = (s) => s
   .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
   .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
@@ -126,7 +131,7 @@ export function scanSamples(root) {
     });
   }
 
-  return out.sort((a, b) => a.pkg.localeCompare(b.pkg) || a.cls.localeCompare(b.cls));
+  return out.sort((a, b) => collate(a.pkg, b.pkg) || collate(a.cls, b.cls));
 }
 
 /**

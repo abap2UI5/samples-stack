@@ -62,6 +62,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { checkAbapSource } from '@abap2ui5/linter';
 
+/* Text order from a FIXED locale: a bare localeCompare( ) collates in the
+ * locale of whoever runs the generator (sv_SE puts 'Ä' after 'z'), so the
+ * committed output would depend on the machine that wrote it. */
+const collate = new Intl.Collator('en').compare;
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const OUT = path.join(ROOT, 'catalogue-derived.json');
@@ -145,7 +150,7 @@ for (const entry of catalogue.samples) {
      * file uses. */
     class: entry.class,
     minUi5,
-    needs: tooNew.sort((a, b) => cmpVersion(b.since, a.since) || a.name.localeCompare(b.name)),
+    needs: tooNew.sort((a, b) => cmpVersion(b.since, a.since) || collate(a.name, b.name)),
     controls: controls.map(idOf),
     controlCount: Object.values(types).reduce((a, b) => a + b, 0),
     /* Not view code - the backend half of a story, or a handler. See the
@@ -179,7 +184,7 @@ const top = {
 /* One line per sample, so a sample PR diffs as one changed line. */
 const head = JSON.stringify(top, null, 2);
 const body = samples
-  .sort((a, b) => a.class.localeCompare(b.class))
+  .sort((a, b) => collate(a.class, b.class))
   .map((s) => `    ${JSON.stringify(s)}`)
   .join(',\n');
 const page = `${head.slice(0, -2)},\n  "samples": [\n${body}\n  ]\n}\n`;
