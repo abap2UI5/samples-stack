@@ -1,6 +1,6 @@
 # 08 — MIME Play Audio
 
-*[← all packages](../../README.md)*
+*[← all packages](https://github.com/abap2UI5/samples-stack/blob/main/README.md)*
 
 [`487`](z2ui5_cl_smps_app_487.clas.abap) plays a sound stored in the **MIME
 repository**, addressed by its ICF path — a success and an error tone, both shipped
@@ -31,7 +31,7 @@ else and you get the error one.
 
 ## Where to go next
 
-- [`09` Launchpad](../09/README.md) — one more thing the system already serves: the
+- [`09` Launchpad](https://github.com/abap2UI5/samples-stack/blob/main/src/09/README.md) — one more thing the system already serves: the
   shell the app can run inside.
-- [`01` OData](../01/README.md) — back to the beginning: data from a service instead
+- [`01` OData](https://github.com/abap2UI5/samples-stack/blob/main/src/01/README.md) — back to the beginning: data from a service instead
   of bytes from the repository.
