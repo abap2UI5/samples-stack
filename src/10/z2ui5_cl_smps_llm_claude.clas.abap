@@ -56,12 +56,19 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_llm_claude IMPLEMENTATION.
 
   METHOD constructor.
+    DATA temp1 TYPE string.
 
     me->http       = http.
     me->model      = model.
     me->api_key    = api_key.
     me->max_tokens = max_tokens.
-    me->path       = COND #( WHEN path IS INITIAL THEN default_path ELSE path ).
+    
+    IF path IS INITIAL.
+      temp1 = default_path.
+    ELSE.
+      temp1 = path.
+    ENDIF.
+    me->path       = temp1.
 
   ENDMETHOD.
 
@@ -71,42 +78,98 @@ CLASS z2ui5_cl_smps_llm_claude IMPLEMENTATION.
     DATA t_header TYPE z2ui5_if_smps_llm_http=>ty_t_header.
     DATA list TYPE string.
 
-    LOOP AT messages INTO DATA(message).
-      list = list && COND string( WHEN list IS NOT INITIAL THEN `,` ) &&
+    DATA message LIKE LINE OF messages.
+      DATA temp2 TYPE string.
+    DATA temp3 TYPE string.
+    DATA body TYPE string.
+    DATA temp4 TYPE z2ui5_if_smps_llm_http=>ty_t_header.
+    DATA temp5 LIKE LINE OF temp4.
+      DATA temp6 TYPE z2ui5_if_smps_llm_http=>ty_s_header.
+    DATA response TYPE z2ui5_if_smps_llm_http=>ty_s_response.
+      DATA temp7 TYPE string_table.
+      DATA error TYPE string.
+      DATA temp9 TYPE string.
+    DATA temp10 TYPE string_table.
+      DATA temp12 TYPE string_table.
+      DATA stop_reason TYPE string.
+    LOOP AT messages INTO message.
+      
+      IF list IS NOT INITIAL.
+        temp2 = `,`.
+      ELSE.
+        CLEAR temp2.
+      ENDIF.
+      list = list && temp2 &&
              |\{"role":"{ z2ui5_cl_smps_llm_json=>string_escape( message-role ) }",| &&
              |"content":"{ z2ui5_cl_smps_llm_json=>string_escape( message-content ) }"\}|.
     ENDLOOP.
 
     " system is a top-level field here - there is no system role in messages
-    DATA(body) = |\{"model":"{ z2ui5_cl_smps_llm_json=>string_escape( model ) }",| &&
+    
+    IF system IS NOT INITIAL.
+      temp3 = |"system":"{ z2ui5_cl_smps_llm_json=>string_escape( system ) }",|.
+    ELSE.
+      CLEAR temp3.
+    ENDIF.
+    
+    body = |\{"model":"{ z2ui5_cl_smps_llm_json=>string_escape( model ) }",| &&
                  |"max_tokens":{ max_tokens },| &&
-                 COND string( WHEN system IS NOT INITIAL
-                              THEN |"system":"{ z2ui5_cl_smps_llm_json=>string_escape( system ) }",| ) &&
+                 temp3 &&
                  |"messages":[{ list }]\}|.
 
-    t_header = VALUE #( ( name = `anthropic-version` value = api_version ) ).
+    
+    CLEAR temp4.
+    
+    temp5-name = `anthropic-version`.
+    temp5-value = api_version.
+    INSERT temp5 INTO TABLE temp4.
+    t_header = temp4.
     IF api_key IS NOT INITIAL.
-      INSERT VALUE #( name = `x-api-key` value = api_key ) INTO TABLE t_header.
+      
+      CLEAR temp6.
+      temp6-name = `x-api-key`.
+      temp6-value = api_key.
+      INSERT temp6 INTO TABLE t_header.
     ENDIF.
 
-    DATA(response) = http->post( path     = path
+    
+    response = http->post( path     = path
                                  t_header = t_header
                                  body     = body ).
 
     IF response-status <> 200.
-      DATA(error) = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                        path = VALUE #( ( `error` ) ( `message` ) ) ).
-      z2ui5_cx_smps_llm=>raise( |Messages API, HTTP { response-status }: { COND string( WHEN error IS INITIAL THEN response-body ELSE error ) }| ).
+      
+      CLEAR temp7.
+      INSERT `error` INTO TABLE temp7.
+      INSERT `message` INTO TABLE temp7.
+      
+      error = z2ui5_cl_smps_llm_json=>get_string( json = response-body
+                                                        path = temp7 ).
+      
+      IF error IS INITIAL.
+        temp9 = response-body.
+      ELSE.
+        temp9 = error.
+      ENDIF.
+      z2ui5_cx_smps_llm=>raise( |Messages API, HTTP { response-status }: { temp9 }| ).
     ENDIF.
 
+    
+    CLEAR temp10.
+    INSERT `content` INTO TABLE temp10.
+    INSERT `text` INTO TABLE temp10.
     result = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                 path = VALUE #( ( `content` ) ( `text` ) ) ).
+                                                 path = temp10 ).
 
     " a 200 without a text block: the token limit ran out first - with
     " thinking on, before the model wrote a single word of its answer
     IF result IS INITIAL.
-      DATA(stop_reason) = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                              path = VALUE #( ( `stop_reason` ) ) ).
+      
+      CLEAR temp12.
+      INSERT `stop_reason` INTO TABLE temp12.
+      
+      stop_reason = z2ui5_cl_smps_llm_json=>get_string( json = response-body
+                                                              path = temp12 ).
       z2ui5_cx_smps_llm=>raise( |The model returned no text (stop_reason { stop_reason }) - raise Max Tokens in the settings| ).
     ENDIF.
 

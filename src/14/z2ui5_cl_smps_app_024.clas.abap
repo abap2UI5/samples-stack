@@ -41,7 +41,7 @@ CLASS z2ui5_cl_smps_app_024 DEFINITION PUBLIC.
         status TYPE string,
         state  TYPE string,
       END OF ty_s_result.
-    TYPES ty_t_result TYPE STANDARD TABLE OF ty_s_result WITH EMPTY KEY.
+    TYPES ty_t_result TYPE STANDARD TABLE OF ty_s_result WITH DEFAULT KEY.
     "! what the last run produced, one row per form
     DATA t_results TYPE ty_t_result.
 
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_smps_app_024 DEFINITION PUBLIC.
         form TYPE string,
         pdf  TYPE xstring,
       END OF ty_s_pdf.
-    TYPES ty_t_pdf TYPE STANDARD TABLE OF ty_s_pdf WITH EMPTY KEY.
+    TYPES ty_t_pdf TYPE STANDARD TABLE OF ty_s_pdf WITH DEFAULT KEY.
 
     METHODS view_display.
 
@@ -88,9 +88,9 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -99,14 +99,18 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA table TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Adobe Forms - 24 Render to PDF`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -131,7 +135,8 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
                 )->a( n = `rows`        v = `4`
                 )->a( n = `placeholder` v = `one form name per line` ).
 
-    DATA(table) = page->ele( `Table`
+    
+    table = page->ele( `Table`
         )->a( n = `items`      v = client->_bind( t_results )
         )->a( n = `noDataText` v = `Nothing rendered yet` ).
     table->ele( `columns`
@@ -177,7 +182,12 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
   METHOD on_event.
 
-    DATA(t_pdf) = forms_render( ).
+    DATA t_pdf TYPE z2ui5_cl_smps_app_024=>ty_t_pdf.
+        DATA s_pdf LIKE LINE OF t_pdf.
+        FIELD-SYMBOLS <temp1> LIKE LINE OF t_pdf.
+        DATA temp2 LIKE sy-tabix.
+        DATA zip TYPE REF TO cl_abap_zip.
+    t_pdf = forms_render( ).
 
     IF t_pdf IS INITIAL.
       RETURN.
@@ -187,13 +197,23 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
       WHEN `PDF`.
         " the first form that rendered - one file, no ZIP needed
-        DATA(s_pdf) = t_pdf[ 1 ].
+        
+        
+        
+        temp2 = sy-tabix.
+        READ TABLE t_pdf INDEX 1 ASSIGNING <temp1>.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        s_pdf = <temp1>.
         file_download( name      = |{ to_lower( s_pdf-form ) }.pdf|
                        mime_type = `application/pdf`
                        content   = s_pdf-pdf ).
 
       WHEN `ZIP`.
-        DATA(zip) = NEW cl_abap_zip( ).
+        
+        CREATE OBJECT zip TYPE cl_abap_zip.
         LOOP AT t_pdf INTO s_pdf.
           zip->add( name    = |{ to_lower( s_pdf-form ) }.pdf|
                     content = s_pdf-pdf ).
@@ -208,31 +228,52 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
 
   METHOD forms_render.
+    DATA t_form TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA form LIKE LINE OF t_form.
+      DATA pdf TYPE xstring.
+      DATA error TYPE string.
+        DATA temp1 TYPE z2ui5_cl_smps_app_024=>ty_s_pdf.
+        DATA temp2 TYPE z2ui5_cl_smps_app_024=>ty_s_result.
+        DATA temp3 TYPE z2ui5_cl_smps_app_024=>ty_s_result.
 
     CLEAR t_results.
-    SPLIT forms AT cl_abap_char_utilities=>newline INTO TABLE DATA(t_form).
+    
+    SPLIT forms AT cl_abap_char_utilities=>newline INTO TABLE t_form.
 
-    LOOP AT t_form INTO DATA(form).
+    
+    LOOP AT t_form INTO form.
 
       form = to_upper( condense( form ) ).
       IF form IS INITIAL.
         CONTINUE.
       ENDIF.
 
+      
+      
       form_render( EXPORTING form  = form
-                   IMPORTING pdf   = DATA(pdf)
-                             error = DATA(error) ).
+                   IMPORTING pdf   = pdf
+                             error = error ).
 
       IF error IS INITIAL.
-        INSERT VALUE #( form = form pdf = pdf ) INTO TABLE result.
-        INSERT VALUE #( form   = form
-                        size   = |{ xstrlen( pdf ) } bytes|
-                        status = `rendered`
-                        state  = `Success` ) INTO TABLE t_results.
+        
+        CLEAR temp1.
+        temp1-form = form.
+        temp1-pdf = pdf.
+        INSERT temp1 INTO TABLE result.
+        
+        CLEAR temp2.
+        temp2-form = form.
+        temp2-size = |{ xstrlen( pdf ) } bytes|.
+        temp2-status = `rendered`.
+        temp2-state = `Success`.
+        INSERT temp2 INTO TABLE t_results.
       ELSE.
-        INSERT VALUE #( form   = form
-                        status = error
-                        state  = `Error` ) INTO TABLE t_results.
+        
+        CLEAR temp3.
+        temp3-form = form.
+        temp3-status = error.
+        temp3-state = `Error`.
+        INSERT temp3 INTO TABLE t_results.
       ENDIF.
 
     ENDLOOP.
@@ -246,18 +287,35 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
     DATA output    TYPE fpformoutput.
     DATA docparams TYPE sfpdocparams.
     DATA outputpar TYPE sfpoutputparams.
+        DATA temp3 TYPE fpname.
+        DATA temp4 LIKE temp3.
+        DATA api_error TYPE REF TO cx_fp_api.
+    DATA temp5 LIKE REF TO output.
+DATA temp8 LIKE REF TO docparams.
+DATA temp1 TYPE abap_func_parmbind_tab.
+DATA temp2 LIKE LINE OF temp1.
+DATA t_param LIKE temp1.
+    DATA temp6 TYPE abap_func_excpbind_tab.
+    DATA temp7 LIKE LINE OF temp6.
+    DATA t_exc LIKE temp6.
+        DATA call_error TYPE REF TO cx_sy_dyn_call_error.
 
     CLEAR: pdf, error.
 
     " the name of the function module the form generated - it differs per
     " system, which is why it is asked for and never written down
     TRY.
-        CALL FUNCTION 'FP_FUNCTION_MODULE_NAME'
+        
+        temp3 = form.
+        
+        temp4 = temp3.
+CALL FUNCTION 'FP_FUNCTION_MODULE_NAME'
           EXPORTING
-            i_name     = CONV fpname( form )
+            i_name     = temp4
           IMPORTING
             e_funcname = function.
-      CATCH cx_fp_api INTO DATA(api_error).
+        
+      CATCH cx_fp_api INTO api_error.
         error = api_error->get_text( ).
         RETURN.
     ENDTRY.
@@ -283,18 +341,40 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
     " the generated function module has the interface of its form - called
     " with a parameter table, so any form name typed in at runtime works
-    DATA(t_param) = VALUE abap_func_parmbind_tab(
-        ( name  = '/1BCDWB/DOCPARAMS'
-          kind  = abap_func_exporting
-          value = REF #( docparams ) )
-        ( name  = '/1BCDWB/FORMOUTPUT'
-          kind  = abap_func_importing
-          value = REF #( output ) ) ).
-    DATA(t_exc) = VALUE abap_func_excpbind_tab(
-        ( name = 'USAGE_ERROR'    value = 1 )
-        ( name = 'SYSTEM_ERROR'   value = 2 )
-        ( name = 'INTERNAL_ERROR' value = 3 )
-        ( name = 'OTHERS'         value = 4 ) ).
+    
+    GET REFERENCE OF output INTO temp5.
+
+GET REFERENCE OF docparams INTO temp8.
+
+CLEAR temp1.
+
+temp2-name = '/1BCDWB/DOCPARAMS'.
+temp2-kind = abap_func_exporting.
+temp2-value = temp8.
+INSERT temp2 INTO TABLE temp1.
+temp2-name = '/1BCDWB/FORMOUTPUT'.
+temp2-kind = abap_func_importing.
+temp2-value = temp5.
+INSERT temp2 INTO TABLE temp1.
+
+t_param = temp1.
+    
+    CLEAR temp6.
+    
+    temp7-name = 'USAGE_ERROR'.
+    temp7-value = 1.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-name = 'SYSTEM_ERROR'.
+    temp7-value = 2.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-name = 'INTERNAL_ERROR'.
+    temp7-value = 3.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-name = 'OTHERS'.
+    temp7-value = 4.
+    INSERT temp7 INTO TABLE temp6.
+    
+    t_exc = temp6.
 
     TRY.
         CALL FUNCTION function
@@ -304,7 +384,8 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
           error = |{ function } failed with sy-subrc { sy-subrc }|.
         ENDIF.
 
-      CATCH cx_sy_dyn_call_error INTO DATA(call_error).
+        
+      CATCH cx_sy_dyn_call_error INTO call_error.
         " a form whose interface wants more than the two parameters above
         error = call_error->get_text( ).
     ENDTRY.
@@ -329,10 +410,16 @@ CLASS z2ui5_cl_smps_app_024 IMPLEMENTATION.
 
     " base64 through the classic utility class - this package is Standard
     " only, and cl_http_utility is there on every release it runs on
+    DATA temp8 TYPE string_table.
+    DATA temp9 LIKE LINE OF temp8.
+    CLEAR temp8.
+    
+    temp9 = |data:{ mime_type };base64,{ cl_http_utility=>encode_x_base64( content ) }|.
+    INSERT temp9 INTO TABLE temp8.
+    INSERT name INTO TABLE temp8.
     client->follow_up_action(
         val   = client->cs_event-download_b64_file
-        t_arg = VALUE #( ( |data:{ mime_type };base64,{ cl_http_utility=>encode_x_base64( content ) }| )
-                         ( name ) ) ).
+        t_arg = temp8 ).
 
   ENDMETHOD.
 

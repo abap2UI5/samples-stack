@@ -31,7 +31,7 @@ CLASS z2ui5_cl_smps_app_025 DEFINITION PUBLIC.
         name  TYPE string,
         value TYPE string,
       END OF ty_s_param.
-    TYPES ty_t_param TYPE STANDARD TABLE OF ty_s_param WITH EMPTY KEY.
+    TYPES ty_t_param TYPE STANDARD TABLE OF ty_s_param WITH DEFAULT KEY.
     DATA t_params TYPE ty_t_param.
 
     "! the URL the last press built, and who built it
@@ -63,16 +63,24 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA temp1 TYPE z2ui5_cl_smps_app_025=>ty_t_param.
+      DATA temp2 LIKE LINE OF temp1.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       semantic_object = `SalesOrder`.
       action          = `display`.
-      t_params = VALUE #( ( name = `SalesOrder` value = `42` ) ).
+      
+      CLEAR temp1.
+      
+      temp2-name = `SalesOrder`.
+      temp2-value = `42`.
+      INSERT temp2 INTO TABLE temp1.
+      t_params = temp1.
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -81,14 +89,18 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA table TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Launchpad - Build the URL of a Launchpad App`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -115,7 +127,8 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
             )->tag( `Input`
                 )->a( n = `value` v = client->_bind( action ) ).
 
-    DATA(table) = page->ele( `Table`
+    
+    table = page->ele( `Table`
         )->a( n = `items` v = client->_bind( t_params ) ).
     table->ele( `headerToolbar`
         )->ele( `Toolbar`
@@ -177,6 +190,8 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
 
 
   METHOD on_event.
+          DATA temp3 TYPE string_table.
+        DATA temp5 TYPE z2ui5_cl_smps_app_025=>ty_s_param.
 
     CASE client->get_event( ).
 
@@ -189,12 +204,17 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
         ENDIF.
 
         IF client->get_event( ) = `OPEN`.
+          
+          CLEAR temp3.
+          INSERT url INTO TABLE temp3.
           client->follow_up_action( val   = client->cs_event-open_new_tab
-                                    t_arg = VALUE #( ( url ) ) ).
+                                    t_arg = temp3 ).
         ENDIF.
 
       WHEN `ADD`.
-        INSERT VALUE #( ) INTO TABLE t_params.
+        
+        CLEAR temp5.
+        INSERT temp5 INTO TABLE t_params.
 
       WHEN `REMOVE`.
         DELETE t_params INDEX lines( t_params ).
@@ -217,6 +237,17 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
     FIELD-SYMBOLS <table> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row>   TYPE any.
     FIELD-SYMBOLS <comp>  TYPE any.
+    DATA temp6 TYPE REF TO cl_abap_objectdescr.
+    DATA class_descr LIKE temp6.
+    DATA temp7 TYPE abap_methdescr.
+    DATA temp8 TYPE abap_methdescr.
+    DATA s_method LIKE temp7.
+        DATA s_param LIKE LINE OF s_method-parameters.
+          DATA type TYPE REF TO cl_abap_datadescr.
+              DATA s_nav_param LIKE LINE OF t_params.
+          DATA temp9 TYPE abap_parmbind.
+          DATA temp1 LIKE temp9-kind.
+        DATA s_ptab LIKE LINE OF t_ptab.
 
     " is the class on this system at all - a type that is not there is an
     " exception of describe_by_name, not a syntax error of this class
@@ -228,8 +259,19 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(class_descr) = CAST cl_abap_objectdescr( descr ).
-    DATA(s_method) = VALUE abap_methdescr( class_descr->methods[ name = method_name ] OPTIONAL ).
+    
+    temp6 ?= descr.
+    
+    class_descr = temp6.
+    
+    CLEAR temp7.
+    
+    READ TABLE class_descr->methods INTO temp8 WITH KEY name = method_name.
+    IF sy-subrc = 0.
+      temp7 = temp8.
+    ENDIF.
+    
+    s_method = temp7.
     IF s_method IS INITIAL.
       RETURN.
     ENDIF.
@@ -238,9 +280,11 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
         " one entry per parameter of the method, typed exactly as the method
         " declares it - the names and types come from the system, not from
         " this sample
-        LOOP AT s_method-parameters INTO DATA(s_param).
+        
+        LOOP AT s_method-parameters INTO s_param.
 
-          DATA(type) = class_descr->get_method_parameter_type( p_method_name    = method_name
+          
+          type = class_descr->get_method_parameter_type( p_method_name    = method_name
                                                                p_parameter_name = s_param-name ).
           CREATE DATA value_ref TYPE HANDLE type.
           ASSIGN value_ref->* TO <value>.
@@ -254,7 +298,8 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
               " a table of name/value pairs - filled by component name, so
               " its row type may be whatever the system declares
               ASSIGN value_ref->* TO <table>.
-              LOOP AT t_params INTO DATA(s_nav_param) WHERE name IS NOT INITIAL.
+              
+              LOOP AT t_params INTO s_nav_param WHERE name IS NOT INITIAL.
                 INSERT INITIAL LINE INTO TABLE <table> ASSIGNING <row>.
                 ASSIGN COMPONENT 'NAME' OF STRUCTURE <row> TO <comp>.
                 IF sy-subrc = 0.
@@ -275,13 +320,23 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
 
           " the kind from the CALLER's side: what the method imports, the
           " caller exports - and a RETURNING value is received
-          INSERT VALUE #( name  = s_param-name
-                          kind  = SWITCH #( s_param-parm_kind
-                                            WHEN cl_abap_objectdescr=>importing THEN cl_abap_objectdescr=>exporting
-                                            WHEN cl_abap_objectdescr=>exporting THEN cl_abap_objectdescr=>importing
-                                            WHEN cl_abap_objectdescr=>changing  THEN cl_abap_objectdescr=>changing
-                                            ELSE cl_abap_objectdescr=>receiving )
-                          value = value_ref ) INTO TABLE t_ptab.
+          
+          CLEAR temp9.
+          temp9-name = s_param-name.
+          
+          CASE s_param-parm_kind.
+            WHEN cl_abap_objectdescr=>importing.
+              temp1 = cl_abap_objectdescr=>exporting.
+            WHEN cl_abap_objectdescr=>exporting.
+              temp1 = cl_abap_objectdescr=>importing.
+            WHEN cl_abap_objectdescr=>changing.
+              temp1 = cl_abap_objectdescr=>changing.
+            WHEN OTHERS.
+              temp1 = cl_abap_objectdescr=>receiving.
+          ENDCASE.
+          temp9-kind = temp1.
+          temp9-value = value_ref.
+          INSERT temp9 INTO TABLE t_ptab.
 
         ENDLOOP.
 
@@ -297,7 +352,8 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
         ENDIF.
 
         " the URL is whatever the method hands back
-        LOOP AT t_ptab INTO DATA(s_ptab) WHERE kind = cl_abap_objectdescr=>receiving.
+        
+        LOOP AT t_ptab INTO s_ptab WHERE kind = cl_abap_objectdescr=>receiving.
           ASSIGN s_ptab-value->* TO <value>.
           result = <value>.
         ENDLOOP.
@@ -315,10 +371,20 @@ CLASS z2ui5_cl_smps_app_025 IMPLEMENTATION.
 
     " #<semantic object>-<action>?<name>=<value>&... behind the launchpad of
     " this system - every value URL-encoded
-    DATA(query) = concat_lines_of(
-        table = VALUE string_table( FOR s_param IN t_params WHERE ( name IS NOT INITIAL )
-                                    ( |{ escape( val = s_param-name format = cl_abap_format=>e_url_full ) }={
-                                         escape( val = s_param-value format = cl_abap_format=>e_url_full ) }| ) )
+    DATA temp10 TYPE string_table.
+    DATA s_param LIKE LINE OF t_params.
+      DATA temp2 LIKE LINE OF temp10.
+    DATA query TYPE string.
+    CLEAR temp10.
+    
+    LOOP AT t_params INTO s_param WHERE name IS NOT INITIAL.
+      
+      temp2 = |{ escape( val = s_param-name format = cl_abap_format=>e_url_full ) }={ escape( val = s_param-value format = cl_abap_format=>e_url_full ) }|.
+      INSERT temp2 INTO TABLE temp10.
+    ENDLOOP.
+    
+    query = concat_lines_of(
+        table = temp10
         sep   = `&` ).
 
     result = |/sap/bc/ui2/flp#{ semantic_object }-{ action }|.

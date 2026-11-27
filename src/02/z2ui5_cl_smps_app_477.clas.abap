@@ -20,10 +20,13 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_477 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock`         v = `true`
               )->a( n = `height`               v = `100%`
@@ -32,7 +35,8 @@ CLASS z2ui5_cl_smps_app_477 IMPLEMENTATION.
               )->a( n = `xmlns:smartFilterBar` v = `sap.ui.comp.smartfilterbar`
               )->a( n = `xmlns:smartTable`     v = `sap.ui.comp.smarttable` ).
 
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartTable`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )

@@ -58,12 +58,19 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_llm_openai IMPLEMENTATION.
 
   METHOD constructor.
+    DATA temp1 TYPE string.
 
     me->http       = http.
     me->model      = model.
     me->api_key    = api_key.
     me->max_tokens = max_tokens.
-    me->path       = COND #( WHEN path IS INITIAL THEN default_path ELSE path ).
+    
+    IF path IS INITIAL.
+      temp1 = default_path.
+    ELSE.
+      temp1 = path.
+    ENDIF.
+    me->path       = temp1.
 
   ENDMETHOD.
 
@@ -72,42 +79,95 @@ CLASS z2ui5_cl_smps_llm_openai IMPLEMENTATION.
 
     DATA t_header TYPE z2ui5_if_smps_llm_http=>ty_t_header.
     DATA list TYPE string.
+    DATA message LIKE LINE OF messages.
+      DATA temp2 TYPE string.
+    DATA temp3 TYPE string.
+    DATA body TYPE string.
+      DATA temp4 TYPE z2ui5_if_smps_llm_http=>ty_t_header.
+      DATA temp5 LIKE LINE OF temp4.
+    DATA response TYPE z2ui5_if_smps_llm_http=>ty_s_response.
+      DATA temp6 TYPE string_table.
+      DATA error TYPE string.
+      DATA temp8 TYPE string.
+    DATA temp9 TYPE string_table.
+      DATA temp11 TYPE string_table.
+      DATA finish_reason TYPE string.
 
     IF system IS NOT INITIAL.
       list = |\{"role":"system","content":"{ z2ui5_cl_smps_llm_json=>string_escape( system ) }"\}|.
     ENDIF.
 
-    LOOP AT messages INTO DATA(message).
-      list = list && COND string( WHEN list IS NOT INITIAL THEN `,` ) &&
+    
+    LOOP AT messages INTO message.
+      
+      IF list IS NOT INITIAL.
+        temp2 = `,`.
+      ELSE.
+        CLEAR temp2.
+      ENDIF.
+      list = list && temp2 &&
              |\{"role":"{ z2ui5_cl_smps_llm_json=>string_escape( message-role ) }",| &&
              |"content":"{ z2ui5_cl_smps_llm_json=>string_escape( message-content ) }"\}|.
     ENDLOOP.
 
-    DATA(body) = |\{"model":"{ z2ui5_cl_smps_llm_json=>string_escape( model ) }",| &&
-                 COND string( WHEN max_tokens > 0
-                              THEN |"{ token_field }":{ max_tokens },| ) &&
+    
+    IF max_tokens > 0.
+      temp3 = |"{ token_field }":{ max_tokens },|.
+    ELSE.
+      CLEAR temp3.
+    ENDIF.
+    
+    body = |\{"model":"{ z2ui5_cl_smps_llm_json=>string_escape( model ) }",| &&
+                 temp3 &&
                  |"messages":[{ list }]\}|.
 
     IF api_key IS NOT INITIAL.
-      t_header = VALUE #( ( name = `Authorization` value = |Bearer { api_key }| ) ).
+      
+      CLEAR temp4.
+      
+      temp5-name = `Authorization`.
+      temp5-value = |Bearer { api_key }|.
+      INSERT temp5 INTO TABLE temp4.
+      t_header = temp4.
     ENDIF.
 
-    DATA(response) = http->post( path     = path
+    
+    response = http->post( path     = path
                                  t_header = t_header
                                  body     = body ).
 
     IF response-status <> 200.
-      DATA(error) = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                        path = VALUE #( ( `error` ) ( `message` ) ) ).
-      z2ui5_cx_smps_llm=>raise( |Chat Completions, HTTP { response-status }: { COND string( WHEN error IS INITIAL THEN response-body ELSE error ) }| ).
+      
+      CLEAR temp6.
+      INSERT `error` INTO TABLE temp6.
+      INSERT `message` INTO TABLE temp6.
+      
+      error = z2ui5_cl_smps_llm_json=>get_string( json = response-body
+                                                        path = temp6 ).
+      
+      IF error IS INITIAL.
+        temp8 = response-body.
+      ELSE.
+        temp8 = error.
+      ENDIF.
+      z2ui5_cx_smps_llm=>raise( |Chat Completions, HTTP { response-status }: { temp8 }| ).
     ENDIF.
 
+    
+    CLEAR temp9.
+    INSERT `choices` INTO TABLE temp9.
+    INSERT `message` INTO TABLE temp9.
+    INSERT `content` INTO TABLE temp9.
     result = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                 path = VALUE #( ( `choices` ) ( `message` ) ( `content` ) ) ).
+                                                 path = temp9 ).
 
     IF result IS INITIAL.
-      DATA(finish_reason) = z2ui5_cl_smps_llm_json=>get_string( json = response-body
-                                                                path = VALUE #( ( `finish_reason` ) ) ).
+      
+      CLEAR temp11.
+      INSERT `finish_reason` INTO TABLE temp11.
+      
+      finish_reason = z2ui5_cl_smps_llm_json=>get_string( json = response-body
+                                                                path = temp11 ).
       z2ui5_cx_smps_llm=>raise( |The model returned no text (finish_reason { finish_reason }) - raise Max Tokens in the settings| ).
     ENDIF.
 

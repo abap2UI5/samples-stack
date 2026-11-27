@@ -20,10 +20,14 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_475 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock`     v = `true`
               )->a( n = `height`           v = `100%`
@@ -32,7 +36,8 @@ CLASS z2ui5_cl_smps_app_475 IMPLEMENTATION.
               )->a( n = `xmlns:smartField` v = `sap.ui.comp.smartfield`
               )->a( n = `xmlns:smartForm`  v = `sap.ui.comp.smartform` ).
 
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartField`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -44,7 +49,8 @@ CLASS z2ui5_cl_smps_app_475 IMPLEMENTATION.
       " {Price} binding resolves against it. This is an OData ENTITY path into the
       " service, not a path into an ABAP-fed model, so there is no
       " client->_bind( ) variable to derive it from.
-      DATA(form) = page->ele( n = `SmartForm` ns = `smartForm`
+      
+      form = page->ele( n = `SmartForm` ns = `smartForm`
           )->a( n = `editable` b = abap_true
           )->a( n = `binding`  v = `{/ProductSet('AR-FB-1000')}` ).
 

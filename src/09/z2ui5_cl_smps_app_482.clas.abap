@@ -19,21 +19,25 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_482 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA temp1 TYPE string_table.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
 
       IF client->get( )-check_launchpad_active = abap_false.
         client->message_box_display( `No Launchpad Active, Sample not working!` ).
       ENDIF.
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( `SET_TITLE` ).
+    ELSEIF client->check_on_event( `SET_TITLE` ) IS NOT INITIAL.
 
+      
+      CLEAR temp1.
+      INSERT title INTO TABLE temp1.
       client->follow_up_action(
           val   = z2ui5_if_client=>cs_event-set_title_launchpad
-          t_arg = VALUE #( ( title ) ) ).
+          t_arg = temp1 ).
 
     ENDIF.
 
@@ -42,14 +46,18 @@ CLASS z2ui5_cl_smps_app_482 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp3 TYPE string_table.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `showHeader` b = abap_false ).
 
@@ -81,9 +89,12 @@ CLASS z2ui5_cl_smps_app_482 IMPLEMENTATION.
 
     client->view_display( view->stringify( ) ).
 
+    
+    CLEAR temp3.
+    INSERT title INTO TABLE temp3.
     client->follow_up_action(
         val   = z2ui5_if_client=>cs_event-set_title_launchpad
-        t_arg = VALUE #( ( title ) ) ).
+        t_arg = temp3 ).
 
   ENDMETHOD.
 

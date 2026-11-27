@@ -41,6 +41,11 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     DATA lf_new_varkey TYPE n LENGTH 4.
+            DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+            DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+            DATA lr_view2 TYPE REF TO z2ui5_cl_smps_app_490.
+          DATA lx TYPE REF TO cx_root.
+            DATA lv_error TYPE string.
 
     " not the canonical chain, on purpose: one class is two screens, told
     " apart by view_id, and each has its own lifecycle - the start view ends
@@ -48,18 +53,20 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
     IF view_id IS INITIAL OR view_id = 1.
       view_id = 1.
       TRY.
-          IF client->check_on_navigated( ).
+          IF client->check_on_navigated( ) IS NOT INITIAL.
             " the last lock view has left (or the app just started) - nothing
             " is locked any more, so the session does not need to stay
             client->set_session_stateful( abap_false ).
-            DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+            
+            view = z2ui5_cl_ui5_view_builder=>factory(
                 )->ele( n = `View` ns = `mvc`
                     )->a( n = `displayBlock` v = `true`
                     )->a( n = `height`       v = `100%`
                     )->a( n = `xmlns`        v = `sap.m`
                     )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
                     )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-            DATA(page) = view->ele( `Shell`
+            
+            page = view->ele( `Shell`
                 )->ele( `Page`
                     )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session with Navigation and Locks`
                     )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -81,8 +88,9 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             RETURN.
           ENDIF.
 
-          IF client->check_on_event( `CALL_BOOKING_MASK` ).
-            DATA(lr_view2) = NEW z2ui5_cl_smps_app_490( ).
+          IF client->check_on_event( `CALL_BOOKING_MASK` ) IS NOT INITIAL.
+            
+            CREATE OBJECT lr_view2 TYPE z2ui5_cl_smps_app_490.
             lr_view2->view_id = 2.
             " four digits, the width NEXT_LOCK counts up in - so the first
             " lock reads 0001 and the next one 0002, not 001 and 0002
@@ -91,7 +99,8 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
             RETURN.
           ENDIF.
 
-        CATCH cx_root INTO DATA(lx).
+          
+        CATCH cx_root INTO lx.
           client->message_box_display( lx ).
       ENDTRY.
 
@@ -100,8 +109,9 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
           " every lock view holds its own lock in the one stateful session the
           " stack shares: the first one switches the session on, the start view
           " switches it off again once the last lock view has left
-          IF client->check_on_init( ).
-            DATA(lv_error) = lock( abap_true ).
+          IF client->check_on_init( ) IS NOT INITIAL.
+            
+            lv_error = lock( abap_true ).
             IF lv_error IS NOT INITIAL.
               " abap2ui5lint-disable-next-line message-before-navigation -- known: the toast is lost with this view until nav_app_leave( keep_messages = abap_true ) is in an abap2UI5 release
               client->message_toast_display( lv_error ).
@@ -115,14 +125,14 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
 
           " back from the lock view above: its lock is released, this one's is
           " still held - the screen comes back as it was
-          IF client->check_on_navigated( ).
+          IF client->check_on_navigated( ) IS NOT INITIAL.
             initialize_view2( client ).
             RETURN.
           ENDIF.
 
           CASE client->get_event( ).
             WHEN `NEXT_LOCK`.
-              lr_view2 = NEW z2ui5_cl_smps_app_490( ).
+              CREATE OBJECT lr_view2 TYPE z2ui5_cl_smps_app_490.
               lr_view2->view_id = 2.
               lf_new_varkey = varkey+0(4).
               lf_new_varkey = lf_new_varkey + 1.
@@ -150,22 +160,28 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
     " argument E_TABLE takes - starts with the client
     DATA lv_varkey TYPE char120.
     DATA lv_fm TYPE string.
+      DATA temp1 TYPE tabname.
+    DATA temp2 TYPE tabname.
 
     lv_varkey = |{ sy-mandt }{ varkey }|.
 
     IF acquire = abap_false.
       lv_fm = `DEQUEUE_E_TABLE`.
-      CALL FUNCTION lv_fm
+      
+      temp1 = table_name( ).
+CALL FUNCTION lv_fm
         EXPORTING
-          tabname = table_name( )
+          tabname = temp1
           varkey  = lv_varkey.
       RETURN.
     ENDIF.
 
     lv_fm = `ENQUEUE_E_TABLE`.
-    CALL FUNCTION lv_fm
+    
+    temp2 = table_name( ).
+CALL FUNCTION lv_fm
       EXPORTING
-        tabname        = table_name( )
+        tabname        = temp2
         varkey         = lv_varkey
       EXCEPTIONS
         foreign_lock   = 1
@@ -186,19 +202,26 @@ CLASS z2ui5_cl_smps_app_490 IMPLEMENTATION.
 
   METHOD initialize_view2.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA vbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA hbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Sample: Lock View`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event( `BACK` ) ).
-    DATA(vbox) = page->ele( `VBox` ).
-    DATA(hbox) = vbox->ele( `HBox`
+    
+    vbox = page->ele( `VBox` ).
+    
+    hbox = vbox->ele( `HBox`
         )->a( n = `alignItems` v = `Center` ).
     hbox->tag( `Title`
         )->a( n = `text` t = |Current Lock Value in Table { table_name( ) }| ).

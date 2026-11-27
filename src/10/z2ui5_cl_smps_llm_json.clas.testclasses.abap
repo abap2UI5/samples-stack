@@ -37,7 +37,8 @@ CLASS ltcl_string_escape IMPLEMENTATION.
 
     " raw below U+0020 is a 400 from the provider - each one is written as
     " \u00XX, and the text around it stays as it was
-    DATA(text) = `page` && cl_abap_char_utilities=>form_feed &&
+    DATA text TYPE string.
+    text = `page` && cl_abap_char_utilities=>form_feed &&
                  `next` && cl_abap_char_utilities=>vertical_tab &&
                  `line` && cl_abap_char_utilities=>backspace && `end`.
 
@@ -60,13 +61,20 @@ CLASS ltcl_string_escape IMPLEMENTATION.
   METHOD round_trip.
 
     " what string_escape( ) writes, get_string( ) reads back unchanged
-    DATA(text) = |a "quoted" C:\\path\nnext line|.
-    DATA(json) = |\{"text":"{ z2ui5_cl_smps_llm_json=>string_escape( text ) }"\}|.
+    DATA text TYPE string.
+    DATA json TYPE string.
+    DATA temp1 TYPE string_table.
+    text = |a "quoted" C:\\path\nnext line|.
+    
+    json = |\{"text":"{ z2ui5_cl_smps_llm_json=>string_escape( text ) }"\}|.
 
+    
+    CLEAR temp1.
+    INSERT `text` INTO TABLE temp1.
     cl_abap_unit_assert=>assert_equals(
         exp = text
         act = z2ui5_cl_smps_llm_json=>get_string( json = json
-                                                  path = VALUE #( ( `text` ) ) ) ).
+                                                  path = temp1 ) ).
 
   ENDMETHOD.
 

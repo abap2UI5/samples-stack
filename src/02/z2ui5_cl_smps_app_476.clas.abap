@@ -22,10 +22,15 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_476 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA form TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA group TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock`     v = `true`
               )->a( n = `height`           v = `100%`
@@ -34,7 +39,8 @@ CLASS z2ui5_cl_smps_app_476 IMPLEMENTATION.
               )->a( n = `xmlns:smartField` v = `sap.ui.comp.smartfield`
               )->a( n = `xmlns:smartForm`  v = `sap.ui.comp.smartform` ).
 
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartForm`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -44,14 +50,16 @@ CLASS z2ui5_cl_smps_app_476 IMPLEMENTATION.
       " element binding replaces the controller's bindElement( ) - an OData ENTITY
       " path into the service, so there is no client->_bind( ) variable behind it;
       " every SmartField value and the form title {Name} are relative to it.
-      DATA(form) = page->ele( n = `SmartForm` ns = `smartForm`
+      
+      form = page->ele( n = `SmartForm` ns = `smartForm`
           )->a( n = `id`            v = `smartForm`
           )->a( n = `editTogglable` b = abap_true
           )->a( n = `title`         v = `{Name}`
           )->a( n = `flexEnabled`   b = abap_false
           )->a( n = `binding`       v = `{/ProductSet('AR-FB-1000')}` ).
 
-      DATA(group) = form->ele( n = `Group` ns = `smartForm`
+      
+      group = form->ele( n = `Group` ns = `smartForm`
           )->a( n = `label` v = `Product` ).
 
       group->ele( n = `GroupElement` ns = `smartForm`

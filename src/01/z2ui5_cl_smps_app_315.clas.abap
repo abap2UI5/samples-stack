@@ -13,22 +13,30 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_315 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA tab TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA temp1 TYPE string_table.
+      DATA temp3 TYPE string_table.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock` v = `true`
               )->a( n = `height`       v = `100%`
               )->a( n = `xmlns`        v = `sap.m`
               )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - OData - Two Models in One View`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
               )->a( n = `navButtonPress` v = client->_event_nav_app_leave( ) ).
 
-      DATA(tab) = page->ele( `Table`
+      
+      tab = page->ele( `Table`
           )->a( n = `items`   v = `{TRAVEL>/Currency}`
           )->a( n = `growing` b = abap_true ).
 
@@ -108,15 +116,21 @@ CLASS z2ui5_cl_smps_app_315 IMPLEMENTATION.
 
       client->view_display( view->stringify( ) ).
 
+      
+      CLEAR temp1.
+      INSERT `/sap/opu/odata/DMO/API_TRAVEL_U_V2/` INTO TABLE temp1.
+      INSERT `TRAVEL` INTO TABLE temp1.
       client->follow_up_action(
           val   = z2ui5_if_client=>cs_event-set_odata_model
-          t_arg = VALUE #( ( `/sap/opu/odata/DMO/API_TRAVEL_U_V2/` )
-                           ( `TRAVEL` ) ) ).
+          t_arg = temp1 ).
 
+      
+      CLEAR temp3.
+      INSERT `/sap/opu/odata/DMO/ui_flight_r_v2/` INTO TABLE temp3.
+      INSERT `FLIGHT` INTO TABLE temp3.
       client->follow_up_action(
           val   = z2ui5_if_client=>cs_event-set_odata_model
-          t_arg = VALUE #( ( `/sap/opu/odata/DMO/ui_flight_r_v2/` )
-                           ( `FLIGHT` ) ) ).
+          t_arg = temp3 ).
 
     ENDIF.
 

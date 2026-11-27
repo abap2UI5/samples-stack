@@ -53,7 +53,15 @@ CLASS z2ui5_cl_smps_llm_sm59 IMPLEMENTATION.
     DATA message TYPE string.
     DATA t_field TYPE tihttpnvp.
 
-    cl_http_client=>create_by_destination( EXPORTING  destination              = CONV rfcdest( destination )
+    DATA temp1 TYPE rfcdest.
+    DATA temp2 TYPE tihttpnvp.
+    DATA temp3 LIKE LINE OF temp2.
+    DATA header LIKE LINE OF t_header.
+      DATA temp4 TYPE ihttpnvp.
+    DATA raw TYPE xstring.
+      DATA error TYPE REF TO cx_root.
+    temp1 = destination.
+    cl_http_client=>create_by_destination( EXPORTING  destination              = temp1
                                            IMPORTING  client                   = client
                                            EXCEPTIONS argument_not_found       = 1
                                                       destination_not_found    = 2
@@ -70,9 +78,20 @@ CLASS z2ui5_cl_smps_llm_sm59 IMPLEMENTATION.
     cl_http_utility=>set_request_uri( request = client->request
                                       uri     = path ).
 
-    t_field = VALUE #( ( name = `Content-Type` value = `application/json; charset=utf-8` ) ).
-    LOOP AT t_header INTO DATA(header).
-      INSERT VALUE #( name = header-name value = header-value ) INTO TABLE t_field.
+    
+    CLEAR temp2.
+    
+    temp3-name = `Content-Type`.
+    temp3-value = `application/json; charset=utf-8`.
+    INSERT temp3 INTO TABLE temp2.
+    t_field = temp2.
+    
+    LOOP AT t_header INTO header.
+      
+      CLEAR temp4.
+      temp4-name = header-name.
+      temp4-value = header-value.
+      INSERT temp4 INTO TABLE t_field.
     ENDLOOP.
     client->request->set_header_fields( t_field ).
 
@@ -102,7 +121,8 @@ CLASS z2ui5_cl_smps_llm_sm59 IMPLEMENTATION.
     ENDIF.
 
     client->response->get_status( IMPORTING code = result-status ).
-    DATA(raw) = client->response->get_data( ).
+    
+    raw = client->response->get_data( ).
     client->close( EXCEPTIONS OTHERS = 1 ).
 
     " a body that is not UTF-8 - typically the HTML error page of a proxy or
@@ -111,8 +131,9 @@ CLASS z2ui5_cl_smps_llm_sm59 IMPLEMENTATION.
     " cloud transport does
     TRY.
         result-body = cl_abap_codepage=>convert_from( raw ).
+      
       CATCH cx_sy_conversion_codepage cx_sy_codepage_converter_init cx_parameter_invalid_range
-            cx_parameter_invalid_type INTO DATA(error).
+            cx_parameter_invalid_type INTO error.
         z2ui5_cx_smps_llm=>raise( text     = |SM59 destination { destination }: HTTP { result-status }, | &&
                                              |the response is not UTF-8 - { error->get_text( ) }|
                                   previous = error ).

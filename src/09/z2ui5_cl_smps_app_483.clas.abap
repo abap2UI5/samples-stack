@@ -25,7 +25,7 @@ CLASS z2ui5_cl_smps_app_483 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
 
       nav_params-product  = `102343333`.
       nav_params-quantity = `500`.
@@ -34,7 +34,7 @@ CLASS z2ui5_cl_smps_app_483 IMPLEMENTATION.
         client->message_box_display( `No Launchpad Active, Sample not working!` ).
       ENDIF.
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
     ENDIF.
 
@@ -43,19 +43,27 @@ CLASS z2ui5_cl_smps_app_483 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp1 TYPE string_table.
+    DATA temp2 LIKE LINE OF temp1.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
+    
+    
+    temp3 = boolc( client->get( )-check_launchpad_active = abap_false ).
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Launchpad - Cross-App Navigation (Sender)`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->a( n = `showHeader`     b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ).
+            )->a( n = `showHeader`     b = temp3 ).
 
     page->tag( `MessageStrip`
         )->a( n = `text`     v = `SENDER side of launchpad cross-app navigation: the button navigates to ` &&
@@ -68,6 +76,12 @@ CLASS z2ui5_cl_smps_app_483 IMPLEMENTATION.
         )->a( n = `showIcon` b = abap_true
         )->a( n = `class`    v = `sapUiSmallMargin` ).
 
+    
+    CLEAR temp1.
+    INSERT `{ semanticObject: "Z2UI5_CL_LP_SAMPLE_04",  action: "display" }` INTO TABLE temp1.
+    
+    temp2 = `$` && client->_bind( nav_params ).
+    INSERT temp2 INTO TABLE temp1.
     page->ele( n = `SimpleForm` ns = `form`
         )->a( n = `title`    v = `Cross-App Navigation - Sender`
         )->a( n = `editable` b = abap_true
@@ -87,9 +101,7 @@ CLASS z2ui5_cl_smps_app_483 IMPLEMENTATION.
             )->tag( `Button`
                 )->a( n = `press`   v = client->follow_up_action(
                     val   = client->cs_event-cross_app_nav_to_ext
-                    t_arg = VALUE #(
-                        ( `{ semanticObject: "Z2UI5_CL_LP_SAMPLE_04",  action: "display" }` )
-                        ( `$` && client->_bind( nav_params ) ) ) )
+                    t_arg = temp1 )
                 )->a( n = `text`    v = `navigate to the receiver app`
                 )->a( n = `visible` b = client->get( )-check_launchpad_active ).
 

@@ -31,24 +31,26 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+        DATA lx TYPE REF TO cx_root.
 
     " not the canonical chain, on purpose: init and the return from another
     " app each set the stateful session before they build the view
     TRY.
 
-        IF client->check_on_init( ).
+        IF client->check_on_init( ) IS NOT INITIAL.
           set_session_stateful( client = client stateful = abap_true ).
           initialize_view( client ).
-        ELSEIF client->check_on_navigated( ).
+        ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
           " the session as the user left it - switching it back on here
           " would undo an "End session" on every navigation
           set_session_stateful( client = client stateful = session_is_stateful ).
           initialize_view( client ).
-        ELSEIF client->check_on_event( ).
+        ELSEIF client->check_on_event( ) IS NOT INITIAL.
           on_event( client ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(lx).
+        
+      CATCH cx_root INTO lx.
         client->message_box_display( lx->get_text( ) ).
     ENDTRY.
 
@@ -74,7 +76,11 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
 
   METHOD initialize_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA vbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA hbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
@@ -82,17 +88,20 @@ CLASS z2ui5_cl_smps_app_486 IMPLEMENTATION.
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:tnt`    v = `sap.tnt` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event( `BACK` ) ).
 
-    DATA(vbox) = page->ele( `VBox` ).
+    
+    vbox = page->ele( `VBox` ).
     vbox->ele( n = `InfoLabel` ns = `tnt`
         )->a( n = `text` v = client->_bind( session_text ) ).
 
-    DATA(hbox) = vbox->ele( `HBox`
+    
+    hbox = vbox->ele( `HBox`
         )->a( n = `alignItems` v = `Center` ).
     hbox->tag( `Label`
         )->a( n = `text`  v = `press button to increment counter in backend session`

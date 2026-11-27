@@ -16,7 +16,7 @@ CLASS z2ui5_cl_smps_app_314 DEFINITION PUBLIC.
         percentage TYPE p LENGTH 5 DECIMALS 2,
         valuecolor TYPE string,
       END OF ty_s_row.
-    DATA t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     DATA mv_val TYPE string.
 
@@ -37,7 +37,7 @@ CLASS z2ui5_cl_smps_app_314 IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
 
       DO 10 TIMES.
         ls_row-count = sy-index.
@@ -48,7 +48,7 @@ CLASS z2ui5_cl_smps_app_314 IMPLEMENTATION.
         INSERT ls_row INTO TABLE t_tab.
       ENDDO.
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
     ENDIF.
 
@@ -57,13 +57,17 @@ CLASS z2ui5_cl_smps_app_314 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA tab TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Device Model, HTTP Model, OData Model`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -79,7 +83,8 @@ CLASS z2ui5_cl_smps_app_314 IMPLEMENTATION.
         )->a( n = `value` v = client->_bind( val                  = mv_val
                                      switch_default_model = abap_true ) ).
 
-    DATA(tab) = page->ele( `Table`
+    
+    tab = page->ele( `Table`
         )->a( n = `items` v = client->_bind( val                  = t_tab
                                                  switch_default_model = abap_true ) ).
 

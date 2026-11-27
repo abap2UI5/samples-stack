@@ -28,11 +28,12 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA text TYPE string.
 
     me->client = client.
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( `NAV_TARGETS_OBTAINED` ).
+    ELSEIF client->check_on_event( `NAV_TARGETS_OBTAINED` ) IS NOT INITIAL.
       " The tutorial answers this event by composing the navigation popover
       " imperatively (oParameters.show( ) with LinkData entries and a SimpleForm of
       " Title/Image/Text). That is frontend construction of controls, which a thin
@@ -40,9 +41,10 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
       " content the SemanticObjectController derives from the annotations itself.
       client->message_toast_display( `Navigation targets obtained` ).
 
-    ELSEIF client->check_on_event( `NAVIGATE` ).
+    ELSEIF client->check_on_event( `NAVIGATE` ) IS NOT INITIAL.
 
-      DATA(text) = client->get_event_arg( ).
+      
+      text = client->get_event_arg( ).
 
       IF text <> `Homepage`.
         client->message_box_display( text  = |{ text } has been pressed|
@@ -57,7 +59,9 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock`     v = `true`
             )->a( n = `height`           v = `100%`
@@ -66,7 +70,8 @@ CLASS z2ui5_cl_smps_app_479 IMPLEMENTATION.
             )->a( n = `xmlns:navpopover` v = `sap.ui.comp.navpopover`
             )->a( n = `xmlns:smartChart` v = `sap.ui.comp.smartchart` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartChart`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )

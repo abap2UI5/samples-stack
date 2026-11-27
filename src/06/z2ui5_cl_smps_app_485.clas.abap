@@ -39,15 +39,20 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+        DATA temp3 LIKE error.
+              DATA x_error TYPE REF TO lcx_error.
+        DATA lx TYPE REF TO cx_root.
 
     " not the canonical chain, on purpose: init and the return from another
     " app each set the stateful session before they build the view, and the
     " error of the last roundtrip is cleared on every one
     TRY.
 
-        error = VALUE #( ).
+        
+        CLEAR temp3.
+        error = temp3.
 
-        IF client->check_on_init( ).
+        IF client->check_on_init( ) IS NOT INITIAL.
           " the view first: the counter reads the lock table through a
           " function module that can fail, and the bound text reaches the
           " browser either way - after the view, a failure leaves a screen
@@ -55,24 +60,26 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
           set_session_stateful( client = client stateful = abap_true ).
           initialize_view( client ).
           update_lock_counter( ).
-        ELSEIF client->check_on_navigated( ).
+        ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
           " the session as the user left it - switching it back on here
           " would undo an "End session" on every navigation
           set_session_stateful( client = client stateful = session_is_stateful ).
           initialize_view( client ).
-        ELSEIF client->check_on_event( ).
+        ELSEIF client->check_on_event( ) IS NOT INITIAL.
           TRY.
               on_event( client ).
             " a lock that could not be taken is the outcome this sample is
             " about, so it is shown in the MessageStrip of the view rather
             " than in a popup - see lcx_error in the local implementations
-            CATCH lcx_error INTO DATA(x_error).
+              
+            CATCH lcx_error INTO x_error.
               error-text = x_error->get_text( ).
               error-flag = abap_true.
           ENDTRY.
         ENDIF.
 
-      CATCH cx_root INTO DATA(lx).
+        
+      CATCH cx_root INTO lx.
         client->message_box_display( lx->get_text( ) ).
     ENDTRY.
 
@@ -80,6 +87,8 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
 
   METHOD on_event.
+        DATA locks_before TYPE i.
+        DATA temp4 TYPE string.
 
     CASE client->get_event( ).
       WHEN `BACK`.
@@ -97,14 +106,19 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
       WHEN `ROLLBACK`.
         " read before and after, so the toast says what the ROLLBACK
         " released and not what the last Refresh happened to show
-        DATA(locks_before) = lcl_locking=>get_lock_counter( ).
+        
+        locks_before = lcl_locking=>get_lock_counter( ).
         ROLLBACK WORK.
         update_lock_counter( ).
-        client->message_toast_display( COND #( WHEN locks_before > 0 AND lock_counter = 0
-                                               THEN `ROLLBACK WORK done, the lock is released`
-                                               WHEN lock_counter > 0
-                                               THEN `ROLLBACK WORK done, the lock is still held`
-                                               ELSE `ROLLBACK WORK done, there was no lock to release` ) ).
+        
+        IF locks_before > 0 AND lock_counter = 0.
+          temp4 = `ROLLBACK WORK done, the lock is released`.
+        ELSEIF lock_counter > 0.
+          temp4 = `ROLLBACK WORK done, the lock is still held`.
+        ELSE.
+          temp4 = `ROLLBACK WORK done, there was no lock to release`.
+        ENDIF.
+        client->message_toast_display( temp4 ).
     ENDCASE.
 
   ENDMETHOD.
@@ -112,7 +126,11 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
   METHOD initialize_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA vbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA hbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
@@ -120,7 +138,8 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:tnt`    v = `sap.tnt` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Sample: Sticky Session with Locks (ABAP Standard Only)`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -139,9 +158,11 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
         )->a( n = `showIcon` v = `true`
         )->a( n = `class`    v = `sapUiSmallMarginBottom` ).
 
-    DATA(vbox) = page->ele( `VBox` ).
+    
+    vbox = page->ele( `VBox` ).
 
-    DATA(hbox) = vbox->ele( `HBox`
+    
+    hbox = vbox->ele( `HBox`
         )->a( n = `alignItems` v = `Center` ).
 
     hbox->ele( n = `InfoLabel` ns = `tnt`
@@ -200,14 +221,19 @@ CLASS z2ui5_cl_smps_app_485 IMPLEMENTATION.
 
 
   METHOD update_lock_counter.
+    DATA temp5 TYPE string.
 
     " the counter belongs to the ONE lock entry of this sample: every Lock
     " the session presses again on the key it already holds counts it up,
     " SM12 still shows a single entry
     lock_counter = lcl_locking=>get_lock_counter( ).
-    lock_text = COND #( WHEN lock_counter = 0
-                        THEN |No lock on { lcl_locking=>lock_key } in SM12|
-                        ELSE |SM12 holds the lock on { lcl_locking=>lock_key } - requested { lock_counter } time(s)| ).
+    
+    IF lock_counter = 0.
+      temp5 = |No lock on { lcl_locking=>lock_key } in SM12|.
+    ELSE.
+      temp5 = |SM12 holds the lock on { lcl_locking=>lock_key } - requested { lock_counter } time(s)|.
+    ENDIF.
+    lock_text = temp5.
 
   ENDMETHOD.
 

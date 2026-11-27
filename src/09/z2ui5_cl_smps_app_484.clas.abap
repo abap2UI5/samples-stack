@@ -22,6 +22,11 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+    DATA t_params TYPE z2ui5_if_client=>ty_t_name_value.
+        FIELD-SYMBOLS <temp1> LIKE LINE OF t_params.
+        DATA temp2 LIKE sy-tabix.
+        FIELD-SYMBOLS <temp3> LIKE LINE OF t_params.
+        DATA temp4 LIKE sy-tabix.
 
     me->client = client.
 
@@ -29,14 +34,31 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
     " are read ahead of it, on every roundtrip and not only on the first one
     check_launchpad_active = client->get( )-check_launchpad_active.
 
-    DATA(t_params) = client->get( )-t_comp_params.
+    
+    t_params = client->get( )-t_comp_params.
     TRY.
-        product = t_params[ n = `PRODUCT` ]-v.
-        quantity = t_params[ n = `QUANTITY` ]-v.
+        
+        
+        temp2 = sy-tabix.
+        READ TABLE t_params WITH KEY n = `PRODUCT` ASSIGNING <temp1>.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        product = <temp1>-v.
+        
+        
+        temp4 = sy-tabix.
+        READ TABLE t_params WITH KEY n = `QUANTITY` ASSIGNING <temp3>.
+        sy-tabix = temp4.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        quantity = <temp3>-v.
       CATCH cx_sy_itab_line_not_found ##NO_HANDLER.
     ENDTRY.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
     ENDIF.
 
@@ -45,19 +67,26 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp5 TYPE string_table.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
-    DATA(page) = view->ele( `Shell`
+    
+    
+    temp1 = boolc( client->get( )-check_launchpad_active = abap_false ).
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Launchpad - Cross-App Navigation (Receiver)`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->a( n = `showHeader`     b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ).
+            )->a( n = `showHeader`     b = temp1 ).
 
     page->tag( `MessageStrip`
         )->a( n = `text`     v = `RECEIVER side of launchpad cross-app navigation: started via the sender ` &&
@@ -70,6 +99,9 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
         )->a( n = `showIcon` b = abap_true
         )->a( n = `class`    v = `sapUiSmallMargin` ).
 
+    
+    CLEAR temp5.
+    INSERT `{ semanticObject: "Z2UI5_CL_LP_SAMPLE_03",  action: "display" }` INTO TABLE temp5.
     page->ele( n = `SimpleForm` ns = `form`
         )->a( n = `title`    v = `Cross-App Navigation - Receiver`
         )->a( n = `editable` b = abap_true
@@ -96,7 +128,7 @@ CLASS z2ui5_cl_smps_app_484 IMPLEMENTATION.
             )->tag( `Button`
                 )->a( n = `press`   v = client->follow_up_action(
                     val   = client->cs_event-cross_app_nav_to_ext
-                    t_arg = VALUE #( ( `{ semanticObject: "Z2UI5_CL_LP_SAMPLE_03",  action: "display" }` ) ) )
+                    t_arg = temp5 )
                 )->a( n = `text`    v = `navigate to the sender app`
                 )->a( n = `visible` b = check_launchpad_active ).
 

@@ -27,9 +27,9 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -38,22 +38,31 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA icfactive TYPE icfservloc-icfactive.
+    DATA temp2 TYPE string.
+    DATA vbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp1 TYPE string_table.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
 
-    SELECT
-      SINGLE FROM icfservloc
-      FIELDS icfactive
-      WHERE icf_name = @( `MIME_DEMO` )
-      INTO @DATA(icfactive).
+    
+    
+    temp2 = `MIME_DEMO`.
+SELECT
+      SINGLE icfactive FROM icfservloc INTO icfactive
+      
+      WHERE icf_name = temp2
+      .
 
     " Note, these are demo sounds and are part of the abap2UI5 sample repo.
     " They are NOT meant to use in production.
-    DATA(vbox) = view->ele( `Shell`
+    
+    vbox = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Sample: Play Success and Error Sounds`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -85,32 +94,46 @@ CLASS z2ui5_cl_smps_app_487 IMPLEMENTATION.
         )->a( n = `type`  v = `Accept` ).
 
     client->view_display( view->stringify( ) ).
+    
+    CLEAR temp1.
+    INSERT `inputApp` INTO TABLE temp1.
     client->follow_up_action(
         val   = z2ui5_if_client=>cs_event-set_focus
-        t_arg = VALUE #( ( `inputApp` ) ) ).
+        t_arg = temp1 ).
 
   ENDMETHOD.
 
 
   METHOD on_event.
+        DATA temp3 TYPE string_table.
+        DATA temp5 TYPE string_table.
+      DATA temp7 TYPE string.
 
     IF client->get_event( ) = `enter`.
 
       IF magic_key = `abap2UI5`.
+        
+        CLEAR temp3.
+        INSERT `/SAP/PUBLIC/BC/ABAP/mime_demo/z2ui5_smp_success.mp3` INTO TABLE temp3.
         client->follow_up_action(
             val   = z2ui5_if_client=>cs_event-play_audio
-            t_arg = VALUE #( ( `/SAP/PUBLIC/BC/ABAP/mime_demo/z2ui5_smp_success.mp3` ) ) ).
+            t_arg = temp3 ).
         message-type = `Success`.
         message-text = `Hooray!`.
 
       ELSE.
+        
+        CLEAR temp5.
+        INSERT `/SAP/PUBLIC/BC/ABAP/mime_demo/z2ui5_smp_error.mp3` INTO TABLE temp5.
         client->follow_up_action(
             val   = z2ui5_if_client=>cs_event-play_audio
-            t_arg = VALUE #( ( `/SAP/PUBLIC/BC/ABAP/mime_demo/z2ui5_smp_error.mp3` ) ) ).
+            t_arg = temp5 ).
         message-type = `Error`.
         message-text = `That wasn't the magic key`.
       ENDIF.
-      magic_key = VALUE #( ).
+      
+      CLEAR temp7.
+      magic_key = temp7.
     ENDIF.
 
   ENDMETHOD.

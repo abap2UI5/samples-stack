@@ -62,7 +62,7 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
         status    TYPE string,
         state     TYPE string,
       END OF ty_s_sample.
-    TYPES ty_t_sample TYPE STANDARD TABLE OF ty_s_sample WITH EMPTY KEY.
+    TYPES ty_t_sample TYPE STANDARD TABLE OF ty_s_sample WITH DEFAULT KEY.
 
     "! one table per package - the order is the reading order of the README
     DATA t_odata     TYPE ty_t_sample.
@@ -270,7 +270,7 @@ CLASS z2ui5_cl_smps_app_000 DEFINITION PUBLIC.
         n TYPE string,
         v TYPE string,
       END OF ty_s_param.
-    TYPES ty_t_param TYPE STANDARD TABLE OF ty_s_param WITH EMPTY KEY.
+    TYPES ty_t_param TYPE STANDARD TABLE OF ty_s_param WITH DEFAULT KEY.
 
     "! the address of a sample: the url of the running overview with app_start
     "! exchanged, so the tab that opens lands on the same ICF node with the
@@ -305,12 +305,12 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       model_init( ).
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       " a sample the user left with the back button lands here - without
       " this branch the overview would come back blank
       view_display( ).
@@ -322,6 +322,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
   METHOD on_event.
 
     DATA li_app TYPE REF TO z2ui5_if_app.
+        DATA text TYPE string.
+        DATA text_draft TYPE string.
+        DATA text_actions TYPE string.
+            DATA classname TYPE string.
+            DATA error TYPE REF TO cx_root.
 
     CASE client->get_event( ).
 
@@ -333,15 +338,18 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         " most common reason a sample looks broken. data_reset( ) deletes
         " first, so the travel ids stay 1, 2, 3. The answers read alike, so
         " each one says which package it is from.
-        DATA(text) = data_reset( own_prefix( ) && cs_class-data_trv ).
+        
+        text = data_reset( own_prefix( ) && cs_class-data_trv ).
         IF text IS NOT INITIAL.
           text = |RAP: { text }|.
         ENDIF.
-        DATA(text_draft) = data_reset( own_prefix( ) && cs_class-data_trd ).
+        
+        text_draft = data_reset( own_prefix( ) && cs_class-data_trd ).
         IF text_draft IS NOT INITIAL.
           text = condense( |{ text } RAP with Draft: { text_draft }| ).
         ENDIF.
-        DATA(text_actions) = data_reset( own_prefix( ) && cs_class-data_req ).
+        
+        text_actions = data_reset( own_prefix( ) && cs_class-data_req ).
         IF text_actions IS NOT INITIAL.
           text = condense( |{ text } RAP Actions: { text_actions }| ).
         ENDIF.
@@ -364,11 +372,13 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         " class travels as the event argument and is resolved here, for the
         " same reason the samples are (see the class documentation)
         TRY.
-            DATA(classname) = to_upper( client->get_event_arg( ) ).
+            
+            classname = to_upper( client->get_event_arg( ) ).
             CREATE OBJECT li_app TYPE (classname).
             client->nav_app_call( li_app ).
 
-          CATCH cx_root INTO DATA(error) ##CATCH_ALL.
+            
+          CATCH cx_root INTO error.
             " a press that does nothing at all is the worst answer this header
             " can give, and it is what the silent catch here used to produce.
             " Only the running system knows why the overview app of the other
@@ -383,9 +393,12 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    DATA(page) = view->ele( n = `View` ns = `mvc`
+    
+    page = view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`        v = `sap.m`
         )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
         )->a( n = `xmlns:core`   v = `sap.ui.core`
@@ -523,11 +536,15 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " 3rem. This row used to put a ToolbarSeparator between its groups, which
     " on 1.71 swallowed every icon behind the first one; the gap now rides on
     " the first icon of each group (group_start).
-    DATA(bar) = page->ele( `customHeader`
+    DATA bar TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA left TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA right TYPE REF TO z2ui5_cl_ui5_view_builder.
+    bar = page->ele( `customHeader`
         )->ele( `Bar` ).
 
     " left: what the stock page header would render on its own
-    DATA(left) = bar->ele( `contentLeft` ).
+    
+    left = bar->ele( `contentLeft` ).
 
     left->tag( `Button`
         )->a( n = `icon`    v = `sap-icon://nav-back`
@@ -540,7 +557,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         )->a( n = `text`  t = title
         )->a( n = `level` v = `H2` ).
 
-    DATA(right) = bar->ele( `contentRight` ).
+    
+    right = bar->ele( `contentRight` ).
 
     " this repository's own action first - it fills the tables the RAP samples
     " read, and it is hidden outright when neither RAP package is installed
@@ -601,7 +619,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD install_display.
 
-    DATA(info) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA info TYPE REF TO z2ui5_cl_ui5_view_builder.
+    info = z2ui5_cl_ui5_view_builder=>factory( ).
 
     info->ele( n = `FragmentDefinition` ns = `core`
         )->a( n = `xmlns`      v = `sap.m`
@@ -635,10 +654,33 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     DATA hint   TYPE string.
     DATA color  TYPE string.
 
-    DATA(tooltip) = |{ name } - { descr }|.
+    DATA tooltip TYPE string.
+    DATA temp1 TYPE string.
+    DATA app LIKE temp1.
+    DATA temp2 TYPE string.
+    DATA app_old LIKE temp2.
+    DATA temp3 TYPE string.
+    DATA css_class LIKE temp3.
+      DATA temp4 TYPE string_table.
+      DATA temp5 TYPE string.
+    tooltip = |{ name } - { descr }|.
     " cs_overview names the apps without the installation's prefix
-    DATA(app)     = COND string( WHEN class IS NOT INITIAL THEN own_prefix( ) && class ).
-    DATA(app_old) = COND string( WHEN class_old IS NOT INITIAL THEN own_prefix( ) && class_old ).
+    
+    IF class IS NOT INITIAL.
+      temp1 = own_prefix( ) && class.
+    ELSE.
+      CLEAR temp1.
+    ENDIF.
+    
+    app = temp1.
+    
+    IF class_old IS NOT INITIAL.
+      temp2 = own_prefix( ) && class_old.
+    ELSE.
+      CLEAR temp2.
+    ENDIF.
+    
+    app_old = temp2.
 
     IF here = abap_true.
 
@@ -678,9 +720,14 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " icon id, so install_display( ) can anchor its popover to the icon pressed
     " the wider begin margin is what sets a new group of the row apart - a
     " margin rather than a separator control, see render_header( )
-    DATA(css_class) = COND string( WHEN group_start = abap_true
-                                   THEN `sapUiMediumMarginBegin sapUiTinyMarginEnd`
-                                   ELSE `sapUiTinyMarginBeginEnd` ).
+    
+    IF group_start = abap_true.
+      temp3 = `sapUiMediumMarginBegin sapUiTinyMarginEnd`.
+    ELSE.
+      temp3 = `sapUiTinyMarginBeginEnd`.
+    ENDIF.
+    
+    css_class = temp3.
 
     toolbar->tag( n = `Icon` ns = `core`
         )->a( n = `src`     t = icon
@@ -707,25 +754,21 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " COND rather than one per branch: the linter reads the branches of an IF
     " as one sequence, and would see the press set three times
     IF here = abap_false.
+      
+      CLEAR temp4.
+      INSERT app INTO TABLE temp4.
+      INSERT href INTO TABLE temp4.
+      INSERT name INTO TABLE temp4.
+      
+      IF target IS NOT INITIAL.
+        temp5 = client->_event( val = cs_backend_event-nav arg = target ).
+      ELSEIF class IS INITIAL.
+        temp5 = open_url( href ).
+      ELSE.
+        temp5 = client->_event( val = cs_backend_event-install t_arg = temp4 ).
+      ENDIF.
       toolbar->a( n = `press`
-                  v = COND #(
-                        " installed on this system: jump right into it, the
-                        " back button returns
-                        WHEN target IS NOT INITIAL
-                        THEN client->_event( val = cs_backend_event-nav arg = target )
-                        " no CLASS to look for: the documentation and GitHub
-                        " entries are no destination inside the system to begin
-                        " with, they open their site
-                        WHEN class IS INITIAL
-                        THEN open_url( href )
-                        " a repository that is not on this system is a normal,
-                        " active entry - the press says what is missing and
-                        " where to get it (install_display), instead of
-                        " dropping the user on GitHub without a word
-                        ELSE client->_event( val   = cs_backend_event-install
-                                             t_arg = VALUE #( ( app )
-                                                              ( href )
-                                                              ( name ) ) ) ) ).
+                  v = temp5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -735,10 +778,16 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     " REDIRECT takes a { URL, NEW_WINDOW } object literal - NEW_WINDOW true is
     " what target="_blank" does on a Link
+    DATA temp6 TYPE string_table.
+    DATA temp7 LIKE LINE OF temp6.
+    CLEAR temp6.
+    INSERT `REDIRECT` INTO TABLE temp6.
+    
+    temp7 = |\{ URL: '{ href }', NEW_WINDOW: true \}|.
+    INSERT temp7 INTO TABLE temp6.
     result = client->follow_up_action(
                  val   = client->cs_event-urlhelper
-                 t_arg = VALUE #( ( `REDIRECT` )
-                                  ( |\{ URL: '{ href }', NEW_WINDOW: true \}| ) ) ).
+                 t_arg = temp6 ).
 
   ENDMETHOD.
 
@@ -747,7 +796,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     " collapsible: ten packages are a long page, and most readers came for
     " one of them
-    DATA(panel) = page->ele( `Panel`
+    DATA panel TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp8 LIKE sy-subrc.
+    DATA table TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp9 TYPE string_table.
+    panel = page->ele( `Panel`
         )->a( n = `headerText` t = title
         )->a( n = `expandable` v = `true`
         )->a( n = `expanded`   v = `true`
@@ -762,7 +815,10 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " A row is missing for one of two reasons, and the strip names both: the
     " package never came in - each one has an abapGit branch of its own - or
     " it came in and the release cannot activate it
-    IF line_exists( samples[ installed = abap_false ] ).
+    
+    READ TABLE samples WITH KEY installed = abap_false TRANSPORTING NO FIELDS.
+    temp8 = sy-subrc.
+    IF temp8 = 0.
       panel->tag( `MessageStrip`
           )->a( n = `text`     t = |Not on this system? Pull the abapGit branch { branch } of { cs_url-stack } | &&
                                    |- it carries this package alone, main carries all of them. Installed and | &&
@@ -773,7 +829,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
           )->a( n = `class`    v = `sapUiSmallMarginBottom` ).
     ENDIF.
 
-    DATA(table) = panel->ele( `Table`
+    
+    table = panel->ele( `Table`
         )->a( n = `items` v = items ).
 
     table->ele( `columns`
@@ -809,6 +866,9 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
             )->tag( `Text`
                 )->a( n = `text` v = `Demo` ).
 
+    
+    CLEAR temp9.
+    INSERT `${URL}` INTO TABLE temp9.
     table->ele( `items`
         )->ele( `ColumnListItem`
             )->ele( `cells`
@@ -835,7 +895,7 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
                     " lets the browser accept the new tab
                     )->a( n = `press` v = client->follow_up_action(
                                               val   = client->cs_event-open_new_tab
-                                              t_arg = VALUE #( ( `${URL}` ) ) ) ).
+                                              t_arg = temp9 ) ).
 
   ENDMETHOD.
 
@@ -844,25 +904,43 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
     " the address the browser has to open for that class - same ICF node and
     " same url parameters as the running overview, only app_start exchanged
-    DATA(s_config) = client->get( )-s_config.
+    DATA s_config TYPE z2ui5_if_client=>ty_s_get-s_config.
+    DATA name TYPE string.
+    DATA temp11 TYPE z2ui5_cl_smps_app_000=>ty_s_sample-state.
+    DATA temp12 TYPE z2ui5_cl_smps_app_000=>ty_s_sample-status.
+    s_config = client->get( )-s_config.
     " the catalogue names the class without the installation's prefix
-    DATA(name) = to_upper( |{ own_prefix( ) }{ classname }| ).
+    
+    name = to_upper( |{ own_prefix( ) }{ classname }| ).
 
-    result = VALUE #( no        = no
-                      title     = title
-                      detail    = detail
-                      classname = name
-                      installed = class_check_installed( name )
-                      url       = app_get_url( classname = name
-                                               origin    = s_config-origin
-                                               pathname  = s_config-pathname
-                                               search    = s_config-search
-                                               hash      = s_config-hash ) ).
+    CLEAR result.
+    result-no = no.
+    result-title = title.
+    result-detail = detail.
+    result-classname = name.
+    result-installed = class_check_installed( name ).
+    result-url = app_get_url( classname = name
+origin = s_config-origin
+pathname = s_config-pathname
+search = s_config-search
+hash = s_config-hash ).
 
     " an enum typed property rejects the empty string, so the rows that are
     " fine say None rather than nothing
-    result-state  = COND #( WHEN result-installed = abap_true THEN `None` ELSE `Warning` ).
-    result-status = COND #( WHEN result-installed = abap_true THEN `` ELSE `not on this system` ).
+    
+    IF result-installed = abap_true.
+      temp11 = `None`.
+    ELSE.
+      temp11 = `Warning`.
+    ENDIF.
+    result-state  = temp11.
+    
+    IF result-installed = abap_true.
+      temp12 = ``.
+    ELSE.
+      temp12 = `not on this system`.
+    ENDIF.
+    result-status = temp12.
 
   ENDMETHOD.
 
@@ -915,7 +993,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " z2ui5_ - or, in an installation renamed into another namespace, the
     " customer name or namespace that took its place: the part of this
     " class's own name in front of CL_SMPS_APP_000
-    DATA(name) = substring_after( val = cl_abap_classdescr=>get_class_name( me ) sub = `=` ).
+    DATA name TYPE string.
+    name = substring_after( val = cl_abap_classdescr=>get_class_name( me ) sub = `=` ).
     result = to_lower( substring_before( val = name sub = `CL_SMPS_APP_000` ) ).
 
   ENDMETHOD.
@@ -936,9 +1015,9 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD model_init.
 
-    demo_data_installed = xsdbool( class_check_installed( own_prefix( ) && cs_class-data_trv ) = abap_true
-                                OR class_check_installed( own_prefix( ) && cs_class-data_trd ) = abap_true
-                                OR class_check_installed( own_prefix( ) && cs_class-data_req ) = abap_true ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( class_check_installed( own_prefix( ) && cs_class-data_trv ) = abap_true OR class_check_installed( own_prefix( ) && cs_class-data_trd ) = abap_true OR class_check_installed( own_prefix( ) && cs_class-data_req ) = abap_true ).
+    demo_data_installed = temp1.
 
     INSERT sample( no        = `315`
                    title     = `Two OData models in one view`
@@ -1163,18 +1242,32 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD app_get_url.
 
-    DATA(lt_param) = url_param_get_tab( search ).
+    DATA lt_param TYPE z2ui5_cl_smps_app_000=>ty_t_param.
+    DATA temp13 TYPE z2ui5_cl_smps_app_000=>ty_s_param.
+    DATA temp14 TYPE string.
+    DATA lv_hash LIKE temp14.
+      DATA lv_content LIKE lv_hash.
+        DATA lv_off TYPE i.
+    lt_param = url_param_get_tab( search ).
     DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
+    
+    CLEAR temp13.
+    temp13-n = `app_start`.
+    temp13-v = to_lower( classname ).
+    INSERT temp13 INTO TABLE lt_param.
 
     " keep only the launchpad shell part of the hash: the app-owned part
     " (leading `/` standalone, or everything after `&/` inside the FLP)
     " carries THIS app's route/app-state, which the backend prefers over
     " app_start - appending it verbatim would re-open the overview instead of
     " the sample that was asked for
-    DATA(lv_hash) = CONV string( hash ).
+    
+    temp14 = hash.
+    
+    lv_hash = temp14.
     IF lv_hash IS NOT INITIAL.
-      DATA(lv_content) = lv_hash.
+      
+      lv_content = lv_hash.
       IF lv_content(1) = `#`.
         lv_content = substring( val = lv_content off = 1 ).
       ENDIF.
@@ -1183,7 +1276,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
         lv_hash = ``.
       ELSE.
         " inside the FLP keep the shell part, cut the app part after `&/`
-        DATA(lv_off) = find( val = lv_content sub = `&/` ).
+        
+        lv_off = find( val = lv_content sub = `&/` ).
         IF lv_off = 0.
           lv_hash = ``.
         ELSEIF lv_off > 0.
@@ -1207,6 +1301,17 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " declared, not inline: DATA( ) from a generic CLIKE parameter is "fixed
     " type STRING used for generic type CLIKE" in the extended check
     DATA lv_search TYPE string.
+    DATA lv_startup TYPE string.
+      DATA lv_before TYPE string.
+      DATA lv_packed TYPE string.
+      DATA lv_rest TYPE string.
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_param TYPE temp1.
+    DATA temp15 LIKE LINE OF lt_param.
+    DATA lr_param LIKE REF TO temp15.
+      DATA lv_name TYPE string.
+      DATA lv_value TYPE string.
+      DATA temp16 TYPE z2ui5_cl_smps_app_000=>ty_s_param.
     lv_search = val.
     IF lv_search CS `?`.
       lv_search = substring_after( val = lv_search sub = `?` ).
@@ -1221,12 +1326,16 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
     " what stands BEFORE the wrapper - sap-client, sap-language - is kept:
     " it used to be dropped from every link built from this table
     " (abap2UI5's z2ui5_cl_ui5_util_context carries the same fix)
-    DATA(lv_startup) = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
+    
+    lv_startup = substring_after( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
     IF lv_startup IS NOT INITIAL.
       " lv_before keeps the prepended `&`, so the empty first segment it
       " produces below is skipped like a trailing one
-      DATA(lv_before) = substring_before( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
-      SPLIT lv_startup AT `&` INTO DATA(lv_packed) DATA(lv_rest).
+      
+      lv_before = substring_before( val = |&{ lv_search }| sub = `&sap-startup-params=` ).
+      
+      
+      SPLIT lv_startup AT `&` INTO lv_packed lv_rest.
       lv_packed = replace( val  = lv_packed
                            sub  = `%3D`
                            with = `=`
@@ -1250,10 +1359,16 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+    
 
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+    SPLIT lv_search AT `&` INTO TABLE lt_param.
+
+    
+    
+    LOOP AT lt_param REFERENCE INTO lr_param.
+      
+      
+      SPLIT lr_param->* AT `=` INTO lv_name lv_value.
       " an empty segment (empty search string, trailing &) would otherwise
       " produce a phantom nameless parameter that url_param_create_url
       " writes back out as a stray `=&`
@@ -1262,7 +1377,11 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
       ENDIF.
       " normalize the name so the app_start lookup is case-insensitive on
       " every input shape - the value keeps its original case
-      INSERT VALUE #( n = to_lower( condense( lv_name ) ) v = lv_value ) INTO TABLE rt_params.
+      
+      CLEAR temp16.
+      temp16-n = to_lower( condense( lv_name ) ).
+      temp16-v = lv_value.
+      INSERT temp16 INTO TABLE rt_params.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1270,7 +1389,8 @@ CLASS z2ui5_cl_smps_app_000 IMPLEMENTATION.
 
   METHOD url_param_create_url.
 
-    LOOP AT t_params INTO DATA(ls_param).
+    DATA ls_param LIKE LINE OF t_params.
+    LOOP AT t_params INTO ls_param.
       result = |{ result }{ ls_param-n }={ ls_param-v }&|.
     ENDLOOP.
     result = shift_right( val = result sub = `&` ).

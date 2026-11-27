@@ -33,7 +33,7 @@ CLASS z2ui5_cl_smps_app_014 DEFINITION PUBLIC.
         icon   TYPE string,
         info   TYPE string,
       END OF ty_s_feed.
-    TYPES ty_t_feed TYPE STANDARD TABLE OF ty_s_feed WITH EMPTY KEY.
+    TYPES ty_t_feed TYPE STANDARD TABLE OF ty_s_feed WITH DEFAULT KEY.
 
     DATA t_feed TYPE ty_t_feed.
     DATA busy TYPE abap_bool.
@@ -91,12 +91,12 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       model_init( ).
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -104,19 +104,24 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
 
 
   METHOD view_display.
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA content TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     " every display reads the configuration again - which is what makes the
     " way back from the settings show what was saved there
     config_check( ).
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - AI / LLM - Chat`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -140,7 +145,8 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
         )->a( n = `showIcon` v = `true`
         )->a( n = `class`    v = `sapUiSmallMargin` ).
 
-    DATA(content) = page->ele( `VBox`
+    
+    content = page->ele( `VBox`
         )->a( n = `class` v = `sapUiSmallMarginBeginEnd` ).
 
     content->tag( `Input`
@@ -178,6 +184,7 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
 
 
   METHOD on_event.
+        DATA temp1 TYPE REF TO z2ui5_cl_smps_app_013.
 
     CASE client->get_event( ).
 
@@ -192,7 +199,9 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
         config_check( ).
 
       WHEN `SETTINGS`.
-        client->nav_app_call( NEW z2ui5_cl_smps_app_013( ) ).
+        
+        CREATE OBJECT temp1 TYPE z2ui5_cl_smps_app_013.
+        client->nav_app_call( temp1 ).
 
     ENDCASE.
 
@@ -200,12 +209,18 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
 
 
   METHOD prompt_send.
+    DATA temp2 TYPE z2ui5_if_smps_llm=>ty_s_message.
+    DATA temp3 TYPE string_table.
 
     IF prompt IS INITIAL OR busy = abap_true OR configured = abap_false.
       RETURN.
     ENDIF.
 
-    INSERT VALUE #( role = z2ui5_if_smps_llm=>cs_role-user content = prompt ) INTO TABLE t_history.
+    
+    CLEAR temp2.
+    temp2-role = z2ui5_if_smps_llm=>cs_role-user.
+    temp2-content = prompt.
+    INSERT temp2 INTO TABLE t_history.
     feed_add( role = z2ui5_if_smps_llm=>cs_role-user
               text = prompt ).
 
@@ -215,8 +230,13 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
     " the answer comes in a SECOND roundtrip, see the class documentation -
     " the X keeps the global busy overlay down for it, so the busy feed stays
     " visible instead of disappearing behind it after a second
+    
+    CLEAR temp3.
+    INSERT `ANSWER` INTO TABLE temp3.
+    INSERT `0` INTO TABLE temp3.
+    INSERT `X` INTO TABLE temp3.
     client->follow_up_action( val   = z2ui5_if_client=>cs_event-start_timer
-                              t_arg = VALUE #( ( `ANSWER` ) ( `0` ) ( `X` ) ) ).
+                              t_arg = temp3 ).
 
   ENDMETHOD.
 
@@ -224,27 +244,51 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
   METHOD answer_get.
 
     DATA t_send TYPE z2ui5_if_smps_llm=>ty_t_message.
+    DATA first TYPE i.
+    DATA message LIKE LINE OF t_history.
+        DATA config TYPE z2ui5_cl_smps_llm_factory=>ty_s_config.
+        DATA llm TYPE REF TO z2ui5_if_smps_llm.
+        DATA answer TYPE string.
+        DATA temp5 TYPE z2ui5_if_smps_llm=>ty_s_message.
+        DATA temp6 TYPE string.
+        DATA error TYPE REF TO z2ui5_cx_smps_llm.
 
     busy = abap_false.
 
     " the newest max_history messages, still oldest first
-    DATA(first) = nmax( val1 = 1 val2 = lines( t_history ) - max_history + 1 ).
-    LOOP AT t_history INTO DATA(message) FROM first.
+    
+    first = nmax( val1 = 1 val2 = lines( t_history ) - max_history + 1 ).
+    
+    LOOP AT t_history INTO message FROM first.
       INSERT message INTO TABLE t_send.
     ENDLOOP.
 
     TRY.
-        DATA(config) = z2ui5_cl_smps_llm_factory=>config_read( ).
-        DATA(llm) = z2ui5_cl_smps_llm_factory=>create( config ).
-        DATA(answer) = llm->chat( system   = system_prompt
+        
+        config = z2ui5_cl_smps_llm_factory=>config_read( ).
+        
+        llm = z2ui5_cl_smps_llm_factory=>create( config ).
+        
+        answer = llm->chat( system   = system_prompt
                                   messages = t_send ).
 
-        INSERT VALUE #( role = z2ui5_if_smps_llm=>cs_role-assistant content = answer ) INTO TABLE t_history.
+        
+        CLEAR temp5.
+        temp5-role = z2ui5_if_smps_llm=>cs_role-assistant.
+        temp5-content = answer.
+        INSERT temp5 INTO TABLE t_history.
+        
+        IF config-model IS INITIAL.
+          temp6 = config-provider.
+        ELSE.
+          temp6 = config-model.
+        ENDIF.
         feed_add( role = z2ui5_if_smps_llm=>cs_role-assistant
                   text = answer
-                  info = COND #( WHEN config-model IS INITIAL THEN config-provider ELSE config-model ) ).
+                  info = temp6 ).
 
-      CATCH z2ui5_cx_smps_llm INTO DATA(error).
+        
+      CATCH z2ui5_cx_smps_llm INTO error.
         " the question stays in the feed and in the history - a second try
         " after fixing the setup sends it again with the next one
         status_text    = error->get_text( ).
@@ -258,12 +302,27 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
   METHOD feed_add.
 
     " newest first - the order of a sap.m feed, with the FeedInput on top
-    INSERT VALUE #( sender = COND #( WHEN role = z2ui5_if_smps_llm=>cs_role-user THEN `You` ELSE `Assistant` )
-                    text   = html_escape( text )
-                    icon   = COND #( WHEN role = z2ui5_if_smps_llm=>cs_role-user
-                                     THEN `sap-icon://customer`
-                                     ELSE `sap-icon://hint` )
-                    info   = info )
+    DATA temp7 TYPE z2ui5_cl_smps_app_014=>ty_s_feed.
+    DATA temp1 TYPE z2ui5_cl_smps_app_014=>ty_s_feed-sender.
+    DATA temp2 TYPE z2ui5_cl_smps_app_014=>ty_s_feed-icon.
+    CLEAR temp7.
+    
+    IF role = z2ui5_if_smps_llm=>cs_role-user.
+      temp1 = `You`.
+    ELSE.
+      temp1 = `Assistant`.
+    ENDIF.
+    temp7-sender = temp1.
+    temp7-text = html_escape( text ).
+    
+    IF role = z2ui5_if_smps_llm=>cs_role-user.
+      temp2 = `sap-icon://customer`.
+    ELSE.
+      temp2 = `sap-icon://hint`.
+    ENDIF.
+    temp7-icon = temp2.
+    temp7-info = info.
+    INSERT temp7
            INTO t_feed INDEX 1.
 
   ENDMETHOD.
@@ -281,8 +340,12 @@ CLASS z2ui5_cl_smps_app_014 IMPLEMENTATION.
 
   METHOD config_check.
 
-    DATA(missing) = z2ui5_cl_smps_llm_factory=>config_check( z2ui5_cl_smps_llm_factory=>config_read( ) ).
-    configured = xsdbool( missing IS INITIAL ).
+    DATA missing TYPE string.
+    DATA temp1 TYPE xsdboolean.
+    missing = z2ui5_cl_smps_llm_factory=>config_check( z2ui5_cl_smps_llm_factory=>config_read( ) ).
+    
+    temp1 = boolc( missing IS INITIAL ).
+    configured = temp1.
 
     IF configured = abap_true.
       status_visible = abap_false.

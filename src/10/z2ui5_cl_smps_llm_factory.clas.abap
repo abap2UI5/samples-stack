@@ -126,32 +126,38 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
     DATA row TYPE z2ui5_t_sai.
 
-    SELECT SINGLE * FROM z2ui5_t_sai WHERE id = @config_id INTO @row.
+    SELECT SINGLE * FROM z2ui5_t_sai INTO row WHERE id = config_id .
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
-    result = VALUE #( provider    = row-provider
-                      destination = row-destination
-                      uri_path    = row-uri_path
-                      model       = row-model
-                      max_tokens  = row-max_tokens
-                      api_key     = row-api_key ).
+    CLEAR result.
+    result-provider = row-provider.
+    result-destination = row-destination.
+    result-uri_path = row-uri_path.
+    result-model = row-model.
+    result-max_tokens = row-max_tokens.
+    result-api_key = row-api_key.
 
   ENDMETHOD.
 
 
   METHOD config_save.
 
-    DATA(row) = VALUE z2ui5_t_sai( id          = config_id
-                                   provider    = config-provider
-                                   destination = config-destination
-                                   uri_path    = config-uri_path
-                                   model       = config-model
-                                   max_tokens  = config-max_tokens
-                                   api_key     = config-api_key ).
+    DATA temp1 TYPE z2ui5_t_sai.
+    DATA row LIKE temp1.
+    CLEAR temp1.
+    temp1-id = config_id.
+    temp1-provider = config-provider.
+    temp1-destination = config-destination.
+    temp1-uri_path = config-uri_path.
+    temp1-model = config-model.
+    temp1-max_tokens = config-max_tokens.
+    temp1-api_key = config-api_key.
+    
+    row = temp1.
 
-    MODIFY z2ui5_t_sai FROM @row.
+    MODIFY z2ui5_t_sai FROM row.
     IF sy-subrc <> 0.
       z2ui5_cx_smps_llm=>raise( `The configuration could not be saved.` ).
     ENDIF.
@@ -160,13 +166,18 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
 
   METHOD config_check.
+      DATA temp2 TYPE string.
 
     IF config-provider IS INITIAL.
       result = `No language model is configured on this system yet.`.
     ELSEIF config-destination IS INITIAL.
-      result = COND #( WHEN config-provider = cs_provider-islm
-                       THEN `The intelligent scenario is missing.`
-                       ELSE `The destination is missing.` ).
+      
+      IF config-provider = cs_provider-islm.
+        temp2 = `The intelligent scenario is missing.`.
+      ELSE.
+        temp2 = `The destination is missing.`.
+      ENDIF.
+      result = temp2.
     ELSEIF config-model IS INITIAL AND config-provider <> cs_provider-islm.
       " the ABAP AI SDK takes the model from the intelligent scenario - the
       " two HTTP providers have nowhere else to take it from
@@ -180,21 +191,37 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
     DATA http TYPE REF TO z2ui5_if_smps_llm_http.
 
-    DATA(missing) = config_check( config ).
+    DATA missing TYPE string.
+    DATA temp3 TYPE i.
+    DATA max_tokens LIKE temp3.
+          DATA islm TYPE string.
+          DATA islm_error TYPE REF TO cx_sy_create_object_error.
+    DATA transport TYPE string.
+        DATA http_error TYPE REF TO cx_sy_create_object_error.
+    missing = config_check( config ).
     IF missing IS NOT INITIAL.
       z2ui5_cx_smps_llm=>raise( missing ).
     ENDIF.
 
-    DATA(max_tokens) = COND i( WHEN config-max_tokens > 0 THEN config-max_tokens ELSE default_max_tokens ).
+    
+    IF config-max_tokens > 0.
+      temp3 = config-max_tokens.
+    ELSE.
+      temp3 = default_max_tokens.
+    ENDIF.
+    
+    max_tokens = temp3.
 
     IF config-provider = cs_provider-islm.
       TRY.
-          DATA(islm) = class_name( cs_class-islm ).
+          
+          islm = class_name( cs_class-islm ).
           CREATE OBJECT result TYPE (islm)
             EXPORTING
               scenario   = config-destination
               max_tokens = max_tokens.
-        CATCH cx_sy_create_object_error INTO DATA(islm_error).
+          
+        CATCH cx_sy_create_object_error INTO islm_error.
           z2ui5_cx_smps_llm=>raise( text     = |{ class_name( cs_class-islm ) } is not active on this system - it needs the ABAP AI SDK | &&
                                     |(CL_AIC_ISLM_COMPL_API_FACTORY). Pick another provider in the settings.|
                                     previous = islm_error ).
@@ -202,7 +229,8 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(transport) = transport_get( ).
+    
+    transport = transport_get( ).
     IF transport IS INITIAL.
       z2ui5_cx_smps_llm=>raise( |Neither { class_name( cs_class-sm59 ) } (Standard) nor { class_name( cs_class-cloud ) } (ABAP Cloud) is active on this system.| ).
     ENDIF.
@@ -211,24 +239,17 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
         CREATE OBJECT http TYPE (transport)
           EXPORTING
             destination = config-destination.
-      CATCH cx_sy_create_object_error INTO DATA(http_error).
+        
+      CATCH cx_sy_create_object_error INTO http_error.
         z2ui5_cx_smps_llm=>raise( text     = |{ transport } could not be created: { http_error->get_text( ) }|
                                   previous = http_error ).
     ENDTRY.
 
     CASE config-provider.
       WHEN cs_provider-anthropic.
-        result = NEW z2ui5_cl_smps_llm_claude( http       = http
-                                               model      = config-model
-                                               api_key    = config-api_key
-                                               max_tokens = max_tokens
-                                               path       = config-uri_path ).
+        CREATE OBJECT result TYPE z2ui5_cl_smps_llm_claude EXPORTING http = http model = config-model api_key = config-api_key max_tokens = max_tokens path = config-uri_path.
       WHEN cs_provider-openai.
-        result = NEW z2ui5_cl_smps_llm_openai( http       = http
-                                               model      = config-model
-                                               api_key    = config-api_key
-                                               max_tokens = max_tokens
-                                               path       = config-uri_path ).
+        CREATE OBJECT result TYPE z2ui5_cl_smps_llm_openai EXPORTING http = http model = config-model api_key = config-api_key max_tokens = max_tokens path = config-uri_path.
       WHEN OTHERS.
         z2ui5_cx_smps_llm=>raise( |Unknown provider { config-provider }.| ).
     ENDCASE.
@@ -238,8 +259,11 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
   METHOD transport_get.
 
-    DATA(sm59) = class_name( cs_class-sm59 ).
-    DATA(cloud) = class_name( cs_class-cloud ).
+    DATA sm59 TYPE string.
+    DATA cloud TYPE string.
+    sm59 = class_name( cs_class-sm59 ).
+    
+    cloud = class_name( cs_class-cloud ).
 
     IF class_check( sm59 ) = abap_true.
       result = sm59.
@@ -256,20 +280,27 @@ CLASS z2ui5_cl_smps_llm_factory IMPLEMENTATION.
 
     " the referenced type of a typed reference is this class under the name
     " the installation gives it - a literal would keep Z2UI5_ through a rename
-    DATA(own) = CAST cl_abap_refdescr( cl_abap_typedescr=>describe_by_data( factory ) )->get_referenced_type( )->get_relative_name( ).
+    DATA temp4 TYPE REF TO cl_abap_refdescr.
+    DATA own TYPE string.
+    temp4 ?= cl_abap_typedescr=>describe_by_data( factory ).
+    
+    own = temp4->get_referenced_type( )->get_relative_name( ).
     result = substring_before( val = own sub = `CL_SMPS_LLM_FACTORY` ) && val.
 
   ENDMETHOD.
 
 
   METHOD class_check.
+    DATA temp1 TYPE xsdboolean.
 
     " existence of an ACTIVE class - a class that never activated on this
     " stack has no active version and is reported as not found
     cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = val
                                           EXCEPTIONS type_not_found = 1
                                                      OTHERS         = 2 ).
-    result = xsdbool( sy-subrc = 0 ).
+    
+    temp1 = boolc( sy-subrc = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 

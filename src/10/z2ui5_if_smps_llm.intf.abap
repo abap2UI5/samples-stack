@@ -19,7 +19,7 @@ INTERFACE z2ui5_if_smps_llm PUBLIC.
       role    TYPE string,
       content TYPE string,
     END OF ty_s_message.
-  TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH EMPTY KEY.
+  TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH DEFAULT KEY.
 
   CONSTANTS:
     BEGIN OF cs_role,

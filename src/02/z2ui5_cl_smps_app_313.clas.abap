@@ -17,8 +17,10 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_313 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
       " An earlier revision of this app ran the same two smart controls against
       " the BookingSupplement entity of /sap/opu/odata/DMO/API_TRAVEL_U_V2/. It
@@ -26,7 +28,8 @@ CLASS z2ui5_cl_smps_app_313 IMPLEMENTATION.
       " z2ui5_cl_ui5_view_builder - the service and entity set are the only part
       " of it that was not already in the code below.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock`         v = `true`
               )->a( n = `height`               v = `100%`
@@ -35,7 +38,8 @@ CLASS z2ui5_cl_smps_app_313 IMPLEMENTATION.
               )->a( n = `xmlns:smartFilterBar` v = `sap.ui.comp.smartfilterbar`
               )->a( n = `xmlns:smartTable`     v = `sap.ui.comp.smarttable` ).
 
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - Smart Controls with Variants`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )

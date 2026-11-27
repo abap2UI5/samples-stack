@@ -24,7 +24,7 @@ CLASS z2ui5_cl_smps_app_319 DEFINITION PUBLIC.
         key  TYPE string,
         text TYPE string,
       END OF ty_s_token,
-      ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
+      ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_range,
         exclude      TYPE abap_bool,
@@ -35,7 +35,7 @@ CLASS z2ui5_cl_smps_app_319 DEFINITION PUBLIC.
         tokentext    TYPE string,
         tokenlongkey TYPE string,
       END OF ty_s_range,
-      ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH EMPTY KEY.
+      ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_product,
         product_type TYPE string,
@@ -61,15 +61,15 @@ CLASS z2ui5_cl_smps_app_319 DEFINITION PUBLIC.
       END OF m_selection.
 
     " the filtered result + the derived SELECT-OPTIONS - both bound
-    DATA t_result TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
-    DATA t_selopt TYPE STANDARD TABLE OF ty_s_selopt WITH EMPTY KEY.
+    DATA t_result TYPE STANDARD TABLE OF ty_s_product WITH DEFAULT KEY.
+    DATA t_selopt TYPE STANDARD TABLE OF ty_s_selopt WITH DEFAULT KEY.
     DATA hint     TYPE string.
 
   PROTECTED SECTION.
     DATA m_client TYPE REF TO z2ui5_if_client.
     " the local demo data the result is filtered from - never bound, so it
     " needs no PUBLIC: state survives the roundtrip at PROTECTED too
-    DATA t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
+    DATA t_product TYPE STANDARD TABLE OF ty_s_product WITH DEFAULT KEY.
 
     METHODS view_display.
     METHODS on_event.
@@ -85,12 +85,12 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     m_client = client.
-    IF m_client->check_on_init( ).
+    IF m_client->check_on_init( ) IS NOT INITIAL.
       model_init( ).
       view_display( ).
-    ELSEIF m_client->check_on_navigated( ).
+    ELSEIF m_client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF m_client->check_on_event( ).
+    ELSEIF m_client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -99,7 +99,11 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA sel TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA res TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
@@ -108,7 +112,8 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
             )->a( n = `xmlns:smi`    v = `sap.ui.comp.smartmultiinput`
             )->a( n = `xmlns:z2ui5`  v = `z2ui5.cc` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Smart Controls - SmartMultiInput to SELECT-OPTIONS`
             )->a( n = `showNavButton`  b = m_client->check_app_prev_stack( )
@@ -150,7 +155,8 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
         )->a( n = `class` v = `sapUiSmallMargin` ).
 
     " derived ABAP SELECT-OPTIONS (r_product_type): SIGN / OPTION / LOW / HIGH
-    DATA(sel) = page->ele( `Table`
+    
+    sel = page->ele( `Table`
         )->a( n = `items` v = m_client->_bind( val = t_selopt switch_default_model = abap_true ) ).
     sel->ele( `headerToolbar`
         )->ele( `OverflowToolbar`
@@ -185,7 +191,8 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
                     )->a( n = `text` v = `{http>HIGH}` ).
 
     " the rows the range selects out of the demo product list
-    DATA(res) = page->ele( `Table`
+    
+    res = page->ele( `Table`
         )->a( n = `items` v = m_client->_bind( val = t_result switch_default_model = abap_true ) ).
     res->ele( `headerToolbar`
         )->ele( `OverflowToolbar`
@@ -243,11 +250,31 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     DATA high    TYPE string.
     DATA skipped TYPE i.
 
-    t_selopt = VALUE #( ).
-    lr_type  = VALUE #( ).
-    LOOP AT m_selection-product_type-ranges INTO DATA(s).
+    DATA temp1 LIKE t_selopt.
+    DATA temp2 LIKE lr_type.
+    DATA s LIKE LINE OF m_selection-product_type-ranges.
+      DATA temp3 LIKE sign.
+      DATA operation TYPE string.
+        DATA temp4 LIKE sign.
+      DATA temp5 LIKE LINE OF lr_type.
+      DATA temp6 TYPE z2ui5_cl_smps_app_319=>ty_s_selopt.
+    DATA temp7 LIKE t_result.
+      DATA p LIKE LINE OF t_product.
+    CLEAR temp1.
+    t_selopt = temp1.
+    
+    CLEAR temp2.
+    lr_type  = temp2.
+    
+    LOOP AT m_selection-product_type-ranges INTO s.
 
-      sign   = COND #( WHEN s-exclude = abap_true THEN `E` ELSE `I` ).
+      
+      IF s-exclude = abap_true.
+        temp3 = `E`.
+      ELSE.
+        temp3 = `I`.
+      ENDIF.
+      sign   = temp3.
       option = `EQ`.
       low    = s-value1.
       high   = s-value2.
@@ -255,10 +282,17 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
       " the Not* operations (NotEQ, NotBT, NotContains, NotEmpty, ...) are
       " their positive twin with the sign turned round - read as EQ, they
       " selected exactly the rows the user had asked to leave out
-      DATA(operation) = to_upper( s-operation ).
+      
+      operation = to_upper( s-operation ).
       IF strlen( operation ) > 3 AND substring( val = operation len = 3 ) = `NOT`.
         operation = substring( val = operation off = 3 ).
-        sign = COND #( WHEN sign = `I` THEN `E` ELSE `I` ).
+        
+        IF sign = `I`.
+          temp4 = `E`.
+        ELSE.
+          temp4 = `I`.
+        ENDIF.
+        sign = temp4.
       ENDIF.
 
       CASE operation.
@@ -285,17 +319,32 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
           CONTINUE.
       ENDCASE.
 
-      INSERT VALUE #( sign = sign option = option low = low high = high ) INTO TABLE lr_type.
-      INSERT VALUE #( sign = sign option = option low = low high = high ) INTO TABLE t_selopt.
+      
+      CLEAR temp5.
+      temp5-sign = sign.
+      temp5-option = option.
+      temp5-low = low.
+      temp5-high = high.
+      INSERT temp5 INTO TABLE lr_type.
+      
+      CLEAR temp6.
+      temp6-sign = sign.
+      temp6-option = option.
+      temp6-low = low.
+      temp6-high = high.
+      INSERT temp6 INTO TABLE t_selopt.
     ENDLOOP.
 
     " apply the derived SELECT-OPTIONS just like any ABAP query would
-    t_result = VALUE #( ).
+    
+    CLEAR temp7.
+    t_result = temp7.
     IF lr_type IS INITIAL.
       t_result = t_product.
       hint     = |No conditions - showing all { lines( t_product ) } demo products.|.
     ELSE.
-      LOOP AT t_product INTO DATA(p) WHERE product_type IN lr_type.
+      
+      LOOP AT t_product INTO p WHERE product_type IN lr_type.
         INSERT p INTO TABLE t_result.
       ENDLOOP.
       hint = |{ lines( t_selopt ) } condition(s) -> { lines( t_result ) } of { lines( t_product ) } demo products match.|.
@@ -312,17 +361,41 @@ CLASS z2ui5_cl_smps_app_319 IMPLEMENTATION.
     " local demo product list the derived range filters (see class doc). The
     " product types are readable words so the "contains"/"starts with" operators
     " visibly hit something when you type free text into the value help.
-    t_product = VALUE #(
-      ( product_type = `SERVICE`  name = `Cloud Hosting` )
-      ( product_type = `SERVER`   name = `Rack Server X1` )
-      ( product_type = `SENSOR`   name = `IoT Sensor` )
-      ( product_type = `SOFTWARE` name = `ERP License` )
-      ( product_type = `HARDWARE` name = `Laptop Pro` )
-      ( product_type = `MATERIAL` name = `Steel Sheet` )
-      ( product_type = `SUPPORT`  name = `Gold Support` )
-      ( product_type = `TRAINING` name = `ABAP Course` )
-      ( product_type = `LICENSE`  name = `DB License` )
-      ( product_type = `SEMIFIN`  name = `Semi-finished Part` ) ).
+    DATA temp8 LIKE t_product.
+    DATA temp9 LIKE LINE OF temp8.
+    CLEAR temp8.
+    
+    temp9-product_type = `SERVICE`.
+    temp9-name = `Cloud Hosting`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `SERVER`.
+    temp9-name = `Rack Server X1`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `SENSOR`.
+    temp9-name = `IoT Sensor`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `SOFTWARE`.
+    temp9-name = `ERP License`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `HARDWARE`.
+    temp9-name = `Laptop Pro`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `MATERIAL`.
+    temp9-name = `Steel Sheet`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `SUPPORT`.
+    temp9-name = `Gold Support`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `TRAINING`.
+    temp9-name = `ABAP Course`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `LICENSE`.
+    temp9-name = `DB License`.
+    INSERT temp9 INTO TABLE temp8.
+    temp9-product_type = `SEMIFIN`.
+    temp9-name = `Semi-finished Part`.
+    INSERT temp9 INTO TABLE temp8.
+    t_product = temp8.
     t_result = t_product.
     hint     = `No conditions yet - showing all demo products. Open the value help and add conditions.`.
 

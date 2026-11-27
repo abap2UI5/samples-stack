@@ -35,7 +35,13 @@ CLASS lcx_error IMPLEMENTATION.
 
   METHOD if_message~get_text.
 
-    result = COND #( WHEN text IS INITIAL THEN `UNKNOWN_ERROR` ELSE text ).
+    DATA temp1 TYPE string.
+    IF text IS INITIAL.
+      temp1 = `UNKNOWN_ERROR`.
+    ELSE.
+      temp1 = text.
+    ENDIF.
+    result = temp1.
 
   ENDMETHOD.
 
@@ -132,11 +138,17 @@ CLASS lcl_locking IMPLEMENTATION.
 
   METHOD acquire_lock.
 
-    DATA(lv_varkey) = lock_argument( ).
-    DATA(lv_fm) = 'ENQUEUE_E_TABLE'.
-    CALL FUNCTION lv_fm
+    DATA lv_varkey TYPE char120.
+    DATA lv_fm TYPE c LENGTH 15.
+    DATA temp2 TYPE tabname.
+    lv_varkey = lock_argument( ).
+    
+    lv_fm = 'ENQUEUE_E_TABLE'.
+    
+    temp2 = table_name( ).
+CALL FUNCTION lv_fm
       EXPORTING
-        tabname        = table_name( )
+        tabname        = temp2
         varkey         = lv_varkey
       EXCEPTIONS
         foreign_lock   = 1
@@ -150,14 +162,17 @@ CLASS lcl_locking IMPLEMENTATION.
 
 
   METHOD get_lock_counter.
-    DATA enqueue_table TYPE STANDARD TABLE OF ty_seqg3 WITH EMPTY KEY.
+    DATA enqueue_table TYPE STANDARD TABLE OF ty_seqg3 WITH DEFAULT KEY.
 
     " no GARG filter: the lock argument of E_TABLE is the table name padded to
     " the length of RSTABLE-TABNAME followed by the key, and a filter string
     " that gets that padding wrong matches nothing. All locks of this user are
     " read and the one of this sample is picked out below - by lock object,
     " table name and key, independent of the column layout
-    DATA(lv_fm) = 'ENQUEUE_READ'.
+    DATA lv_fm TYPE c LENGTH 12.
+    DATA lv_pattern TYPE string.
+    DATA ls_enqueue LIKE LINE OF enqueue_table.
+    lv_fm = 'ENQUEUE_READ'.
     CALL FUNCTION lv_fm
       EXPORTING
         guname                = sy-uname
@@ -171,8 +186,10 @@ CLASS lcl_locking IMPLEMENTATION.
       RAISE EXCEPTION TYPE lcx_error EXPORTING val = message_text( |Lock entries could not be read (sy-subrc { sy-subrc })| ).
     ENDIF.
 
-    DATA(lv_pattern) = |{ table_name( ) }*{ lock_argument( ) }*|.
-    LOOP AT enqueue_table INTO DATA(ls_enqueue).
+    
+    lv_pattern = |{ table_name( ) }*{ lock_argument( ) }*|.
+    
+    LOOP AT enqueue_table INTO ls_enqueue.
       IF ls_enqueue-gobj = 'E_TABLE' AND ls_enqueue-garg CP lv_pattern.
         " the cumulative counter of the update task owner - ENQUEUE_E_TABLE
         " locks with the default _SCOPE 2, which hands the lock to it

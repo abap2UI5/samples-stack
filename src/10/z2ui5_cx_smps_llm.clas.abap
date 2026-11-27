@@ -49,8 +49,8 @@ CLASS z2ui5_cx_smps_llm IMPLEMENTATION.
 
   METHOD raise.
 
-    DATA(error) = NEW z2ui5_cx_smps_llm( text     = text
-                                         previous = previous ).
+    DATA error TYPE REF TO z2ui5_cx_smps_llm.
+    CREATE OBJECT error TYPE z2ui5_cx_smps_llm EXPORTING text = text previous = previous.
     RAISE EXCEPTION error.
 
   ENDMETHOD.

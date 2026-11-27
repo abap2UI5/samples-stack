@@ -20,10 +20,15 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA temp1 TYPE string_table.
+      DATA temp3 TYPE string_table.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `displayBlock`                 v = `true`
               )->a( n = `height`                       v = `100%`
@@ -33,7 +38,8 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
               )->a( n = `xmlns:smartTable`             v = `sap.ui.comp.smarttable`
               )->a( n = `xmlns:smartVariantManagement` v = `sap.ui.comp.smartvariants` ).
 
-      DATA(page) = view->ele( `Shell`
+      
+      page = view->ele( `Shell`
           )->ele( `Page`
               )->a( n = `title`          v = `abap2UI5 - Smart Controls - Page Variant`
               )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -53,6 +59,11 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
       " client-side. The wire therefore stays roundtrip-free (control_global
       " MESSAGE_TOAST): a backend round-trip fired in the middle of the variant /
       " filter handshake is exactly what a smart control does not expect.
+      
+      CLEAR temp1.
+      INSERT `MESSAGE_TOAST` INTO TABLE temp1.
+      INSERT `show` INTO TABLE temp1.
+      INSERT `Assigned filters changed` INTO TABLE temp1.
       page->ele( n = `SmartFilterBar` ns = `smartFilterBar`
           )->a( n = `id`                     v = `smartFilterBar`
           )->a( n = `entitySet`              v = `ProductSet`
@@ -60,7 +71,7 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
           )->a( n = `smartVariant`           v = `pageVariantId`
           )->a( n = `assignedFiltersChanged` v = client->follow_up_action(
               val   = client->cs_event-control_global
-              t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Assigned filters changed` ) ) )
+              t_arg = temp1 )
           )->ele( n = `controlConfiguration` ns = `smartFilterBar`
               )->tag( n = `ControlConfiguration` ns = `smartFilterBar`
                   )->a( n = `key`                                      v = `Category`
@@ -94,8 +105,12 @@ CLASS z2ui5_cl_smps_app_478 IMPLEMENTATION.
       " never gets a personalizable control, so saving a view dies in sap.ui.fl and
       " stored views are never loaded. The action waits for the smart controls to
       " register, which they do once their metadata has arrived.
+      
+      CLEAR temp3.
+      INSERT `pageVariantId` INTO TABLE temp3.
+      INSERT `smartFilterBar` INTO TABLE temp3.
       client->follow_up_action( val   = client->cs_event-smart_variant_init
-                                t_arg = VALUE #( ( `pageVariantId` ) ( `smartFilterBar` ) ) ).
+                                t_arg = temp3 ).
 
     ENDIF.
 

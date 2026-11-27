@@ -65,22 +65,36 @@ CLASS z2ui5_cl_smps_context IMPLEMENTATION.
 
   METHOD status_get_text.
 
-    result = SWITCH #( val
-                       WHEN cs_status-open     THEN `Open`
-                       WHEN cs_status-accepted THEN `Accepted`
-                       WHEN cs_status-rejected THEN `Rejected`
-                       ELSE `` ).
+    DATA temp1 TYPE string.
+    CASE val.
+      WHEN cs_status-open.
+        temp1 = `Open`.
+      WHEN cs_status-accepted.
+        temp1 = `Accepted`.
+      WHEN cs_status-rejected.
+        temp1 = `Rejected`.
+      WHEN OTHERS.
+        temp1 = ``.
+    ENDCASE.
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD status_get_state.
 
-    result = SWITCH #( val
-                       WHEN cs_status-open     THEN cs_ui5_msg_type-i
-                       WHEN cs_status-accepted THEN cs_ui5_msg_type-s
-                       WHEN cs_status-rejected THEN cs_ui5_msg_type-e
-                       ELSE `None` ).
+    DATA temp2 TYPE string.
+    CASE val.
+      WHEN cs_status-open.
+        temp2 = cs_ui5_msg_type-i.
+      WHEN cs_status-accepted.
+        temp2 = cs_ui5_msg_type-s.
+      WHEN cs_status-rejected.
+        temp2 = cs_ui5_msg_type-e.
+      WHEN OTHERS.
+        temp2 = `None`.
+    ENDCASE.
+    result = temp2.
 
   ENDMETHOD.
 

@@ -65,12 +65,12 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       model_init( ).
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( ).
+    ELSEIF client->check_on_event( ) IS NOT INITIAL.
       on_event( ).
     ENDIF.
 
@@ -79,7 +79,10 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA form TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
@@ -88,7 +91,8 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
             )->a( n = `xmlns:core`   v = `sap.ui.core`
             )->a( n = `xmlns:form`   v = `sap.ui.layout.form` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - AI / LLM - Settings`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -107,7 +111,8 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
         )->a( n = `showIcon` v = `true`
         )->a( n = `class`    v = `sapUiSmallMarginBeginEnd` ).
 
-    DATA(form) = page->ele( n = `SimpleForm` ns = `form`
+    
+    form = page->ele( n = `SimpleForm` ns = `form`
         )->a( n = `editable` v = `true`
         )->a( n = `layout`   v = `ResponsiveGridLayout`
         )->ele( n = `content` ns = `form` ).
@@ -199,6 +204,7 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
 
 
   METHOD on_save.
+        DATA error TYPE REF TO z2ui5_cx_smps_llm.
 
     TRY.
         z2ui5_cl_smps_llm_factory=>config_save( config_from_form( ) ).
@@ -210,7 +216,8 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
         result_visible = abap_false.
         client->message_toast_display( `Settings saved` ).
 
-      CATCH z2ui5_cx_smps_llm INTO DATA(error).
+        
+      CATCH z2ui5_cx_smps_llm INTO error.
         result_text    = error->get_text( ).
         result_type    = `Error`.
         result_visible = abap_true.
@@ -220,17 +227,30 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
 
 
   METHOD on_test.
+        DATA llm TYPE REF TO z2ui5_if_smps_llm.
+        DATA temp1 TYPE z2ui5_if_smps_llm=>ty_t_message.
+        DATA temp2 LIKE LINE OF temp1.
+        DATA answer TYPE string.
+        DATA error TYPE REF TO z2ui5_cx_smps_llm.
 
     " what the FORM says, saved or not - testing before saving is the point
     TRY.
-        DATA(llm) = z2ui5_cl_smps_llm_factory=>create( config_from_form( ) ).
-        DATA(answer) = llm->chat( system   = `You are a connection test. Answer with one short sentence.`
-                                  messages = VALUE #( ( role    = z2ui5_if_smps_llm=>cs_role-user
-                                                        content = `Say hello to an ABAP developer.` ) ) ).
+        
+        llm = z2ui5_cl_smps_llm_factory=>create( config_from_form( ) ).
+        
+        CLEAR temp1.
+        
+        temp2-role = z2ui5_if_smps_llm=>cs_role-user.
+        temp2-content = `Say hello to an ABAP developer.`.
+        INSERT temp2 INTO TABLE temp1.
+        
+        answer = llm->chat( system   = `You are a connection test. Answer with one short sentence.`
+                                  messages = temp1 ).
         result_text = |The model answered: { answer }|.
         result_type = `Success`.
 
-      CATCH z2ui5_cx_smps_llm INTO DATA(error).
+        
+      CATCH z2ui5_cx_smps_llm INTO error.
         result_text = error->get_text( ).
         result_type = `Error`.
     ENDTRY.
@@ -242,14 +262,16 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
 
   METHOD config_from_form.
 
-    DATA(stored) = z2ui5_cl_smps_llm_factory=>config_read( ).
+    DATA stored TYPE z2ui5_cl_smps_llm_factory=>ty_s_config.
+    stored = z2ui5_cl_smps_llm_factory=>config_read( ).
 
-    result = VALUE #( provider    = provider
-                      destination = condense( destination )
-                      model       = condense( model )
-                      max_tokens  = max_tokens
-                      uri_path    = condense( uri_path )
-                      api_key     = stored-api_key ).
+    CLEAR result.
+    result-provider = provider.
+    result-destination = condense( destination ).
+    result-model = condense( model ).
+    result-max_tokens = max_tokens.
+    result-uri_path = condense( uri_path ).
+    result-api_key = stored-api_key.
 
     IF api_key IS NOT INITIAL.
       result-api_key = condense( api_key ).
@@ -262,37 +284,68 @@ CLASS z2ui5_cl_smps_app_013 IMPLEMENTATION.
 
   METHOD model_init.
 
-    DATA(config) = z2ui5_cl_smps_llm_factory=>config_read( ).
+    DATA config TYPE z2ui5_cl_smps_llm_factory=>ty_s_config.
+    DATA temp3 TYPE string.
+    DATA temp4 TYPE i.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp5 TYPE string.
+    DATA transport TYPE string.
+    DATA sm59 TYPE string.
+    DATA cloud TYPE string.
+    DATA islm TYPE string.
+    DATA temp6 TYPE string.
+    config = z2ui5_cl_smps_llm_factory=>config_read( ).
 
-    provider    = COND #( WHEN config-provider IS INITIAL
-                          THEN z2ui5_cl_smps_llm_factory=>cs_provider-anthropic
-                          ELSE config-provider ).
+    
+    IF config-provider IS INITIAL.
+      temp3 = z2ui5_cl_smps_llm_factory=>cs_provider-anthropic.
+    ELSE.
+      temp3 = config-provider.
+    ENDIF.
+    provider    = temp3.
     destination = config-destination.
     model       = config-model.
     uri_path    = config-uri_path.
-    max_tokens  = COND #( WHEN config-max_tokens > 0
-                          THEN config-max_tokens
-                          ELSE z2ui5_cl_smps_llm_factory=>default_max_tokens ).
+    
+    IF config-max_tokens > 0.
+      temp4 = config-max_tokens.
+    ELSE.
+      temp4 = z2ui5_cl_smps_llm_factory=>default_max_tokens.
+    ENDIF.
+    max_tokens  = temp4.
 
     " the key itself stays on the server - the form only learns that there is one
     CLEAR api_key.
     CLEAR key_remove.
-    key_stored      = xsdbool( config-api_key IS NOT INITIAL ).
-    key_placeholder = COND #( WHEN key_stored = abap_true
-                              THEN `a key is stored - type a new one to replace it`
-                              ELSE `empty when the destination or a gateway adds the key` ).
+    
+    temp1 = boolc( config-api_key IS NOT INITIAL ).
+    key_stored      = temp1.
+    
+    IF key_stored = abap_true.
+      temp5 = `a key is stored - type a new one to replace it`.
+    ELSE.
+      temp5 = `empty when the destination or a gateway adds the key`.
+    ENDIF.
+    key_placeholder = temp5.
 
-    DATA(transport) = z2ui5_cl_smps_llm_factory=>transport_get( ).
-    DATA(sm59) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-sm59 ).
-    DATA(cloud) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-cloud ).
-    DATA(islm) = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-islm ).
-    transport_text = SWITCH #( transport
-        WHEN sm59
-        THEN |This system calls out with { transport }: Destination is an SM59 destination of type G.|
-        WHEN cloud
-        THEN |This system calls out with { transport }: Destination is a destination of the BTP | &&
-             |destination service (communication arrangement SAP_COM_0276).|
-        ELSE |No HTTP transport is active on this system - only the ABAP AI SDK (ISLM) can work here.| ).
+    
+    transport = z2ui5_cl_smps_llm_factory=>transport_get( ).
+    
+    sm59 = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-sm59 ).
+    
+    cloud = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-cloud ).
+    
+    islm = z2ui5_cl_smps_llm_factory=>class_name( z2ui5_cl_smps_llm_factory=>cs_class-islm ).
+    
+    CASE transport.
+      WHEN sm59.
+        temp6 = |This system calls out with { transport }: Destination is an SM59 destination of type G.|.
+      WHEN cloud.
+        temp6 = |This system calls out with { transport }: Destination is a destination of the BTP | && |destination service (communication arrangement SAP_COM_0276).|.
+      WHEN OTHERS.
+        temp6 = |No HTTP transport is active on this system - only the ABAP AI SDK (ISLM) can work here.|.
+    ENDCASE.
+    transport_text = temp6.
 
     IF z2ui5_cl_smps_llm_factory=>class_check( islm ) = abap_true.
       transport_text = |{ transport_text } The ABAP AI SDK is available too: for it, Destination is the intelligent scenario.|.

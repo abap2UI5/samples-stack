@@ -20,7 +20,7 @@ INTERFACE z2ui5_if_smps_llm_http PUBLIC.
       name  TYPE string,
       value TYPE string,
     END OF ty_s_header.
-  TYPES ty_t_header TYPE STANDARD TABLE OF ty_s_header WITH EMPTY KEY.
+  TYPES ty_t_header TYPE STANDARD TABLE OF ty_s_header WITH DEFAULT KEY.
 
   TYPES:
     BEGIN OF ty_s_response,

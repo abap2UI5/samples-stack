@@ -42,7 +42,7 @@ CLASS z2ui5_cl_smps_app_027 DEFINITION PUBLIC.
         col11 TYPE string,
         col12 TYPE string,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     DATA full_width TYPE abap_bool VALUE abap_true.
     DATA rows       TYPE ty_t_row.
@@ -60,25 +60,50 @@ ENDCLASS.
 CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA temp1 TYPE z2ui5_cl_smps_app_027=>ty_t_row.
+      DATA i TYPE i.
+      DATA temp3 LIKE sy-index.
+        DATA temp2 LIKE LINE OF temp1.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
 
       IF client->get( )-check_launchpad_active = abap_false.
         client->message_box_display( `No Launchpad Active, Sample not working!` ).
       ENDIF.
-      rows = VALUE #( FOR i = 1 THEN i + 1 UNTIL i > 10
-                      ( col01 = |Row { i }| col02 = `Lorem` col03 = `ipsum` col04 = `dolor`
-                        col05 = `sit` col06 = `amet` col07 = `consetetur` col08 = `sadipscing`
-                        col09 = `elitr` col10 = `sed` col11 = `diam` col12 = `nonumy` ) ).
+      
+      CLEAR temp1.
+      
+      i = 1.
+      
+      temp3 = sy-index.
+      WHILE NOT i > 10.
+        sy-index = temp3.
+        
+        temp2-col01 = |Row { i }|.
+        temp2-col02 = `Lorem`.
+        temp2-col03 = `ipsum`.
+        temp2-col04 = `dolor`.
+        temp2-col05 = `sit`.
+        temp2-col06 = `amet`.
+        temp2-col07 = `consetetur`.
+        temp2-col08 = `sadipscing`.
+        temp2-col09 = `elitr`.
+        temp2-col10 = `sed`.
+        temp2-col11 = `diam`.
+        temp2-col12 = `nonumy`.
+        INSERT temp2 INTO TABLE temp1.
+        i = i + 1.
+      ENDWHILE.
+      rows = temp1.
       view_display( ).
       width_apply( ).
 
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
       width_apply( ).
 
-    ELSEIF client->check_on_event( `WIDTH` ).
+    ELSEIF client->check_on_event( `WIDTH` ) IS NOT INITIAL.
       width_apply( ).
 
     ENDIF.
@@ -88,19 +113,29 @@ CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp1 TYPE xsdboolean.
+    DATA table TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA columns TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA cells TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA name TYPE string.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock` v = `true`
             )->a( n = `height`       v = `100%`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc` ).
-    DATA(page) = view->ele( `Shell`
+    
+    
+    temp1 = boolc( client->get( )-check_launchpad_active = abap_false ).
+    page = view->ele( `Shell`
         )->a( n = `appWidthLimited` b = abap_false
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Launchpad - Full Width`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
-            )->a( n = `showHeader`     b = xsdbool( client->get( )-check_launchpad_active = abap_false ) ).
+            )->a( n = `showHeader`     b = temp1 ).
 
     page->tag( `MessageStrip`
         )->a( n = `text`     v = `follow_up_action( cs_event-set_app_full_width ) lets the app take the ` &&
@@ -117,12 +152,16 @@ CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
             )->a( n = `state`  v = client->_bind( full_width )
             )->a( n = `change` v = client->_event( `WIDTH` ) ).
 
-    DATA(table) = page->ele( `Table`
+    
+    table = page->ele( `Table`
         )->a( n = `items` v = client->_bind( rows ) ).
-    DATA(columns) = table->ele( `columns` ).
-    DATA(cells) = table->ele( `items` )->ele( `ColumnListItem` )->ele( `cells` ).
+    
+    columns = table->ele( `columns` ).
+    
+    cells = table->ele( `items` )->ele( `ColumnListItem` )->ele( `cells` ).
     DO 12 TIMES.
-      DATA(name) = |COL{ sy-index WIDTH = 2 ALIGN = RIGHT PAD = `0` }|.
+      
+      name = |COL{ sy-index WIDTH = 2 ALIGN = RIGHT PAD = `0` }|.
       columns->ele( `Column` )->tag( `Text` )->a( n = `text` t = |Column { sy-index }| ).
       cells->tag( `Text` )->a( n = `text` v = |\{{ name }\}| ).
     ENDDO.
@@ -136,9 +175,19 @@ CLASS z2ui5_cl_smps_app_027 IMPLEMENTATION.
 
     " X asks for the full width; without an argument the launchpad's
     " letterbox comes back (an empty argument is never sent at all)
+    DATA temp4 TYPE string_table.
+    DATA temp1 TYPE string_table.
+    CLEAR temp4.
+    INSERT `X` INTO TABLE temp4.
+    
+    IF full_width = abap_true.
+      temp1 = temp4.
+    ELSE.
+      CLEAR temp1.
+    ENDIF.
     client->follow_up_action(
         val   = z2ui5_if_client=>cs_event-set_app_full_width
-        t_arg = COND #( WHEN full_width = abap_true THEN VALUE #( ( `X` ) ) ) ).
+        t_arg = temp1 ).
 
   ENDMETHOD.
 

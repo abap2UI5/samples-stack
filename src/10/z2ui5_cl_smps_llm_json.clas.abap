@@ -98,6 +98,10 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
   METHOD string_escape.
 
     DATA escaped TYPE string.
+    DATA length TYPE i.
+    DATA pos TYPE i.
+    DATA start TYPE i.
+      DATA char TYPE string.
 
     " The backslash goes FIRST - escaping it after the others would escape
     " the backslashes they just introduced. Tab, line feed and carriage
@@ -113,11 +117,15 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
     " illegal raw in a JSON string - the provider answers 400 - and text
     " pasted from a PDF or a spreadsheet does carry form feeds and vertical
     " tabs. JSON writes them \u00XX. A run without one is copied whole.
-    DATA(length) = strlen( result ).
-    DATA(pos)    = 0.
-    DATA(start)  = 0.
+    
+    length = strlen( result ).
+    
+    pos    = 0.
+    
+    start  = 0.
     WHILE pos < length.
-      DATA(char) = substring( val = result off = pos len = 1 ).
+      
+      char = substring( val = result off = pos len = 1 ).
       IF char < ` `.
         escaped = escaped && substring( val = result off = start len = pos - start )
                           && |\\u00{ control_code( char ) }|.
@@ -161,13 +169,23 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
 
     DATA token TYPE string.
 
-    DATA(length) = strlen( json ).
-    DATA(pos)    = 0.
-    DATA(level)  = 1.
+    DATA length TYPE i.
+    DATA pos TYPE i.
+    DATA level TYPE i.
+      DATA char TYPE string.
+      DATA temp3 LIKE sy-subrc.
+      FIELD-SYMBOLS <temp1> LIKE LINE OF path.
+      DATA temp2 LIKE sy-tabix.
+    length = strlen( json ).
+    
+    pos    = 0.
+    
+    level  = 1.
 
     WHILE pos < length.
 
-      DATA(char) = substring( val = json off = pos len = 1 ).
+      
+      char = substring( val = json off = pos len = 1 ).
       pos = pos + 1.
 
       " only a string token can be a key - and reading every string token
@@ -185,7 +203,20 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      IF NOT line_exists( path[ level ] ) OR token <> path[ level ].
+      
+      READ TABLE path INDEX level TRANSPORTING NO FIELDS.
+      temp3 = sy-subrc.
+      
+      
+      IF NOT ( NOT temp3 = 0 ).
+        temp2 = sy-tabix.
+        READ TABLE path INDEX level ASSIGNING <temp1>.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+      ENDIF.
+      IF NOT temp3 = 0 OR token <> <temp1>.
         CONTINUE.
       ENDIF.
 
@@ -211,13 +242,18 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
 
 
   METHOD string_read.
+    DATA length TYPE i.
+      DATA char TYPE string.
+      DATA escaped TYPE string.
 
     CLEAR result.
-    DATA(length) = strlen( json ).
+    
+    length = strlen( json ).
 
     WHILE pos < length.
 
-      DATA(char) = substring( val = json off = pos len = 1 ).
+      
+      char = substring( val = json off = pos len = 1 ).
       pos = pos + 1.
 
       " the closing quote - an escaped one never gets here, the branch
@@ -236,7 +272,8 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
       IF pos >= length.
         RETURN.
       ENDIF.
-      DATA(escaped) = substring( val = json off = pos len = 1 ).
+      
+      escaped = substring( val = json off = pos len = 1 ).
       pos = pos + 1.
 
       CASE escaped.
@@ -266,7 +303,8 @@ CLASS z2ui5_cl_smps_llm_json IMPLEMENTATION.
 
   METHOD blanks_skip.
 
-    DATA(length) = strlen( json ).
+    DATA length TYPE i.
+    length = strlen( json ).
     WHILE pos < length AND substring( val = json off = pos len = 1 ) CA | \t\r\n|.
       pos = pos + 1.
     ENDWHILE.

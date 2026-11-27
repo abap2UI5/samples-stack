@@ -12,7 +12,7 @@ CLASS z2ui5_cl_smps_app_493 DEFINITION PUBLIC.
         supplier TYPE string,
         price    TYPE string,
       END OF ty_s_product.
-    TYPES ty_t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
+    TYPES ty_t_product TYPE STANDARD TABLE OF ty_s_product WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_filter,
@@ -48,13 +48,13 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
 
       mt_result = data_all( ).
       view_display( ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( `SEARCH` ).
+    ELSEIF client->check_on_event( `SEARCH` ) IS NOT INITIAL.
       search( ).
       client->message_toast_display( |{ lines( mt_result ) } products| ).
     ENDIF.
@@ -64,7 +64,12 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA filter TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA tab TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp1 TYPE string_table.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `displayBlock`                 v = `true`
             )->a( n = `height`                       v = `100%`
@@ -73,7 +78,8 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
             )->a( n = `xmlns:fb`                     v = `sap.ui.comp.filterbar`
             )->a( n = `xmlns:smartVariantManagement` v = `sap.ui.comp.smartvariants` ).
 
-    DATA(page) = view->ele( `Shell`
+    
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Smart Controls - Classic FilterBar Variants`
             )->a( n = `showNavButton`  b = client->check_app_prev_stack( )
@@ -104,7 +110,8 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
     " in any other abap2UI5 app. persistencykey is what the variant is
     " stored under - the wiring action below hands it to the variant
     " management as the PersonalizableInfo keyName.
-    DATA(filter) = page->ele( n = `FilterBar` ns = `fb`
+    
+    filter = page->ele( n = `FilterBar` ns = `fb`
         )->a( n = `useToolbar`     b = abap_false
         )->a( n = `search`         v = client->_event( `SEARCH` )
         )->a( n = `id`             v = `filterBar`
@@ -138,7 +145,8 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
             )->tag( `Input`
                 )->a( n = `value` v = client->_bind( ms_filter-supplier ) ).
 
-    DATA(tab) = page->ele( `Table`
+    
+    tab = page->ele( `Table`
         )->a( n = `items`      v = client->_bind( mt_result )
         )->a( n = `headerText` v = `Products` ).
 
@@ -181,8 +189,12 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
     " filter items, so the framework owns it and this app writes no
     " JavaScript. A SmartFilterBar registers itself instead and only needs
     " cs_event-smart_variant_init (sample 478).
+    
+    CLEAR temp1.
+    INSERT `variantMgmt` INTO TABLE temp1.
+    INSERT `filterBar` INTO TABLE temp1.
     client->follow_up_action( val   = client->cs_event-filter_bar_variant_init
-                              t_arg = VALUE #( ( `variantMgmt` ) ( `filterBar` ) ) ).
+                              t_arg = temp1 ).
 
   ENDMETHOD.
 
@@ -192,8 +204,15 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
     " the restored variant values arrived through the binding of the
     " filter controls, so ms_filter is already current here - selecting a
     " variant needs no roundtrip of its own
-    mt_result = VALUE #( ).
-    LOOP AT data_all( ) INTO DATA(ls_row).
+    DATA temp3 TYPE z2ui5_cl_smps_app_493=>ty_t_product.
+    DATA temp4 TYPE z2ui5_cl_smps_app_493=>ty_t_product.
+    DATA ls_row LIKE LINE OF temp4.
+    CLEAR temp3.
+    mt_result = temp3.
+    
+    temp4 = data_all( ).
+    
+    LOOP AT temp4 INTO ls_row.
       IF ms_filter-product IS NOT INITIAL AND ls_row-product NS ms_filter-product.
         CONTINUE.
       ENDIF.
@@ -211,15 +230,51 @@ CLASS z2ui5_cl_smps_app_493 IMPLEMENTATION.
 
   METHOD data_all.
 
-    result = VALUE #(
-        ( product = `Notebook Basic 15`  category = `Notebooks`   supplier = `SAP`         price = `956.00` )
-        ( product = `Notebook Basic 17`  category = `Notebooks`   supplier = `SAP`         price = `1249.00` )
-        ( product = `ITelO Vault`        category = `Storage`     supplier = `ITelO`       price = `299.00` )
-        ( product = `Comfort Easy`       category = `Storage`     supplier = `Technocom`   price = `1679.00` )
-        ( product = `Ergo Screen E-I`    category = `Monitors`    supplier = `Technocom`   price = `230.00` )
-        ( product = `Flat Basic`         category = `Monitors`    supplier = `ITelO`       price = `399.00` )
-        ( product = `Smart Eye Blue`     category = `Monitors`    supplier = `SAP`         price = `499.00` )
-        ( product = `Gladiator MX`       category = `Graphics`    supplier = `Technocom`   price = `89.00` ) ).
+    DATA temp5 TYPE z2ui5_cl_smps_app_493=>ty_t_product.
+    DATA temp6 LIKE LINE OF temp5.
+    CLEAR temp5.
+    
+    temp6-product = `Notebook Basic 15`.
+    temp6-category = `Notebooks`.
+    temp6-supplier = `SAP`.
+    temp6-price = `956.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Notebook Basic 17`.
+    temp6-category = `Notebooks`.
+    temp6-supplier = `SAP`.
+    temp6-price = `1249.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `ITelO Vault`.
+    temp6-category = `Storage`.
+    temp6-supplier = `ITelO`.
+    temp6-price = `299.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Comfort Easy`.
+    temp6-category = `Storage`.
+    temp6-supplier = `Technocom`.
+    temp6-price = `1679.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Ergo Screen E-I`.
+    temp6-category = `Monitors`.
+    temp6-supplier = `Technocom`.
+    temp6-price = `230.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Flat Basic`.
+    temp6-category = `Monitors`.
+    temp6-supplier = `ITelO`.
+    temp6-price = `399.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Smart Eye Blue`.
+    temp6-category = `Monitors`.
+    temp6-supplier = `SAP`.
+    temp6-price = `499.00`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-product = `Gladiator MX`.
+    temp6-category = `Graphics`.
+    temp6-supplier = `Technocom`.
+    temp6-price = `89.00`.
+    INSERT temp6 INTO TABLE temp5.
+    result = temp5.
 
   ENDMETHOD.
 
