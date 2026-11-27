@@ -335,7 +335,9 @@ nothing.
 
 `create-package-branches` runs on pull requests too, everything except the push —
 so a change that would break one of the branches fails while it can still be
-fixed. Adding a package is one entry in `.github/packages.json`; neither the
+fixed. The job that builds and verifies a branch has a read-only token; the
+tree it verified goes as an artifact to `publish`, the one job that may push,
+which runs no npm and never runs for a pull request. Adding a package is one entry in `.github/packages.json`; neither the
 workflow nor the checks have to be touched.
 
 `check-702` downports a copy of the tree and lints it at v702, and

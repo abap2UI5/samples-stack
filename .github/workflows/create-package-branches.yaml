@@ -18,6 +18,11 @@ name: create-package-branches
 # of the other nine - and, for a package whose "Runs on" says Cloud, abaplint
 # in the ABAP Cloud language version as well. On a pull request the whole thing runs except the push,
 # so a change that would break a branch fails while it can still be fixed.
+#
+# The verifying job runs `npm ci` and the code of a pull request, so it holds
+# a read-only token and a checkout without credentials. The tree it verified
+# travels as an artifact to `publish`, the one job with contents: write - it
+# runs nothing but git, and never for a pull request.
 
 on:
   push:
@@ -46,21 +51,27 @@ jobs:
       branches: ${{ steps.read.outputs.branches }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - id: read
       run: echo "branches=$(jq -c '[.[].branch]' .github/packages.json)" >> "$GITHUB_OUTPUT"
 
   branch:
     needs: packages
     permissions:
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         branch: ${{ fromJSON(needs.packages.outputs.branches) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      BRANCH: ${{ matrix.branch }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: '22'
@@ -68,7 +79,7 @@ jobs:
     - run: npm ci
 
     - name: Reduce the tree to one package
-      run: node scripts/build-package-branch.mjs ${{ matrix.branch }}
+      run: node scripts/build-package-branch.mjs "$BRANCH"
 
     # the package alone, at the release it says it needs
     - run: npx abaplint ./abaplint.jsonc
@@ -85,23 +96,73 @@ jobs:
     # release config.
     - name: abaplint in ABAP Cloud language version (cloud-capable packages)
       run: |
-        if jq -e --arg b '${{ matrix.branch }}' \
+        if jq -e --arg b "$BRANCH" \
              '.[] | select(.branch == $b) | .runsOn | test("cloud"; "i")' \
              .github/packages.json > /dev/null; then
           sed -E 's/"version": "[^"]*"/"version": "Cloud"/' abaplint.jsonc > abaplint-cloud.jsonc
           npx abaplint ./abaplint-cloud.jsonc
           rm abaplint-cloud.jsonc
         else
-          echo '${{ matrix.branch }} runs on Standard only - no Cloud run'
+          echo "$BRANCH runs on Standard only - no Cloud run"
         fi
 
     - run: node scripts/check-overview.mjs
 
-    - name: Commit and push
+    # the tree exactly as verified: every file git would commit, nothing
+    # ignored (node_modules, abaplint output)
+    - name: Pack the verified tree
       if: github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack'
       run: |
+        git add -A
+        git ls-files -z | tar --null -T - -czf "$RUNNER_TEMP/tree.tgz"
+    - name: Hand the tree over
+      if: github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: package-branch-${{ matrix.branch }}
+        path: ${{ runner.temp }}/tree.tgz
+        if-no-files-found: error
+        retention-days: 1
+
+  # Pushes each verified tree to its branch. Never for a pull request, and
+  # no npm here: a fresh checkout of the same commit, the tree laid over it,
+  # one commit, the push. A package whose `branch` leg failed handed nothing
+  # over - its branch keeps its previous state and the run stays red there.
+  publish:
+    needs: [packages, branch]
+    if: ${{ !cancelled() && needs.packages.result == 'success' && github.event_name != 'pull_request' && github.repository == 'abap2UI5/samples-stack' }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(needs.packages.outputs.branches) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BRANCH: ${{ matrix.branch }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: The tree the branch job verified
+      id: tree
+      continue-on-error: true
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: package-branch-${{ matrix.branch }}
+        path: ${{ runner.temp }}/tree
+    - name: Commit and push
+      env:
+        TREE: ${{ steps.tree.outcome }}
+      run: |
+        set -euo pipefail
+        if [ "$TREE" != "success" ]; then
+          echo "::warning::$BRANCH was not verified - the branch keeps its previous state"
+          exit 0
+        fi
+        git rm -rq .
+        tar -xzf "$RUNNER_TEMP/tree/tree.tgz"
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         git add -A
-        git diff --staged --quiet || git commit -q -m "Generated from main ${GITHUB_SHA:0:7} - ${{ matrix.branch }} only"
-        git push --force origin HEAD:${{ matrix.branch }}
+        git diff --staged --quiet || git commit -q -m "Generated from main ${GITHUB_SHA:0:7} - $BRANCH only"
+        git push --force origin "HEAD:$BRANCH"
